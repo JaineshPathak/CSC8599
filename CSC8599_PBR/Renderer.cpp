@@ -2,18 +2,47 @@
 #include "../nclgl/Camera.h"
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent)
-{
-	mainCamera = new Camera(-3.0f, 0.0f, 0.0f, Vector3(0, 1.4f, 4.0f));
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	init = true;
+{	
+	init = Initialize();
+	if (!init) return;
 }
 
 Renderer::~Renderer(void)
 {
-	delete mainCamera;
+}
+
+bool Renderer::Initialize()
+{
+	if (!InitCamera()) return false;
+	if (!InitMesh()) return false;
+
+	SetupGLParameters();
+
+	return true;
+}
+
+bool Renderer::InitCamera()
+{
+	m_MainCamera = std::shared_ptr<Camera>(new Camera(Vector3(0, 0, 0), Vector3(0, 0, 0)));
+	return m_MainCamera != nullptr;
+}
+
+bool Renderer::InitMesh()
+{
+	//m_MainCamera = std::shared_ptr<Camera>(new Camera(Vector3(0, 0, 0), Vector3(0, 0, 0)));
+	//return m_MainCamera != nullptr;
+	return true;
+}
+
+bool Renderer::InitShader()
+{
+	return false;
+}
+
+void Renderer::SetupGLParameters()
+{
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 }
 
 void Renderer::RenderScene()
@@ -23,9 +52,10 @@ void Renderer::RenderScene()
 
 void Renderer::UpdateScene(float dt)
 {
-	if (mainCamera)
+	if (m_MainCamera)
 	{
-		mainCamera->UpdateCamera(dt);
-		viewMatrix = mainCamera->BuildViewMatrix();
+		m_MainCamera->UpdateCamera(dt);
+		viewMatrix = m_MainCamera->BuildViewMatrix();
 	}
 }
+ 
