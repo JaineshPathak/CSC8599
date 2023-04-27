@@ -5,8 +5,8 @@
 
 void Camera::UpdateCamera(float dt)
 {
-	//if (ImGui::GetIO().MouseDrawCursor)
-		//return;
+	if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().MouseDrawCursor)
+		return;
 
 	camRotation.x -= (Window::GetMouse()->GetRelativePosition().y) * 2.0f;
 	camRotation.y -= (Window::GetMouse()->GetRelativePosition().x) * 2.0f;

@@ -1,6 +1,5 @@
 #include "Renderer.h"
 #include "../NCLGL/window.h"
-#include "../Third Party/imgui/imgui_internal.h"
 
 int main()
 {

@@ -2,7 +2,7 @@
 #include "..\nclgl\OGLRenderer.h"
 #include <memory>
 
-class Camera;
+class LookAtCamera;
 class Mesh;
 class MeshMaterial;
 
@@ -15,19 +15,29 @@ public:
 protected:
 	bool Initialize();
 	bool InitCamera();
+	bool InitShaders();
 	bool InitMesh();
-	bool InitShader();
+	bool InitTextures();
+	bool InitImGui();
 	void SetupGLParameters();
+
+	void HandleInputs(float dt);
 
 public:
 	void RenderScene() override;
+	void RenderImGui();
 	void UpdateScene(float dt) override;
 
 protected:
-	std::shared_ptr<Camera> m_MainCamera;
+	std::shared_ptr<LookAtCamera> m_MainCamera;
 
 	std::shared_ptr<Shader> m_PBRShader;
 
 	std::shared_ptr<Mesh> m_HelmetMesh;
+	unsigned int m_HelmetTextureAlbedo;
 	std::shared_ptr<MeshMaterial> m_HelmetMeshMaterial;
+
+private:
+	bool m_showCursor;
+	Window& m_windowParent;
 };

@@ -17,6 +17,8 @@ public:
 
 		camFront = Vector3(0.0f, 0.0f, -1.0f);
 		camUp = Vector3(0.0f, 1.0f, 0.0f);
+
+		currentSpeed = 0.0f;
 	}
 
 	Camera(float _pitch, float _yaw, float _roll, Vector3 _position)
@@ -31,6 +33,8 @@ public:
 
 		camFront = Vector3(0.0f, 0.0f, -1.0f);
 		camUp = Vector3(0.0f, 1.0f, 0.0f);
+
+		currentSpeed = 0.0f;
 	}
 
 	Camera(Vector3 _position, Vector3 _rotation)
@@ -42,6 +46,8 @@ public:
 
 		camFront = Vector3(0.0f, 0.0f, -1.0f);
 		camUp = Vector3(0.0f, 1.0f, 0.0f);
+
+		currentSpeed = 0.0f;
 	}
 
 	~Camera(void) {}
@@ -49,8 +55,8 @@ public:
 	float getDefaultSpeed() const { return defaultSpeed; }
 	inline void SetDefaultSpeed(float s) { defaultSpeed = s; }
 
-	void UpdateCamera(float dt = 1.0f);
-	Matrix4 BuildViewMatrix();
+	virtual void UpdateCamera(float dt = 1.0f);
+	virtual Matrix4 BuildViewMatrix();
 
 	Vector3 getPosition() const { return camPosition; }
 	void SetPosition(const Vector3& val) { camPosition = val; }
