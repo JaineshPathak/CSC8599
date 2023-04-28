@@ -34,6 +34,8 @@ bool Renderer::Initialize()
 bool Renderer::InitCamera()
 {
 	m_MainCamera = std::shared_ptr<LookAtCamera>(new LookAtCamera(Vector3(0, 1.0f, 4.0f), Vector3(0, 0, 0)));
+	m_MainCamera->SetLookAtDistance(m_MainCamera->getPosition().z - 0.0f);
+	m_MainCamera->SetLookAtPosition(Vector3(0, 1.0f, 0));
 	return m_MainCamera != nullptr;
 }
 
@@ -119,6 +121,9 @@ void Renderer::UpdateScene(float dt)
 	HandleInputs(dt);
 
 	if (m_MainCamera != nullptr)
-		viewMatrix = Matrix4::BuildViewMatrix(m_MainCamera->getPosition(), Vector3(0, 1.0f, 0));
+	{
+		m_MainCamera->UpdateCamera(dt);
+		viewMatrix = m_MainCamera->BuildViewMatrix();
+	}
 }
  
