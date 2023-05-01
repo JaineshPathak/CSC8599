@@ -3,7 +3,11 @@
 
 int main()
 {
+#if _DEBUG
 	Window w("CSC8599 - PBR", 1280, 720, false);
+#elif NDEBUG
+	Window w("CSC8599 - PBR", 1600, 900, true);
+#endif
 
 	if (!w.HasInitialised()) {
 		return -1;

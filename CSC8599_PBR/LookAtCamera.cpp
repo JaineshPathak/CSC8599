@@ -3,6 +3,24 @@
 #include <nclgl/Window.h>
 #include <imgui/imgui.h>
 
+LookAtCamera::LookAtCamera() :
+	m_lookAtDistance(0.0f), Camera()
+{
+	ImGuiRenderer::Get()->RegisterItem(this);
+}
+
+LookAtCamera::LookAtCamera(float _pitch, float _yaw, float _roll, Vector3 _position) :
+	m_lookAtDistance(0.0f), Camera(_pitch, _yaw, _roll, _position)
+{
+	ImGuiRenderer::Get()->RegisterItem(this);
+}
+
+LookAtCamera::LookAtCamera(Vector3 _position, Vector3 _rotation) :
+	m_lookAtDistance(0.0f), Camera(_position, _rotation)
+{
+	ImGuiRenderer::Get()->RegisterItem(this);
+}
+
 void LookAtCamera::UpdateCamera(float dt)
 {
 	if (ImGui::GetCurrentContext() != nullptr && !ImGui::GetIO().MouseDrawCursor)
@@ -35,4 +53,12 @@ void LookAtCamera::UpdateCamera(float dt)
 Matrix4 LookAtCamera::BuildViewMatrix()
 {
 	return Matrix4::BuildViewMatrix(getPosition(), m_lookAtPos);
+}
+
+void LookAtCamera::OnImGuiRender()
+{
+	if (ImGui::CollapsingHeader("Camera"))
+	{
+
+	}
 }

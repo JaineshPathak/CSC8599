@@ -137,11 +137,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImGuiRenderer.cpp" />
     <ClCompile Include="LookAtCamera.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IImguiItem.h" />
+    <ClInclude Include="ImGuiRenderer.h" />
     <ClInclude Include="LookAtCamera.h" />
     <ClInclude Include="Renderer.h" />
   </ItemGroup>

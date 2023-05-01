@@ -1,30 +1,29 @@
 #include "Renderer.h"
 #include "LookAtCamera.h"
+#include "ImGuiRenderer.h"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_impl_opengl3.h>
-#include <imgui/imgui_impl_win32.h>
+#if _DEBUG
+#include <iostream>
+#endif
+
 
 Renderer::Renderer(Window& parent) : m_windowParent(parent), OGLRenderer(parent)
 {	
 	init = Initialize();
 	if (!init) return;
-}
 
-Renderer::~Renderer(void)
-{
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+#if _DEBUG
+	std::cout << "Main Renderer: Everything is Initialised! Good To Go!" << std::endl;
+#endif
 }
 
 bool Renderer::Initialize()
 {
+	if (!InitImGui())		return false;
 	if (!InitCamera())		return false;
 	if (!InitShaders())		return false;
 	if (!InitMesh())		return false;
 	if (!InitTextures())	return false;
-	if (!InitImGui())		return false;
 
 	SetupGLParameters();
 
@@ -59,14 +58,9 @@ bool Renderer::InitTextures()
 
 bool Renderer::InitImGui()
 {
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(m_windowParent.GetHandle());
-	ImGui_ImplOpenGL3_Init();
+	m_ImGuiRenderer = std::shared_ptr<ImGuiRenderer>(new ImGuiRenderer(m_windowParent));
 
-	return ImGui::GetCurrentContext() != nullptr;
+	return m_ImGuiRenderer->IsInitialised();
 }
 
 void Renderer::SetupGLParameters()
@@ -108,12 +102,10 @@ void Renderer::RenderScene()
 
 void Renderer::RenderImGui()
 {
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
+	if (m_ImGuiRenderer == nullptr)
+		return;
 
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	m_ImGuiRenderer->Render();
 }
 
 void Renderer::UpdateScene(float dt)

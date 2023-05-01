@@ -5,12 +5,13 @@
 class LookAtCamera;
 class Mesh;
 class MeshMaterial;
+class ImGuiRenderer;
 
 class Renderer : public OGLRenderer
 {
 public:
 	Renderer(Window& parent);
-	~Renderer(void);	
+	~Renderer(void) {};
 
 protected:
 	bool Initialize();
@@ -36,6 +37,8 @@ protected:
 	std::shared_ptr<Mesh> m_HelmetMesh;
 	unsigned int m_HelmetTextureAlbedo;
 	std::shared_ptr<MeshMaterial> m_HelmetMeshMaterial;
+
+	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;
 
 private:
 	bool m_showCursor;
