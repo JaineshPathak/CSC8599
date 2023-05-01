@@ -4,9 +4,9 @@
 class LookAtCamera : public Camera
 {
 public:
-	LookAtCamera() : Camera() {};
-	LookAtCamera(float _pitch, float _yaw, float _roll, Vector3 _position) : Camera(_pitch, _yaw, _roll, _position) {}
-	LookAtCamera(Vector3 _position, Vector3 _rotation) : Camera(_position, _rotation) {}
+	LookAtCamera() : m_lookAtDistance(0.0f), Camera() {};
+	LookAtCamera(float _pitch, float _yaw, float _roll, Vector3 _position) : m_lookAtDistance(0.0f), Camera(_pitch, _yaw, _roll, _position) {}
+	LookAtCamera(Vector3 _position, Vector3 _rotation) : m_lookAtDistance(0.0f), Camera(_position, _rotation) {}
 
 	void SetLookAtPosition(const Vector3& _lookPos) { m_lookAtPos = _lookPos; }
 	void SetLookAtDistance(const float& _lookDist) { m_lookAtDistance = _lookDist; }
@@ -15,6 +15,6 @@ public:
 	Matrix4 BuildViewMatrix() override;
 
 protected:
-	float m_lookAtDistance;
+	float m_lookAtDistance;	
 	Vector3 m_lookAtPos;
 };

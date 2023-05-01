@@ -28,7 +28,7 @@ void LookAtCamera::UpdateCamera(float dt)
 	
 		Vector3 lookDirection = finalRotMat * Vector3(0, 0, -1);
 
-		camPosition = m_lookAtPos - lookDirection * m_lookAtDistance;
+		camPosition = m_lookAtPos - lookDirection * m_lookAtDistance;		
 	}
 }
 
