@@ -19,6 +19,7 @@ public:
 	virtual void OnImGuiRender() override;
 
 protected:
-	float m_lookAtDistance;	
+	float m_lookAtDistance;
+	float m_Sensitivity;
 	Vector3 m_lookAtPos;
 };

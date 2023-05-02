@@ -7,7 +7,10 @@ ImGuiRenderer::ImGuiRenderer(Window& parent)
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
 	ImGui::StyleColorsDark();
+
 	ImGui_ImplWin32_Init(parent.GetHandle());
 	ImGui_ImplOpenGL3_Init();
 
@@ -34,8 +37,17 @@ void ImGuiRenderer::Render()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	ImGui::DockSpaceOverViewport();
+	
+	ImGui::Begin("Settings");
 	for (const auto& elem : m_ImGuiItems)
-		elem->OnImGuiRender();
+		elem->OnImGuiRender();	
+	ImGui::End();
+
+	ImGui::Begin("Viewport");
+	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+	ImGui::Image((void*)m_GlobalFrameBuffer->GetColorAttachmentTex(), viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
+	ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

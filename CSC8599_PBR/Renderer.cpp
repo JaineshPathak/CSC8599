@@ -1,25 +1,28 @@
 #include "Renderer.h"
 #include "LookAtCamera.h"
 #include "ImGuiRenderer.h"
+#include <nclgl/FrameBuffer.h>
 
 #if _DEBUG
 #include <iostream>
+#define Log(x) std::cout << x << std::endl
 #endif
 
 
-Renderer::Renderer(Window& parent) : m_windowParent(parent), OGLRenderer(parent)
+Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 {	
 	init = Initialize();
 	if (!init) return;
 
 #if _DEBUG
-	std::cout << "Main Renderer: Everything is Initialised! Good To Go!" << std::endl;
+	Log("Main Renderer: Everything is Initialised! Good To Go!");
 #endif
 }
 
 bool Renderer::Initialize()
 {
 	if (!InitImGui())		return false;
+	if (!InitBuffers())		return false;
 	if (!InitCamera())		return false;
 	if (!InitShaders())		return false;
 	if (!InitMesh())		return false;
@@ -56,10 +59,24 @@ bool Renderer::InitTextures()
 	return m_HelmetTextureAlbedo != 0;
 }
 
+bool Renderer::InitBuffers()
+{
+	float w = m_WindowParent.GetScreenSize().x;
+	float h = m_WindowParent.GetScreenSize().y;
+
+	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(w, h));
+	if (m_GlobalFrameBuffer != nullptr)
+	{
+		ImGuiRenderer::Get()->SetFrameBuffer(m_GlobalFrameBuffer);
+		return true;
+	}
+
+	return false;
+}
+
 bool Renderer::InitImGui()
 {
-	m_ImGuiRenderer = std::shared_ptr<ImGuiRenderer>(new ImGuiRenderer(m_windowParent));
-
+	m_ImGuiRenderer = std::shared_ptr<ImGuiRenderer>(new ImGuiRenderer(m_WindowParent));
 	return m_ImGuiRenderer->IsInitialised();
 }
 
@@ -68,7 +85,9 @@ void Renderer::SetupGLParameters()
 	projMatrix = Matrix4::Perspective(0.01f, 10000.0f, (float)width / (float)height, 45.0f);
 
 	glEnable(GL_DEPTH_TEST);
+
 	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 }
 
 void Renderer::HandleInputs(float dt)
@@ -77,13 +96,14 @@ void Renderer::HandleInputs(float dt)
 	{
 		m_showCursor = !m_showCursor;
 		ImGui::GetIO().MouseDrawCursor = m_showCursor;
-		m_windowParent.LockMouseToWindow(!m_showCursor);
+		m_WindowParent.LockMouseToWindow(!m_showCursor);
 	}
 }
 
 void Renderer::RenderScene()
 {
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	m_GlobalFrameBuffer->Bind();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	BindShader(m_PBRShader.get());
 	BindTexture(m_HelmetTextureAlbedo, 0, "diffuseTex", m_PBRShader.get());
@@ -96,6 +116,8 @@ void Renderer::RenderScene()
 		glBindTexture(GL_TEXTURE_2D, m_HelmetTextureAlbedo);
 		m_HelmetMesh->DrawSubMesh(i);
 	}
+
+	m_GlobalFrameBuffer->Unbind();
 
 	RenderImGui();
 }

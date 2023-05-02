@@ -4,49 +4,50 @@
 #include <imgui/imgui.h>
 
 LookAtCamera::LookAtCamera() :
-	m_lookAtDistance(0.0f), Camera()
+	m_lookAtDistance(0.0f), m_Sensitivity(2.0f), Camera()
 {
 	ImGuiRenderer::Get()->RegisterItem(this);
 }
 
 LookAtCamera::LookAtCamera(float _pitch, float _yaw, float _roll, Vector3 _position) :
-	m_lookAtDistance(0.0f), Camera(_pitch, _yaw, _roll, _position)
+	m_lookAtDistance(0.0f), m_Sensitivity(2.0f), Camera(_pitch, _yaw, _roll, _position)
 {
 	ImGuiRenderer::Get()->RegisterItem(this);
 }
 
 LookAtCamera::LookAtCamera(Vector3 _position, Vector3 _rotation) :
-	m_lookAtDistance(0.0f), Camera(_position, _rotation)
+	m_lookAtDistance(0.0f), m_Sensitivity(2.0f), Camera(_position, _rotation)
 {
 	ImGuiRenderer::Get()->RegisterItem(this);
 }
 
 void LookAtCamera::UpdateCamera(float dt)
 {
-	if (ImGui::GetCurrentContext() != nullptr && !ImGui::GetIO().MouseDrawCursor)
-		return;
+	if (ImGui::GetCurrentContext() == nullptr) return;
+	if (!ImGui::GetIO().MouseDrawCursor) return;
+	//if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered() || ImGui::IsAnyItemFocused()) return;
 
 	if (Window::GetMouse()->ButtonHeld(MouseButtons::MOUSE_LEFT))
 	{
-		camRotation.x -= (Window::GetMouse()->GetRelativePosition().y) * 2.0f;
-		camRotation.y -= (Window::GetMouse()->GetRelativePosition().x) * 2.0f;
+		m_CamRotation.x -= (Window::GetMouse()->GetRelativePosition().y) * m_Sensitivity;
+		m_CamRotation.y -= (Window::GetMouse()->GetRelativePosition().x) * m_Sensitivity;
 
-		camRotation.x = std::min(camRotation.x, 89.0f);
-		camRotation.x = std::max(camRotation.x, -89.0f);
+		m_CamRotation.x = std::min(m_CamRotation.x, 89.0f);
+		m_CamRotation.x = std::max(m_CamRotation.x, -89.0f);
 
-		if (camRotation.y < 0)
-			camRotation.y += 360.0f;
+		if (m_CamRotation.y < 0)
+			m_CamRotation.y += 360.0f;
 
-		if (camRotation.y > 360.0f)
-			camRotation.y -= 360.0f;
+		if (m_CamRotation.y > 360.0f)
+			m_CamRotation.y -= 360.0f;
 
-		Matrix4 yawMat = Matrix4::Rotation(camRotation.y, Vector3(0, 1, 0));
-		Matrix4 pitchMat = Matrix4::Rotation(-camRotation.x, yawMat * Vector3(-1, 0, 0));
+		Matrix4 yawMat = Matrix4::Rotation(m_CamRotation.y, Vector3(0, 1, 0));
+		Matrix4 pitchMat = Matrix4::Rotation(m_CamRotation.x, yawMat * Vector3(1, 0, 0));
 		Matrix4 finalRotMat = pitchMat * yawMat;
 	
 		Vector3 lookDirection = finalRotMat * Vector3(0, 0, -1);
 
-		camPosition = m_lookAtPos - lookDirection * m_lookAtDistance;		
+		m_CamPosition = m_lookAtPos - lookDirection * m_lookAtDistance;
 	}
 }
 
@@ -56,9 +57,11 @@ Matrix4 LookAtCamera::BuildViewMatrix()
 }
 
 void LookAtCamera::OnImGuiRender()
-{
+{	
 	if (ImGui::CollapsingHeader("Camera"))
 	{
-
+		float m_sens = m_Sensitivity;
+		if (ImGui::SliderFloat("Sensitivity", &m_sens, 1.0f, 8.0f)) 
+			m_Sensitivity = m_sens;
 	}
 }

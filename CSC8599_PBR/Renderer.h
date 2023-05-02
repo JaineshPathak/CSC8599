@@ -6,6 +6,7 @@ class LookAtCamera;
 class Mesh;
 class MeshMaterial;
 class ImGuiRenderer;
+class FrameBuffer;
 
 class Renderer : public OGLRenderer
 {
@@ -19,6 +20,7 @@ protected:
 	bool InitShaders();
 	bool InitMesh();
 	bool InitTextures();
+	bool InitBuffers();
 	bool InitImGui();
 	void SetupGLParameters();
 
@@ -38,9 +40,10 @@ protected:
 	unsigned int m_HelmetTextureAlbedo;
 	std::shared_ptr<MeshMaterial> m_HelmetMeshMaterial;
 
+	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;
 
 private:
 	bool m_showCursor;
-	Window& m_windowParent;
+	Window& m_WindowParent;
 };
