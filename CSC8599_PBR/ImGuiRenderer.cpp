@@ -1,4 +1,6 @@
 #include "ImGuiRenderer.h"
+#include "Renderer.h"
+#include "LookAtCamera.h"
 
 ImGuiRenderer* ImGuiRenderer::m_ImGuiRenderer = nullptr;
 
@@ -13,6 +15,9 @@ ImGuiRenderer::ImGuiRenderer(Window& parent)
 
 	ImGui_ImplWin32_Init(parent.GetHandle());
 	ImGui_ImplOpenGL3_Init();
+
+	m_ViewportSize.x = parent.GetScreenSize().x;
+	m_ViewportSize.y = parent.GetScreenSize().y;
 
 	m_ImGuiRenderer = this;
 }
@@ -44,10 +49,20 @@ void ImGuiRenderer::Render()
 		elem->OnImGuiRender();	
 	ImGui::End();
 
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	ImGui::Begin("Viewport");
+	
 	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-	ImGui::Image((void*)m_GlobalFrameBuffer->GetColorAttachmentTex(), viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
+	if (m_ViewportSize.x != viewportPanelSize.x || m_ViewportSize.y != viewportPanelSize.y)
+	{
+		m_ViewportSize = viewportPanelSize;
+		Renderer::Get()->GetGlobalFrameBuffer()->Resize((unsigned int)m_ViewportSize.x, (unsigned int)m_ViewportSize.y);
+		Renderer::Get()->GetMainCamera()->SetAspectRatio(m_ViewportSize.x, m_ViewportSize.y);
+	}
+
+	ImGui::Image((void*)Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex(), viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
+	ImGui::PopStyleVar();
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

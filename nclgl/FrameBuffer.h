@@ -5,19 +5,23 @@
 class FrameBuffer
 {
 public:
-	FrameBuffer(int sizeX, int sizeY);
+	FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY);
 	~FrameBuffer();
 
+protected:
 	void Invalidate();
 
+public:
 	void Bind();
 	void Unbind();
+	void Resize(const unsigned int& new_width, const unsigned int& new_height);
 
-	unsigned int GetColorAttachmentTex() const { return m_ColorAttachmentTex; }
-	unsigned int GetDepthAttachmentTex() const { return m_DepthAttachmentTex; }
+	const unsigned int GetID() const { return m_RendererID; }
+	const unsigned int GetColorAttachmentTex() const { return m_ColorAttachmentTex; }
+	const unsigned int GetDepthAttachmentTex() const { return m_DepthAttachmentTex; }
 
-	const int GetWidth() const { return m_Width; }
-	const int GetHeight() const { return m_Height; }
+	const unsigned int GetWidth() const { return m_Width; }
+	const unsigned int GetHeight() const { return m_Height; }
 
 protected:
 	unsigned int m_RendererID;

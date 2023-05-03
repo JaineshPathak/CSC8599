@@ -7,8 +7,6 @@ class Camera
 public:
 	Camera(void)
 	{
-		//yaw = 0.0f;
-		//pitch = 0.0;
 		m_CamPosition.ToZero();
 
 		m_CamRotation.x = 0.0f;
@@ -19,12 +17,16 @@ public:
 		m_CamUp = Vector3(0.0f, 1.0f, 0.0f);
 
 		m_CurrentSpeed = 0.0f;
+
+		m_FOV = 45.0f;
+		m_AspectRatio = 0.0f;
+
+		m_ZNear = 1.0f;
+		m_ZFar = 1000.0f;
 	}
 
 	Camera(float _pitch, float _yaw, float _roll, Vector3 _position)
 	{
-		//yaw = _yaw;
-		//pitch = _pitch;
 		m_CamPosition = _position;
 
 		m_CamRotation.x = _pitch;
@@ -35,6 +37,11 @@ public:
 		m_CamUp = Vector3(0.0f, 1.0f, 0.0f);
 
 		m_CurrentSpeed = 0.0f;
+		m_FOV = 45.0f;
+		m_AspectRatio = 0.0f;
+
+		m_ZNear = 1.0f;
+		m_ZFar = 1000.0f;
 	}
 
 	Camera(Vector3 _position, Vector3 _rotation)
@@ -48,6 +55,11 @@ public:
 		m_CamUp = Vector3(0.0f, 1.0f, 0.0f);
 
 		m_CurrentSpeed = 0.0f;
+		m_FOV = 45.0f;
+		m_AspectRatio = 0.0f;
+
+		m_ZNear = 1.0f;
+		m_ZFar = 1000.0f;
 	}
 
 	~Camera(void) {}
@@ -56,7 +68,12 @@ public:
 	inline void SetDefaultSpeed(float s) { m_DefaultSpeed = s; }
 
 	virtual void UpdateCamera(float dt = 1.0f);
-	virtual Matrix4 BuildViewMatrix();
+	
+	virtual Matrix4 CalcViewMatrix();
+	virtual Matrix4 GetViewMatrix() const { return m_CamViewMat; }
+
+	virtual void CalcProjectionMatrix();
+	virtual Matrix4 GetProjectionMatrix() const { return m_CamProjMat; }
 
 	Vector3 getPosition() const { return m_CamPosition; }
 	void SetPosition(const Vector3& val) { m_CamPosition = val; }
@@ -73,12 +90,27 @@ public:
 	float GetRoll() const { return m_CamRotation.z; }
 	void SetRoll(float val) { m_CamRotation.z = val; }
 
+	float GetZNear() const { return m_ZNear; }
+	void SetZNear(const float& newZ) { m_ZNear = newZ; CalcProjectionMatrix(); }
+
+	float GetZFar() const { return m_ZFar; }
+	void SetZFar(const float& newZ) { m_ZFar = newZ; CalcProjectionMatrix(); }
+
+	float GetFOV() const { return m_FOV; }
+	void SetFOV(const float& newFOV) { m_FOV = newFOV; CalcProjectionMatrix(); }
+
+	float GetAspectRatio() const { return m_AspectRatio; }
+	void SetAspectRatio(const float& width, const float& height) { m_AspectRatio = width / height; CalcProjectionMatrix(); }
 
 protected:
-	//float pitch;
-	//float yaw;
 	float m_CurrentSpeed;
 	float m_DefaultSpeed = 30.0f;
+
+	float m_ZNear;
+	float m_ZFar;
+
+	float m_FOV;
+	float m_AspectRatio;
 
 	Vector3 m_CamPosition;
 	Vector3 m_CamRotation;
@@ -87,5 +119,6 @@ protected:
 	Vector3 m_CamUp;
 	Vector3 m_CamRight;
 
+	Matrix4 m_CamProjMat;
 	Matrix4 m_CamViewMat;
 };

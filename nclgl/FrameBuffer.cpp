@@ -1,7 +1,7 @@
 #include "FrameBuffer.h"
 #include <iostream>
 
-FrameBuffer::FrameBuffer(int sizeX, int sizeY) : 
+FrameBuffer::FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY) :
 	m_Width(sizeX), m_Height(sizeY)
 {
 	Invalidate();
@@ -48,9 +48,18 @@ void FrameBuffer::Invalidate()
 void FrameBuffer::Bind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+	glViewport(0, 0, m_Width, m_Height);
 }
 
 void FrameBuffer::Unbind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void FrameBuffer::Resize(const unsigned int& new_width, const unsigned int& new_height)
+{
+	m_Width = new_width;
+	m_Height = new_height;	
+	
+	Invalidate();
 }

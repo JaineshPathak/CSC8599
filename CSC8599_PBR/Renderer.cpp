@@ -8,6 +8,7 @@
 #define Log(x) std::cout << x << std::endl
 #endif
 
+Renderer* Renderer::m_Renderer = nullptr;
 
 Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 {	
@@ -17,6 +18,8 @@ Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 #if _DEBUG
 	Log("Main Renderer: Everything is Initialised! Good To Go!");
 #endif
+
+	m_Renderer = this;
 }
 
 bool Renderer::Initialize()
@@ -65,13 +68,7 @@ bool Renderer::InitBuffers()
 	float h = m_WindowParent.GetScreenSize().y;
 
 	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(w, h));
-	if (m_GlobalFrameBuffer != nullptr)
-	{
-		ImGuiRenderer::Get()->SetFrameBuffer(m_GlobalFrameBuffer);
-		return true;
-	}
-
-	return false;
+	return m_GlobalFrameBuffer != nullptr;
 }
 
 bool Renderer::InitImGui()
@@ -82,7 +79,8 @@ bool Renderer::InitImGui()
 
 void Renderer::SetupGLParameters()
 {
-	projMatrix = Matrix4::Perspective(0.01f, 10000.0f, (float)width / (float)height, 45.0f);
+	m_MainCamera->SetAspectRatio((float)width, (float)height);
+	projMatrix = m_MainCamera->GetProjectionMatrix();
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -105,18 +103,23 @@ void Renderer::RenderScene()
 	m_GlobalFrameBuffer->Bind();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	BindShader(m_PBRShader.get());
+	/*BindShader(m_PBRShader.get());
 	BindTexture(m_HelmetTextureAlbedo, 0, "diffuseTex", m_PBRShader.get());
 
-	UpdateShaderMatrices();
+	viewMatrix = m_MainCamera->GetViewMatrix();
+	projMatrix = m_MainCamera->GetProjectionMatrix();
+	UpdateShaderMatrices();*/
+
+	m_PBRShader->Bind();
+
+	m_PBRShader->SetTexture("diffuseTex", 0, m_HelmetTextureAlbedo);
+	m_PBRShader->SetMat4("modelMatrix", modelMatrix);
+	m_PBRShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
+	m_PBRShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
 
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_HelmetTextureAlbedo);
 		m_HelmetMesh->DrawSubMesh(i);
-	}
-
+	
 	m_GlobalFrameBuffer->Unbind();
 
 	RenderImGui();
@@ -137,7 +140,7 @@ void Renderer::UpdateScene(float dt)
 	if (m_MainCamera != nullptr)
 	{
 		m_MainCamera->UpdateCamera(dt);
-		viewMatrix = m_MainCamera->BuildViewMatrix();
+		m_MainCamera->CalcViewMatrix();
 	}
 }
  

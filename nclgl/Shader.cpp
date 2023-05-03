@@ -60,6 +60,70 @@ void	Shader::Reload(bool deleteOld) {
 	PrintLinkLog(programID);
 }
 
+int Shader::GetUniformLocation(const std::string& name)
+{
+	if (m_UniformsCache.find(name) != m_UniformsCache.end())
+		return m_UniformsCache[name];
+
+	int uniformID = glGetUniformLocation(programID, name.c_str());
+	if (uniformID < 0)
+	{
+		std::cout << "---------------------------------------------------------------------------------------------------------------------" << std::endl;
+		std::cout << "SHADER ERROR: Cannot Find Such Uniform name! Uniform Name: " << name << ", Program ID: " << programID << std::endl;
+		PrintFileNames();
+		std::cout << "---------------------------------------------------------------------------------------------------------------------" << std::endl;
+		return uniformID;
+	}
+
+	m_UniformsCache[name] = uniformID;
+	return uniformID;
+}
+
+void Shader::SetInt(const string& name, const int& val)
+{
+	int uniformID = GetUniformLocation(name);
+	glUniform1i(uniformID, val);
+}
+
+void Shader::SetFloat(const string& name, const float& val)
+{
+	int uniformID = GetUniformLocation(name);
+	glUniform1f(uniformID, val);
+}
+
+void Shader::SetMat4(const string& name, const Matrix4& val)
+{
+	int uniformID = GetUniformLocation(name);
+	glUniformMatrix4fv(uniformID, 1, false, val.values);
+}
+
+void Shader::SetVector2(const string& name, const Vector2& val)
+{
+	int uniformID = GetUniformLocation(name);
+	glUniform2fv(uniformID, 1, (float*)&val);
+}
+
+void Shader::SetVector3(const string& name, const Vector3& val)
+{
+	int uniformID = GetUniformLocation(name);
+	glUniform3fv(uniformID, 1, (float*)&val);
+}
+
+void Shader::SetVector4(const string& name, const Vector4& val)
+{
+	int uniformID = GetUniformLocation(name);
+	glUniform4fv(uniformID, 1, (float*)&val);
+}
+
+void Shader::SetTexture(const std::string& name, const int& texID, const unsigned int& texUnit)
+{
+	int uniformID = glGetUniformLocation(programID, name.c_str());
+	glActiveTexture(GL_TEXTURE0 + texUnit);
+	glBindTexture(GL_TEXTURE_2D, texID);
+
+	glUniform1i(uniformID, texUnit);
+}
+
 bool	Shader::LoadShaderFile(const string& filename, string &into)	{
 	ifstream	file(SHADERDIR + filename);
 	string		textLine;
@@ -118,6 +182,13 @@ void Shader::LinkProgram()	{
 	glGetProgramiv(programID, GL_LINK_STATUS, &programValid);
 }
 
+void Shader::PrintFileNames()
+{
+	std::cout << ShaderNames[SHADER_VERTEX] << " : " << shaderFiles[SHADER_VERTEX] << std::endl;
+	std::cout << ShaderNames[SHADER_FRAGMENT] << " : " << shaderFiles[SHADER_FRAGMENT] << std::endl;
+	std::cout << ShaderNames[SHADER_GEOMETRY] << " : " << shaderFiles[SHADER_GEOMETRY] << std::endl;
+}
+
 void	Shader::SetDefaultAttributes()	{
 	glBindAttribLocation(programID, VERTEX_BUFFER,  "position");
 	glBindAttribLocation(programID, COLOUR_BUFFER,  "colour");
@@ -164,6 +235,16 @@ void	Shader::PrintLinkLog(GLuint program) {
 		std::cout << "Link Log:\n" << tempData << std::endl;
 		delete[] tempData;
 	}
+}
+
+void Shader::Bind()
+{
+	glUseProgram(programID);
+}
+
+void Shader::UnBind()
+{
+	glUseProgram(0);
 }
 
 void Shader::ReloadAllShaders() {

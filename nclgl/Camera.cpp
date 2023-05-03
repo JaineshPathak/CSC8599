@@ -41,9 +41,15 @@ void Camera::UpdateCamera(float dt)
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_CONTROL))	m_CamPosition.y -= m_CurrentSpeed;	
 }
 
-Matrix4 Camera::BuildViewMatrix()
+Matrix4 Camera::CalcViewMatrix()
 {
-	return Matrix4::Rotation(-m_CamRotation.x, Vector3(1, 0, 0)) * Matrix4::Rotation(-m_CamRotation.y, Vector3(0, 1, 0)) * Matrix4::Translation(-m_CamPosition);
+	m_CamViewMat = Matrix4::Rotation(-m_CamRotation.x, Vector3(1, 0, 0)) * Matrix4::Rotation(-m_CamRotation.y, Vector3(0, 1, 0)) * Matrix4::Translation(-m_CamPosition);
+	return m_CamViewMat;
 	//return Matrix4::Rotation(-camRotation.x, Vector3(1, 0, 0)) * Matrix4::Rotation(-camRotation.y, Vector3(0, 1, 0)) * camViewMat;
 	//return camViewMat;
+}
+
+void Camera::CalcProjectionMatrix()
+{
+	m_CamProjMat = Matrix4::Perspective(m_ZNear, m_ZFar, m_AspectRatio, m_FOV);
 }

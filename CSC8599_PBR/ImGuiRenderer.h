@@ -24,10 +24,9 @@ public:
 
 	void RegisterItem(IImguiItem* _newItem);
 
-	void SetFrameBuffer(std::shared_ptr<FrameBuffer> _frameBuffer) { m_GlobalFrameBuffer = _frameBuffer; }
-
 protected:
 	static ImGuiRenderer* m_ImGuiRenderer;
-	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
 	std::unordered_set<IImguiItem*> m_ImGuiItems;
+
+	ImVec2 m_ViewportSize;
 };

@@ -14,6 +14,11 @@ public:
 	Renderer(Window& parent);
 	~Renderer(void) {};
 
+	static Renderer* Get() { return m_Renderer; }
+
+	std::shared_ptr<LookAtCamera> GetMainCamera() { return m_MainCamera; }
+	std::shared_ptr<FrameBuffer> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
+
 protected:
 	bool Initialize();
 	bool InitCamera();
@@ -32,6 +37,8 @@ public:
 	void UpdateScene(float dt) override;
 
 protected:
+	static Renderer* m_Renderer;
+
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 
 	std::shared_ptr<Shader> m_PBRShader;

@@ -14,7 +14,7 @@ public:
 	void SetLookAtDistance(const float& _lookDist) { m_lookAtDistance = _lookDist; }
 
 	void UpdateCamera(float dt = 1.0f) override;
-	Matrix4 BuildViewMatrix() override;
+	Matrix4 CalcViewMatrix() override;
 
 	virtual void OnImGuiRender() override;
 
