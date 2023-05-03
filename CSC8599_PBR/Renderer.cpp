@@ -120,6 +120,7 @@ void Renderer::RenderScene()
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
 		m_HelmetMesh->DrawSubMesh(i);
 	
+	m_PBRShader->UnBind();
 	m_GlobalFrameBuffer->Unbind();
 
 	RenderImGui();

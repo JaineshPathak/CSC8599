@@ -117,7 +117,7 @@ void Shader::SetVector4(const string& name, const Vector4& val)
 
 void Shader::SetTexture(const std::string& name, const int& texID, const unsigned int& texUnit)
 {
-	int uniformID = glGetUniformLocation(programID, name.c_str());
+	int uniformID = GetUniformLocation(name);
 	glActiveTexture(GL_TEXTURE0 + texUnit);
 	glBindTexture(GL_TEXTURE_2D, texID);
 
