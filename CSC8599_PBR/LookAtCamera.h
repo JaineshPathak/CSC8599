@@ -22,4 +22,7 @@ protected:
 	float m_lookAtDistance;
 	float m_Sensitivity;
 	Vector3 m_lookAtPos;
+
+	int m_CameraMovementType;
+	const char* m_CameraMovementTypeStr[2] { "Focused", "Free" };
 };

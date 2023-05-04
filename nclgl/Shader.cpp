@@ -72,9 +72,11 @@ int Shader::GetUniformLocation(const std::string& name)
 		std::cout << "SHADER ERROR: Cannot Find Such Uniform name! Uniform Name: " << name << ", Program ID: " << programID << std::endl;
 		PrintFileNames();
 		std::cout << "---------------------------------------------------------------------------------------------------------------------" << std::endl;
+		abort();
 		return uniformID;
 	}
 
+	//std::cout << "Uniform added to Cache: " << name << ", ID: " << uniformID << ", Program ID : " << programID << std::endl;
 	m_UniformsCache[name] = uniformID;
 	return uniformID;
 }
@@ -115,13 +117,13 @@ void Shader::SetVector4(const string& name, const Vector4& val)
 	glUniform4fv(uniformID, 1, (float*)&val);
 }
 
-void Shader::SetTexture(const std::string& name, const int& texID, const unsigned int& texUnit)
+void Shader::SetTexture(const std::string& name, const unsigned int& texID, const int& texSlot)
 {
 	int uniformID = GetUniformLocation(name);
-	glActiveTexture(GL_TEXTURE0 + texUnit);
+	glActiveTexture(GL_TEXTURE0 + texSlot);
 	glBindTexture(GL_TEXTURE_2D, texID);
 
-	glUniform1i(uniformID, texUnit);
+	glUniform1i(uniformID, texSlot);
 }
 
 bool	Shader::LoadShaderFile(const string& filename, string &into)	{

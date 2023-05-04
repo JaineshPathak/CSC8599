@@ -48,7 +48,7 @@ public:
 	void SetVector2(const std::string& name, const Vector2& val);
 	void SetVector3(const std::string& name, const Vector3& val);
 	void SetVector4(const std::string& name, const Vector4& val);
-	void SetTexture(const std::string& name, const int& texID, const unsigned int& texUnit);
+	void SetTexture(const std::string& name, const unsigned int& texID, const int& texSlot);
 
 	void Bind();
 	void UnBind();

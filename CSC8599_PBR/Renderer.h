@@ -31,6 +31,9 @@ protected:
 
 	void HandleInputs(float dt);
 
+	void RenderCubeMap();
+	void RenderHelmet();
+
 public:
 	void RenderScene() override;
 	void RenderImGui();
@@ -42,10 +45,14 @@ protected:
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 
 	std::shared_ptr<Shader> m_PBRShader;
+	std::shared_ptr<Shader> m_CubeMapShader;
 
+	std::shared_ptr<Mesh> m_QuadMesh;
 	std::shared_ptr<Mesh> m_HelmetMesh;
-	unsigned int m_HelmetTextureAlbedo;
 	std::shared_ptr<MeshMaterial> m_HelmetMeshMaterial;
+
+	unsigned int m_HelmetTextureAlbedo;
+	unsigned int m_CubeMap;
 
 	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;

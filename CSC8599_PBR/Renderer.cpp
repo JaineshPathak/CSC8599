@@ -47,19 +47,37 @@ bool Renderer::InitCamera()
 bool Renderer::InitShaders()
 {
 	m_PBRShader = std::shared_ptr<Shader>(new Shader("TexturedVertex.glsl", "TexturedFragment.glsl"));
-	return m_PBRShader->LoadSuccess();
+	if (!m_PBRShader->LoadSuccess()) return false;
+
+	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("skyboxVertex.glsl", "skyboxFragment.glsl"));
+	if (!m_CubeMapShader->LoadSuccess()) return false;
+
+	return true;
 }
 
 bool Renderer::InitMesh()
 {
 	m_HelmetMesh = std::shared_ptr<Mesh>(Mesh::LoadFromMeshFile("Mesh_SciFi_Helmet.msh"));
-	return m_HelmetMesh != nullptr;
+	if(m_HelmetMesh == nullptr) return false;
+
+	m_QuadMesh = std::shared_ptr<Mesh>(Mesh::GenerateQuad());
+	if (m_QuadMesh == nullptr) return false;
+
+	return true;
 }
 
 bool Renderer::InitTextures()
 {
 	m_HelmetTextureAlbedo = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	return m_HelmetTextureAlbedo != 0;
+	if (m_HelmetTextureAlbedo == 0) return false;
+
+	m_CubeMap = SOIL_load_OGL_cubemap(
+		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
+		TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
+		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
+		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
+	if (m_CubeMap == 0) return false;
+	return true;
 }
 
 bool Renderer::InitBuffers()
@@ -86,6 +104,8 @@ void Renderer::SetupGLParameters()
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 void Renderer::HandleInputs(float dt)
@@ -98,29 +118,44 @@ void Renderer::HandleInputs(float dt)
 	}
 }
 
-void Renderer::RenderScene()
+void Renderer::RenderCubeMap()
 {
-	m_GlobalFrameBuffer->Bind();
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glDepthMask(GL_FALSE);
 
-	/*BindShader(m_PBRShader.get());
-	BindTexture(m_HelmetTextureAlbedo, 0, "diffuseTex", m_PBRShader.get());
+	m_CubeMapShader->Bind();
+	m_CubeMapShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
+	m_CubeMapShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
 
-	viewMatrix = m_MainCamera->GetViewMatrix();
-	projMatrix = m_MainCamera->GetProjectionMatrix();
-	UpdateShaderMatrices();*/
+	m_QuadMesh->Draw();
 
+	m_CubeMapShader->UnBind();
+
+	glDepthMask(GL_TRUE);
+}
+
+void Renderer::RenderHelmet()
+{
 	m_PBRShader->Bind();
 
-	m_PBRShader->SetTexture("diffuseTex", 0, m_HelmetTextureAlbedo);
+	m_PBRShader->SetTexture("diffuseTex", m_HelmetTextureAlbedo, 0);
 	m_PBRShader->SetMat4("modelMatrix", modelMatrix);
 	m_PBRShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
 	m_PBRShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
 
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
 		m_HelmetMesh->DrawSubMesh(i);
-	
+
 	m_PBRShader->UnBind();
+}
+
+void Renderer::RenderScene()
+{
+	m_GlobalFrameBuffer->Bind();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	RenderCubeMap();
+	RenderHelmet();
+		
 	m_GlobalFrameBuffer->Unbind();
 
 	RenderImGui();

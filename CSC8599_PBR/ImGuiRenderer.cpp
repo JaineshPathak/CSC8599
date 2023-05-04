@@ -42,6 +42,8 @@ void ImGuiRenderer::Render()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	//ImGui::ShowDemoWindow();
+
 	ImGui::DockSpaceOverViewport();
 	
 	ImGui::Begin("Settings");
