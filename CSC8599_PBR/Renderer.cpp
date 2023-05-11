@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "LookAtCamera.h"
 #include "ImGuiRenderer.h"
+#include <nclgl/Light.h>
 #include <nclgl/FrameBuffer.h>
 
 #if _DEBUG
@@ -28,12 +29,28 @@ bool Renderer::Initialize()
 	if (!InitBuffers())		return false;
 	if (!InitCamera())		return false;
 	if (!InitShaders())		return false;
+	if (!InitLights())		return false;
 	if (!InitMesh())		return false;
 	if (!InitTextures())	return false;
 
 	SetupGLParameters();
 
 	return true;
+}
+
+bool Renderer::InitImGui()
+{
+	m_ImGuiRenderer = std::shared_ptr<ImGuiRenderer>(new ImGuiRenderer(m_WindowParent));
+	return m_ImGuiRenderer->IsInitialised();
+}
+
+bool Renderer::InitBuffers()
+{
+	float w = m_WindowParent.GetScreenSize().x;
+	float h = m_WindowParent.GetScreenSize().y;
+
+	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(w, h));
+	return m_GlobalFrameBuffer != nullptr;
 }
 
 bool Renderer::InitCamera()
@@ -46,13 +63,19 @@ bool Renderer::InitCamera()
 
 bool Renderer::InitShaders()
 {
-	m_PBRShader = std::shared_ptr<Shader>(new Shader("TexturedVertex.glsl", "TexturedFragment.glsl"));
+	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
 	if (!m_PBRShader->LoadSuccess()) return false;
 
 	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("skyboxVertex.glsl", "skyboxFragment.glsl"));
 	if (!m_CubeMapShader->LoadSuccess()) return false;
 
 	return true;
+}
+
+bool Renderer::InitLights()
+{
+	m_PointLight = std::shared_ptr<Light>(new Light(Vector3(0.0f, 1.0f, 4.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f), 2.0f));
+	return m_PointLight != nullptr;
 }
 
 bool Renderer::InitMesh()
@@ -78,21 +101,6 @@ bool Renderer::InitTextures()
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 	if (m_CubeMap == 0) return false;
 	return true;
-}
-
-bool Renderer::InitBuffers()
-{
-	float w = m_WindowParent.GetScreenSize().x;
-	float h = m_WindowParent.GetScreenSize().y;
-
-	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(w, h));
-	return m_GlobalFrameBuffer != nullptr;
-}
-
-bool Renderer::InitImGui()
-{
-	m_ImGuiRenderer = std::shared_ptr<ImGuiRenderer>(new ImGuiRenderer(m_WindowParent));
-	return m_ImGuiRenderer->IsInitialised();
 }
 
 void Renderer::SetupGLParameters()
@@ -138,6 +146,10 @@ void Renderer::RenderHelmet()
 	m_PBRShader->Bind();
 
 	m_PBRShader->SetTexture("diffuseTex", m_HelmetTextureAlbedo, 0);
+
+	m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());
+	m_PBRShader->SetVector4("lightColor", m_PointLight->GetColour());
+	
 	m_PBRShader->SetMat4("modelMatrix", modelMatrix);
 	m_PBRShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
 	m_PBRShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());

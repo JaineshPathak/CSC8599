@@ -1,5 +1,6 @@
 #pragma once
 #include "..\nclgl\OGLRenderer.h"
+#include <vector>
 #include <memory>
 
 class LookAtCamera;
@@ -7,6 +8,7 @@ class Mesh;
 class MeshMaterial;
 class ImGuiRenderer;
 class FrameBuffer;
+class Light;
 
 class Renderer : public OGLRenderer
 {
@@ -21,12 +23,13 @@ public:
 
 protected:
 	bool Initialize();
+	bool InitImGui();
+	bool InitBuffers();
 	bool InitCamera();
 	bool InitShaders();
+	bool InitLights();
 	bool InitMesh();
 	bool InitTextures();
-	bool InitBuffers();
-	bool InitImGui();
 	void SetupGLParameters();
 
 	void HandleInputs(float dt);
@@ -41,6 +44,7 @@ public:
 
 protected:
 	static Renderer* m_Renderer;
+	static std::vector <std::shared_ptr<Light>> m_Lights;
 
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 
@@ -50,6 +54,8 @@ protected:
 	std::shared_ptr<Mesh> m_QuadMesh;
 	std::shared_ptr<Mesh> m_HelmetMesh;
 	std::shared_ptr<MeshMaterial> m_HelmetMeshMaterial;
+
+	std::shared_ptr<Light> m_PointLight;
 
 	unsigned int m_HelmetTextureAlbedo;
 	unsigned int m_CubeMap;

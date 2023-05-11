@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Vector4.h"
 #include "Vector3.h"
+#include "Vector4.h"
 
 enum LIGHT_TYPE
 {
@@ -12,9 +12,10 @@ enum LIGHT_TYPE
 class Light
 {
 public:
-	Light() {}
+	Light() = delete;
 	Light(const Vector3& position, const Vector4& colour, float radius)
 	{
+		this->lightType = LIGHT_TYPE::TYPE_POINTLIGHT;
 		this->position = position;
 		this->colour = colour;
 		this->specularColour = Vector4();
@@ -23,6 +24,7 @@ public:
 
 	Light(const Vector3& position, const Vector4& colour, const Vector4& specularColour, float radius)
 	{
+		this->lightType = LIGHT_TYPE::TYPE_POINTLIGHT;
 		this->position = position;
 		this->colour = colour;
 		this->specularColour = specularColour;
@@ -47,7 +49,7 @@ public:
 	void SetIntensity(float val) { intensity = val; }
 
 protected:
-	LIGHT_TYPE lightType = TYPE_POINTLIGHT;
+	LIGHT_TYPE lightType;
 	Vector3 position;
 	Vector4 colour;
 	Vector4 specularColour;

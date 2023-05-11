@@ -45,5 +45,7 @@
   <ItemGroup>
     <None Include="..\Shaders\TexturedFragment.glsl" />
     <None Include="..\Shaders\TexturedVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedVertex.glsl" />
   </ItemGroup>
 </Project>
