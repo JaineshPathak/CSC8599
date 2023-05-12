@@ -55,7 +55,7 @@ bool Renderer::InitBuffers()
 
 bool Renderer::InitCamera()
 {
-	m_MainCamera = std::shared_ptr<LookAtCamera>(new LookAtCamera(Vector3(0, 1.0f, 4.0f), Vector3(0, 0, 0)));
+	m_MainCamera = std::shared_ptr<LookAtCamera>(new LookAtCamera(Vector3(0, 1.0f, 3.0f), Vector3(0, 0, 0)));
 	m_MainCamera->SetLookAtDistance(m_MainCamera->getPosition().z - 0.0f);
 	m_MainCamera->SetLookAtPosition(Vector3(0, 1.0f, 0));
 	return m_MainCamera != nullptr;
@@ -66,6 +66,9 @@ bool Renderer::InitShaders()
 	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
 	if (!m_PBRShader->LoadSuccess()) return false;
 
+	m_PBRBillboardShader = std::shared_ptr<Shader>(new Shader("PBR/PBRBillboardVertex.glsl", "PBR/PBRBillboardFragment.glsl"));
+	if (!m_PBRBillboardShader->LoadSuccess()) return false;
+
 	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("skyboxVertex.glsl", "skyboxFragment.glsl"));
 	if (!m_CubeMapShader->LoadSuccess()) return false;
 
@@ -74,7 +77,7 @@ bool Renderer::InitShaders()
 
 bool Renderer::InitLights()
 {
-	m_PointLight = std::shared_ptr<Light>(new Light(Vector3(0.0f, 1.0f, 4.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f), 2.0f));
+	m_PointLight = std::shared_ptr<Light>(new Light(Vector3(0.0f, 1.0f, 4.0f), Vector4(1.0f, 1.0f, 1.0f, 1.0f), 2.0f));
 	return m_PointLight != nullptr;
 }
 
@@ -94,12 +97,16 @@ bool Renderer::InitTextures()
 	m_HelmetTextureAlbedo = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 	if (m_HelmetTextureAlbedo == 0) return false;
 
-	m_CubeMap = SOIL_load_OGL_cubemap(
+	m_CubeMapTexture = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
 		TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
 		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
-	if (m_CubeMap == 0) return false;
+	if (m_CubeMapTexture == 0) return false;
+
+	m_LightIconTexture = SOIL_load_OGL_texture(TEXTUREDIR"Icons/Icon_Light.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	if (m_LightIconTexture == 0) return false;
+
 	return true;
 }
 
@@ -112,6 +119,9 @@ void Renderer::SetupGLParameters()
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
@@ -145,8 +155,9 @@ void Renderer::RenderHelmet()
 {
 	m_PBRShader->Bind();
 
-	m_PBRShader->SetTexture("diffuseTex", m_HelmetTextureAlbedo, 0);
+	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
 
+	m_PBRShader->SetVector3("cameraPos", m_MainCamera->getPosition());
 	m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());
 	m_PBRShader->SetVector4("lightColor", m_PointLight->GetColour());
 	
@@ -160,6 +171,22 @@ void Renderer::RenderHelmet()
 	m_PBRShader->UnBind();
 }
 
+void Renderer::RenderBillboards()
+{
+	m_PBRBillboardShader->Bind();
+	m_PBRBillboardShader->SetTexture("mainTex", m_LightIconTexture, 0);
+	m_PBRBillboardShader->SetVector4("mainColor", m_PointLight->GetColour());
+
+	Matrix4 mat = Matrix4::Translation(m_PointLight->GetPosition()) * Matrix4::Scale(0.00001f);
+	m_PBRBillboardShader->SetMat4("modelMatrix", mat);
+	m_PBRBillboardShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
+	m_PBRBillboardShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
+
+	m_QuadMesh->Draw();
+
+	m_PBRBillboardShader->UnBind();
+}
+
 void Renderer::RenderScene()
 {
 	m_GlobalFrameBuffer->Bind();
@@ -167,6 +194,7 @@ void Renderer::RenderScene()
 
 	RenderCubeMap();
 	RenderHelmet();
+	RenderBillboards();
 		
 	m_GlobalFrameBuffer->Unbind();
 

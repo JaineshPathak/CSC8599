@@ -36,6 +36,7 @@ protected:
 
 	void RenderCubeMap();
 	void RenderHelmet();
+	void RenderBillboards();
 
 public:
 	void RenderScene() override;
@@ -49,6 +50,7 @@ protected:
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 
 	std::shared_ptr<Shader> m_PBRShader;
+	std::shared_ptr<Shader> m_PBRBillboardShader;
 	std::shared_ptr<Shader> m_CubeMapShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
@@ -58,7 +60,8 @@ protected:
 	std::shared_ptr<Light> m_PointLight;
 
 	unsigned int m_HelmetTextureAlbedo;
-	unsigned int m_CubeMap;
+	unsigned int m_CubeMapTexture;
+	unsigned int m_LightIconTexture;
 
 	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;

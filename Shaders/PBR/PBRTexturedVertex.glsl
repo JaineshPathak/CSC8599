@@ -24,6 +24,6 @@ void main(void)
 
 	//OUT.texCoord = (textureMatrix * vec4(texCoord , 0.0, 1.0)).xy;
 	OUT.texCoord = texCoord;
-	OUT.normal = normal;
+	OUT.normal = mat3(transpose(inverse(modelMatrix))) * normal;
 	OUT.fragWorldPos = vec3(modelMatrix * vec4(position, 1.0));
 }
