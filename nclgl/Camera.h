@@ -64,7 +64,7 @@ public:
 
 	~Camera(void) {}
 
-	float getDefaultSpeed() const { return m_DefaultSpeed; }
+	float GetDefaultSpeed() const { return m_DefaultSpeed; }
 	inline void SetDefaultSpeed(float s) { m_DefaultSpeed = s; }
 
 	virtual void UpdateCamera(float dt = 1.0f);
@@ -75,11 +75,15 @@ public:
 	virtual void CalcProjectionMatrix();
 	virtual Matrix4 GetProjectionMatrix() const { return m_CamProjMat; }
 
-	Vector3 getPosition() const { return m_CamPosition; }
+	Vector3 GetPosition() const { return m_CamPosition; }
 	void SetPosition(const Vector3& val) { m_CamPosition = val; }
 
-	Vector3 getRotation() const { return m_CamRotation; }
+	Vector3 GetRotation() const { return m_CamRotation; }
 	void SetRotation(const Vector3& val) { m_CamRotation = val; }
+
+	Vector3 GetUp() const { return m_CamUp; }
+	Vector3 GetForward() const { return m_CamFront; }
+	Vector3 GetRight() const { return m_CamRight; }
 
 	float GetPitch() const { return m_CamRotation.x; }
 	void SetPitch(float p) { m_CamRotation.x = p; }

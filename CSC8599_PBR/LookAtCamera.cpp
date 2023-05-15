@@ -50,6 +50,10 @@ void LookAtCamera::UpdateCamera(float dt)
 		Matrix4 yawMat = Matrix4::Rotation(m_CamRotation.y, Vector3(0, 1, 0));
 		Matrix4 pitchMat = Matrix4::Rotation(m_CamRotation.x, yawMat * Vector3(1, 0, 0));
 		Matrix4 finalRotMat = pitchMat * yawMat;
+
+		m_CamFront = finalRotMat * Vector3(0, 0, -1);
+		m_CamUp = finalRotMat * Vector3(0, 1, 0);
+		m_CamRight = finalRotMat * Vector3(1, 0, 0);
 	
 		Vector3 lookDirection = finalRotMat * Vector3(0, 0, -1);
 
@@ -62,7 +66,7 @@ Matrix4 LookAtCamera::CalcViewMatrix()
 	if (m_CameraMovementType == 1)
 		return Camera::CalcViewMatrix();
 
-	m_CamViewMat = Matrix4::BuildViewMatrix(getPosition(), m_lookAtPos);
+	m_CamViewMat = Matrix4::BuildViewMatrix(GetPosition(), m_lookAtPos);
 	return m_CamViewMat;
 }
 
@@ -82,5 +86,22 @@ void LookAtCamera::OnImGuiRender()
 
 		float m_lookDist = m_lookAtDistance;
 		if (ImGui::SliderFloat("Look At Distance", &m_lookDist, 2.0f, 10.0f)) SetLookAtDistance(m_lookDist);
+		
+		ImGui::Separator();
+		
+		float m_camPos[3] = { m_CamPosition.x, m_CamPosition.y, m_CamPosition.z };
+		ImGui::DragFloat3("Position", m_camPos);
+
+		float m_camRot[3] = { m_CamRotation.x, m_CamRotation.y, m_CamRotation.z };
+		ImGui::DragFloat3("Rotation", m_camRot);
+
+		float m_camUpDir[3] = { m_CamUp.x, m_CamUp.y, m_CamUp.z };
+		ImGui::DragFloat3("Up", m_camUpDir);
+
+		float m_camFrontDir[3] = { m_CamFront.x, m_CamFront.y, m_CamFront.z };
+		ImGui::DragFloat3("Front", m_camFrontDir);
+
+		float m_camRightDir[3] = { m_CamRight.x, m_CamRight.y, m_CamRight.z };
+		ImGui::DragFloat3("Right", m_camRightDir);
 	}
 }

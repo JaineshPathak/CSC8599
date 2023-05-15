@@ -56,7 +56,7 @@ bool Renderer::InitBuffers()
 bool Renderer::InitCamera()
 {
 	m_MainCamera = std::shared_ptr<LookAtCamera>(new LookAtCamera(Vector3(0, 1.0f, 3.0f), Vector3(0, 0, 0)));
-	m_MainCamera->SetLookAtDistance(m_MainCamera->getPosition().z - 0.0f);
+	m_MainCamera->SetLookAtDistance(m_MainCamera->GetPosition().z - 0.0f);
 	m_MainCamera->SetLookAtPosition(Vector3(0, 1.0f, 0));
 	return m_MainCamera != nullptr;
 }
@@ -157,7 +157,7 @@ void Renderer::RenderHelmet()
 
 	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
 
-	m_PBRShader->SetVector3("cameraPos", m_MainCamera->getPosition());
+	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
 	m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());
 	m_PBRShader->SetVector4("lightColor", m_PointLight->GetColour());
 	
@@ -178,9 +178,12 @@ void Renderer::RenderBillboards()
 	m_PBRBillboardShader->SetVector4("mainColor", m_PointLight->GetColour());
 
 	Matrix4 mat = Matrix4::Translation(m_PointLight->GetPosition()) * Matrix4::Scale(0.00001f);
-	m_PBRBillboardShader->SetMat4("modelMatrix", mat);
+	//m_PBRBillboardShader->SetMat4("modelMatrix", mat);
 	m_PBRBillboardShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
 	m_PBRBillboardShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
+	m_PBRBillboardShader->SetVector3("u_WorldPos", m_PointLight->GetPosition());
+	m_PBRBillboardShader->SetVector3("u_CameraUpWorld", Vector3(m_MainCamera->GetViewMatrix().values[0], m_MainCamera->GetViewMatrix().values[4], m_MainCamera->GetViewMatrix().values[8]));
+	m_PBRBillboardShader->SetVector3("u_CameraRightWorld", Vector3(m_MainCamera->GetViewMatrix().values[1], m_MainCamera->GetViewMatrix().values[5], m_MainCamera->GetViewMatrix().values[9]));
 
 	m_QuadMesh->Draw();
 

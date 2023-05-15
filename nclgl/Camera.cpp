@@ -15,8 +15,9 @@ void Camera::UpdateCamera(float dt)
 	if (m_CamRotation.y > 360.0f)	m_CamRotation.y -= 360.0f;
 
 	Matrix4 rotation = Matrix4::Rotation(m_CamRotation.y, Vector3(0, 1, 0)) * Matrix4::Rotation(m_CamRotation.x, Vector3(1, 0, 0));
-	Vector3 forward = rotation * Vector3(0, 0, -1);
-	Vector3 right = rotation * Vector3(1, 0, 0);
+	m_CamFront = rotation * Vector3(0, 0, -1);
+	m_CamUp = rotation * Vector3(0, 1, 0);
+	m_CamRight = rotation * Vector3(1, 0, 0);
 
 	/*camViewMat = Matrix4::BuildViewMatrix(camPosition, camPosition + camFront, camUp);
 
@@ -28,10 +29,10 @@ void Camera::UpdateCamera(float dt)
 	camRight = Vector3::Cross(camFront, camUp).Normalised();*/
 
 	m_CurrentSpeed = m_DefaultSpeed * dt;
-	if (Window::GetKeyboard()->KeyDown(KEYBOARD_W))			m_CamPosition += forward * m_CurrentSpeed;
-	if (Window::GetKeyboard()->KeyDown(KEYBOARD_S))			m_CamPosition -= forward * m_CurrentSpeed;
-	if (Window::GetKeyboard()->KeyDown(KEYBOARD_A))			m_CamPosition -= right * m_CurrentSpeed;
-	if (Window::GetKeyboard()->KeyDown(KEYBOARD_D))			m_CamPosition += right * m_CurrentSpeed;
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_W))			m_CamPosition += m_CamFront * m_CurrentSpeed;
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_S))			m_CamPosition -= m_CamFront * m_CurrentSpeed;
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_A))			m_CamPosition -= m_CamRight * m_CurrentSpeed;
+	if (Window::GetKeyboard()->KeyDown(KEYBOARD_D))			m_CamPosition += m_CamRight * m_CurrentSpeed;
 
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SHIFT))		m_CurrentSpeed *= 2.0f;
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_SPACE))		m_CamPosition.y += m_CurrentSpeed;

@@ -72,7 +72,7 @@ int Shader::GetUniformLocation(const std::string& name)
 		std::cout << "SHADER ERROR: Cannot Find Such Uniform name! Uniform Name: " << name << ", Program ID: " << programID << std::endl;
 		PrintFileNames();
 		std::cout << "---------------------------------------------------------------------------------------------------------------------" << std::endl;
-		abort();
+		//abort();
 		return uniformID;
 	}
 
