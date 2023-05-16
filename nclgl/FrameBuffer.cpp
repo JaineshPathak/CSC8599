@@ -9,22 +9,22 @@ FrameBuffer::FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY) :
 
 FrameBuffer::~FrameBuffer()
 {
-	glDeleteFramebuffers(1, &m_RendererID);
+	glDeleteFramebuffers(1, &m_ProgramID);
 	glDeleteTextures(1, &m_ColorAttachmentTex);
 	glDeleteTextures(1, &m_DepthAttachmentTex);
 }
 
 void FrameBuffer::Invalidate()
 {
-	if (m_RendererID)
+	if (m_ProgramID)
 	{
-		glDeleteFramebuffers(1, &m_RendererID);
+		glDeleteFramebuffers(1, &m_ProgramID);
 		glDeleteTextures(1, &m_ColorAttachmentTex);
 		glDeleteTextures(1, &m_DepthAttachmentTex);
 	}
 
-	glCreateFramebuffers(1, &m_RendererID);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+	glCreateFramebuffers(1, &m_ProgramID);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);
 
 	glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachmentTex);
 	glBindTexture(GL_TEXTURE_2D, m_ColorAttachmentTex);
@@ -40,14 +40,14 @@ void FrameBuffer::Invalidate()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachmentTex, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Frame Buffer is Incomplete!" << std::endl;
+		std::cout << "Frame Buffer is Incomplete! ID: " << m_ProgramID << std::endl;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void FrameBuffer::Bind()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);
 	glViewport(0, 0, m_Width, m_Height);
 }
 

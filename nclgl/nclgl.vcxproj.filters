@@ -63,6 +63,7 @@
     <ClCompile Include="Vector3.cpp">
       <Filter>Maths</Filter>
     </ClCompile>
+    <ClCompile Include="UniformBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -143,6 +144,7 @@
     </ClInclude>
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="UniformBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">

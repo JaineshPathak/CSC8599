@@ -79,7 +79,7 @@ void LookAtCamera::OnImGuiRender()
 		if (m_CameraMovementType == 1)
 		{
 			float m_Speed = m_DefaultSpeed;
-			if (ImGui::SliderFloat("Speed", &m_Speed, 1.0f, 10.0f)) m_DefaultSpeed = m_Speed;
+			if (ImGui::SliderFloat("Speed", &m_Speed, 1.0f, 20.0f)) m_DefaultSpeed = m_Speed;
 		}
 
 		ImGui::Separator();
@@ -108,6 +108,6 @@ void LookAtCamera::OnImGuiRender()
 		ImGui::DragFloat3("Front", m_camFrontDir);
 
 		float m_camRightDir[3] = { m_CamRight.x, m_CamRight.y, m_CamRight.z };
-		ImGui::DragFloat3("Right", m_camRightDir);
+		ImGui::DragFloat3("Right", m_camRightDir);			
 	}
 }

@@ -1,15 +1,15 @@
-#version 330 core
+#version 420 core
 
 layout(location = 0) in vec3 position;
 layout(location = 2) in vec2 texCoord;
 
-uniform mat4 billboardMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projMatrix;
+layout(std140, binding = 0) uniform Matrices
+{
+	mat4 projMatrix;
+	mat4 viewMatrix;
+};
 
-uniform vec3 u_WorldPos;
-uniform vec3 u_CameraUpWorld;
-uniform vec3 u_CameraRightWorld;
+uniform mat4 billboardMatrix;
 
 out Vertex 
 {

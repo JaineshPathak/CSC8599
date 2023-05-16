@@ -138,6 +138,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ImGuiRenderer.cpp" />
+    <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="LookAtCamera.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -145,14 +146,17 @@
   <ItemGroup>
     <ClInclude Include="IImguiItem.h" />
     <ClInclude Include="ImGuiRenderer.h" />
+    <ClInclude Include="LightsManager.h" />
     <ClInclude Include="LookAtCamera.h" />
     <ClInclude Include="Renderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Shaders\PBR\PBRBillboardFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRBillboardVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRSkyBoxFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRSkyBoxVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedVertex.glsl" />
-    <None Include="..\Shaders\TexturedFragment.glsl" />
-    <None Include="..\Shaders\TexturedVertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

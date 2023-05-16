@@ -8,6 +8,7 @@ class Mesh;
 class MeshMaterial;
 class ImGuiRenderer;
 class FrameBuffer;
+class UniformBuffer;
 class Light;
 
 class Renderer : public OGLRenderer
@@ -24,9 +25,9 @@ public:
 protected:
 	bool Initialize();
 	bool InitImGui();
-	bool InitBuffers();
 	bool InitCamera();
 	bool InitShaders();
+	bool InitBuffers();
 	bool InitLights();
 	bool InitMesh();
 	bool InitTextures();
@@ -34,6 +35,7 @@ protected:
 
 	void HandleInputs(float dt);
 
+	void HandleUBOData();
 	void RenderCubeMap();
 	void RenderHelmet();
 	void RenderBillboards();
@@ -64,6 +66,7 @@ protected:
 	unsigned int m_LightIconTexture;
 
 	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
+	std::shared_ptr<UniformBuffer> m_MatricesUBO;
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;
 
 private:

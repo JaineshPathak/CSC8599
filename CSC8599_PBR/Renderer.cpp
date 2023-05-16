@@ -3,6 +3,7 @@
 #include "ImGuiRenderer.h"
 #include <nclgl/Light.h>
 #include <nclgl/FrameBuffer.h>
+#include <nclgl/UniformBuffer.h>
 
 #if _DEBUG
 #include <iostream>
@@ -26,9 +27,9 @@ Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 bool Renderer::Initialize()
 {
 	if (!InitImGui())		return false;
-	if (!InitBuffers())		return false;
 	if (!InitCamera())		return false;
 	if (!InitShaders())		return false;
+	if (!InitBuffers())		return false;
 	if (!InitLights())		return false;
 	if (!InitMesh())		return false;
 	if (!InitTextures())	return false;
@@ -42,15 +43,6 @@ bool Renderer::InitImGui()
 {
 	m_ImGuiRenderer = std::shared_ptr<ImGuiRenderer>(new ImGuiRenderer(m_WindowParent));
 	return m_ImGuiRenderer->IsInitialised();
-}
-
-bool Renderer::InitBuffers()
-{
-	float w = m_WindowParent.GetScreenSize().x;
-	float h = m_WindowParent.GetScreenSize().y;
-
-	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(w, h));
-	return m_GlobalFrameBuffer != nullptr;
 }
 
 bool Renderer::InitCamera()
@@ -69,15 +61,29 @@ bool Renderer::InitShaders()
 	m_PBRBillboardShader = std::shared_ptr<Shader>(new Shader("PBR/PBRBillboardVertex.glsl", "PBR/PBRBillboardFragment.glsl"));
 	if (!m_PBRBillboardShader->LoadSuccess()) return false;
 
-	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("skyboxVertex.glsl", "skyboxFragment.glsl"));
+	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBRSkyBoxVertex.glsl", "PBR/PBRSkyBoxFragment.glsl"));
 	if (!m_CubeMapShader->LoadSuccess()) return false;
+
+	return true;
+}
+
+bool Renderer::InitBuffers()
+{
+	float w = m_WindowParent.GetScreenSize().x;
+	float h = m_WindowParent.GetScreenSize().y;
+
+	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(w, h));
+	if (m_GlobalFrameBuffer == nullptr) return false;
+
+	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
+	if (!m_MatricesUBO->IsInitialized()) return false;	
 
 	return true;
 }
 
 bool Renderer::InitLights()
 {
-	m_PointLight = std::shared_ptr<Light>(new Light(Vector3(0.0f, 1.0f, 4.0f), Vector4(1.0f, 1.0f, 1.0f, 1.0f), 2.0f));
+	m_PointLight = std::shared_ptr<Light>(new Light(Vector3(0.0f, 1.0f, 4.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f), 2.0f));
 	return m_PointLight != nullptr;
 }
 
@@ -136,14 +142,28 @@ void Renderer::HandleInputs(float dt)
 	}
 }
 
+void Renderer::HandleUBOData()
+{
+	//Start Offset from 0, size = 64
+	//Start Offset from 65, size = 64
+
+	m_MatricesUBO->Bind();
+	m_MatricesUBO->BindSubData(0, sizeof(Matrix4), m_MainCamera->GetProjectionMatrix().values);
+	m_MatricesUBO->BindSubData(sizeof(Matrix4), sizeof(Matrix4), m_MainCamera->GetViewMatrix().values);
+	m_MatricesUBO->Unbind();
+
+	/*glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Matrix4), m_MainCamera->GetProjectionMatrix().values);			//Start Offset from 0, size = 64
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Matrix4), sizeof(Matrix4), m_MainCamera->GetViewMatrix().values);	//Start Offset from 65, size = 64
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);*/
+}
+
 void Renderer::RenderCubeMap()
 {
 	glDepthMask(GL_FALSE);
 
 	m_CubeMapShader->Bind();
-	m_CubeMapShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
-	m_CubeMapShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
-
+	
 	m_QuadMesh->Draw();
 
 	m_CubeMapShader->UnBind();
@@ -162,8 +182,6 @@ void Renderer::RenderHelmet()
 	m_PBRShader->SetVector4("lightColor", m_PointLight->GetColour());
 	
 	m_PBRShader->SetMat4("modelMatrix", modelMatrix);
-	m_PBRShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
-	m_PBRShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
 
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
 		m_HelmetMesh->DrawSubMesh(i);
@@ -195,12 +213,7 @@ void Renderer::RenderBillboards()
 	Vector3 right = Vector3::Cross(up, look);*/
 
 	Matrix4 billboardMat = Matrix4::Scale(0.3f) * Matrix4::CreateBillboardMatrix(right, up, look, m_PointLight->GetPosition());
-
-	//Matrix4 mat = Matrix4::Translation(m_PointLight->GetPosition()) * Matrix4::Scale(0.00001f);
-	//m_PBRBillboardShader->SetMat4("modelMatrix", mat);
 	m_PBRBillboardShader->SetMat4("billboardMatrix", billboardMat, true);
-	m_PBRBillboardShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
-	m_PBRBillboardShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
 
 	m_QuadMesh->Draw();
 
@@ -212,6 +225,7 @@ void Renderer::RenderScene()
 	m_GlobalFrameBuffer->Bind();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	HandleUBOData();
 	RenderCubeMap();
 	RenderHelmet();
 	RenderBillboards();
