@@ -114,6 +114,34 @@ Matrix4 Matrix4::BuildViewMatrix(const Vector3 &from, const Vector3 &lookingAt, 
 	return m*r;
 }
 
+Matrix4 Matrix4::CreateBillboardMatrix(const Vector3& right, const Vector3& up, const Vector3& forward, const Vector3& pos)
+{
+	Matrix4 m;
+
+	m.values[0] = right.x;
+	m.values[4] = right.y;
+	m.values[8] = right.z;
+
+	m.values[1] = up.x;
+	m.values[5] = up.y;
+	m.values[9] = up.z;
+
+	m.values[2] = forward.x;
+	m.values[6] = forward.y;
+	m.values[10] = forward.z;
+
+	m.values[3] = pos.x;
+	m.values[7] = pos.y;
+	m.values[11] = pos.z;
+
+	m.values[12] = 0;
+	m.values[13] = 0;
+	m.values[14] = 0;
+	m.values[15] = 1;
+
+	return m;
+}
+
 Matrix4 Matrix4::Rotation(float degrees, const Vector3 &inaxis)	 {
 	Matrix4 m;
 

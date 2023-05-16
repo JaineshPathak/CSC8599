@@ -47,15 +47,15 @@ void LookAtCamera::UpdateCamera(float dt)
 		if (m_CamRotation.y < 0)		m_CamRotation.y += 360.0f;
 		if (m_CamRotation.y > 360.0f)	m_CamRotation.y -= 360.0f;
 
-		Matrix4 yawMat = Matrix4::Rotation(m_CamRotation.y, Vector3(0, 1, 0));
-		Matrix4 pitchMat = Matrix4::Rotation(m_CamRotation.x, yawMat * Vector3(1, 0, 0));
+		Matrix4 yawMat = Matrix4::Rotation(m_CamRotation.y, Vector3::UP);
+		Matrix4 pitchMat = Matrix4::Rotation(m_CamRotation.x, yawMat * Vector3::RIGHT);
 		Matrix4 finalRotMat = pitchMat * yawMat;
 
-		m_CamFront = finalRotMat * Vector3(0, 0, -1);
-		m_CamUp = finalRotMat * Vector3(0, 1, 0);
-		m_CamRight = finalRotMat * Vector3(1, 0, 0);
+		m_CamFront = finalRotMat * Vector3::FORWARD;
+		m_CamUp = finalRotMat * Vector3::UP;
+		m_CamRight = finalRotMat * Vector3::RIGHT;
 	
-		Vector3 lookDirection = finalRotMat * Vector3(0, 0, -1);
+		Vector3 lookDirection = finalRotMat * Vector3::FORWARD;
 
 		m_CamPosition = m_lookAtPos - lookDirection * m_lookAtDistance;
 	}
@@ -75,6 +75,12 @@ void LookAtCamera::OnImGuiRender()
 	if (ImGui::CollapsingHeader("Camera"))
 	{
 		ImGui::Combo("Movement Type", &m_CameraMovementType, m_CameraMovementTypeStr, 2);
+
+		if (m_CameraMovementType == 1)
+		{
+			float m_Speed = m_DefaultSpeed;
+			if (ImGui::SliderFloat("Speed", &m_Speed, 1.0f, 10.0f)) m_DefaultSpeed = m_Speed;
+		}
 
 		ImGui::Separator();
 

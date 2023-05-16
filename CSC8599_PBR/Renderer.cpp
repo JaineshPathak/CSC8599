@@ -177,13 +177,30 @@ void Renderer::RenderBillboards()
 	m_PBRBillboardShader->SetTexture("mainTex", m_LightIconTexture, 0);
 	m_PBRBillboardShader->SetVector4("mainColor", m_PointLight->GetColour());
 
-	Matrix4 mat = Matrix4::Translation(m_PointLight->GetPosition()) * Matrix4::Scale(0.00001f);
+	Vector3 look = m_MainCamera->GetPosition() - m_PointLight->GetPosition();
+	look.Normalise();
+	
+	//Point Billboards
+	Vector3 right = Vector3::Cross(m_MainCamera->GetUp(), look);
+	Vector3 up = Vector3::Cross(look, right);
+
+	//Arbitrary Axis Billboards (Up Axis)
+	/*Vector3 up = Vector3(0, 1, 0);
+	Vector3 right = Vector3::Cross(up, look);
+	right.Normalise();
+	look = Vector3::Cross(right, up);*/
+
+	//Axis Aligned Billboards (Y Axis)
+	/*Vector3 up = Vector3::UP;
+	Vector3 right = Vector3::Cross(up, look);*/
+
+	Matrix4 billboardMat = Matrix4::Scale(0.3f) * Matrix4::CreateBillboardMatrix(right, up, look, m_PointLight->GetPosition());
+
+	//Matrix4 mat = Matrix4::Translation(m_PointLight->GetPosition()) * Matrix4::Scale(0.00001f);
 	//m_PBRBillboardShader->SetMat4("modelMatrix", mat);
+	m_PBRBillboardShader->SetMat4("billboardMatrix", billboardMat, true);
 	m_PBRBillboardShader->SetMat4("viewMatrix", m_MainCamera->GetViewMatrix());
 	m_PBRBillboardShader->SetMat4("projMatrix", m_MainCamera->GetProjectionMatrix());
-	m_PBRBillboardShader->SetVector3("u_WorldPos", m_PointLight->GetPosition());
-	m_PBRBillboardShader->SetVector3("u_CameraUpWorld", Vector3(m_MainCamera->GetViewMatrix().values[0], m_MainCamera->GetViewMatrix().values[4], m_MainCamera->GetViewMatrix().values[8]));
-	m_PBRBillboardShader->SetVector3("u_CameraRightWorld", Vector3(m_MainCamera->GetViewMatrix().values[1], m_MainCamera->GetViewMatrix().values[5], m_MainCamera->GetViewMatrix().values[9]));
 
 	m_QuadMesh->Draw();
 

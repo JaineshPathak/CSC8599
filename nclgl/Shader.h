@@ -44,7 +44,7 @@ public:
 
 	void SetInt(const std::string& name, const int& val);
 	void SetFloat(const std::string& name, const float& val);
-	void SetMat4(const std::string& name, const Matrix4& val);
+	void SetMat4(const std::string& name, const Matrix4& val, bool transposed = false);
 	void SetVector2(const std::string& name, const Vector2& val);
 	void SetVector3(const std::string& name, const Vector3& val);
 	void SetVector4(const std::string& name, const Vector4& val);

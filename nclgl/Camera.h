@@ -13,8 +13,9 @@ public:
 		m_CamRotation.y = 0.0f;
 		m_CamRotation.z = 0.0f;
 
-		m_CamFront = Vector3(0.0f, 0.0f, -1.0f);
-		m_CamUp = Vector3(0.0f, 1.0f, 0.0f);
+		m_CamFront = Vector3::FORWARD;
+		m_CamUp = Vector3::UP;
+		m_CamRight = Vector3::RIGHT;
 
 		m_CurrentSpeed = 0.0f;
 
@@ -33,8 +34,9 @@ public:
 		m_CamRotation.y = _yaw;
 		m_CamRotation.z = _roll;
 
-		m_CamFront = Vector3(0.0f, 0.0f, -1.0f);
-		m_CamUp = Vector3(0.0f, 1.0f, 0.0f);
+		m_CamFront = Vector3::FORWARD;
+		m_CamUp = Vector3::UP;
+		m_CamRight = Vector3::RIGHT;
 
 		m_CurrentSpeed = 0.0f;
 		m_FOV = 45.0f;
@@ -51,8 +53,9 @@ public:
 		m_CamPosition = _position;
 		m_CamRotation = _rotation;
 
-		m_CamFront = Vector3(0.0f, 0.0f, -1.0f);
-		m_CamUp = Vector3(0.0f, 1.0f, 0.0f);
+		m_CamFront = Vector3::FORWARD;
+		m_CamUp = Vector3::UP;
+		m_CamRight = Vector3::RIGHT;
 
 		m_CurrentSpeed = 0.0f;
 		m_FOV = 45.0f;

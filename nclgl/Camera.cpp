@@ -14,10 +14,10 @@ void Camera::UpdateCamera(float dt)
 	if (m_CamRotation.y < 0)		m_CamRotation.y += 360.0f;
 	if (m_CamRotation.y > 360.0f)	m_CamRotation.y -= 360.0f;
 
-	Matrix4 rotation = Matrix4::Rotation(m_CamRotation.y, Vector3(0, 1, 0)) * Matrix4::Rotation(m_CamRotation.x, Vector3(1, 0, 0));
-	m_CamFront = rotation * Vector3(0, 0, -1);
-	m_CamUp = rotation * Vector3(0, 1, 0);
-	m_CamRight = rotation * Vector3(1, 0, 0);
+	Matrix4 rotation = Matrix4::Rotation(m_CamRotation.y, Vector3::UP) * Matrix4::Rotation(m_CamRotation.x, Vector3::RIGHT);
+	m_CamFront = rotation * Vector3::FORWARD;
+	m_CamUp = rotation * Vector3::UP;
+	m_CamRight = rotation * Vector3::RIGHT;
 
 	/*camViewMat = Matrix4::BuildViewMatrix(camPosition, camPosition + camFront, camUp);
 
@@ -41,7 +41,7 @@ void Camera::UpdateCamera(float dt)
 
 Matrix4 Camera::CalcViewMatrix()
 {
-	m_CamViewMat = Matrix4::Rotation(-m_CamRotation.x, Vector3(1, 0, 0)) * Matrix4::Rotation(-m_CamRotation.y, Vector3(0, 1, 0)) * Matrix4::Translation(-m_CamPosition);
+	m_CamViewMat = Matrix4::Rotation(-m_CamRotation.x, Vector3::RIGHT) * Matrix4::Rotation(-m_CamRotation.y, Vector3::UP) * Matrix4::Translation(-m_CamPosition);
 	return m_CamViewMat;
 	//return Matrix4::Rotation(-camRotation.x, Vector3(1, 0, 0)) * Matrix4::Rotation(-camRotation.y, Vector3(0, 1, 0)) * camViewMat;
 	//return camViewMat;

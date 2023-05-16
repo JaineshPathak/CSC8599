@@ -60,6 +60,9 @@
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="Vector3.cpp">
+      <Filter>Maths</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />

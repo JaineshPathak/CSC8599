@@ -93,10 +93,10 @@ void Shader::SetFloat(const string& name, const float& val)
 	glUniform1f(uniformID, val);
 }
 
-void Shader::SetMat4(const string& name, const Matrix4& val)
+void Shader::SetMat4(const string& name, const Matrix4& val, bool transposed)
 {
 	int uniformID = GetUniformLocation(name);
-	glUniformMatrix4fv(uniformID, 1, false, val.values);
+	glUniformMatrix4fv(uniformID, 1, transposed, val.values);
 }
 
 void Shader::SetVector2(const string& name, const Vector2& val)
