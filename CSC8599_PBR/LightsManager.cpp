@@ -44,13 +44,14 @@ void LightsManager::SpawnPointLight(const Vector3& lightPosition, const Vector4&
 void LightsManager::BindLightUBOData()
 {
 	m_LightsUBO->Bind();
-	m_LightsUBO->BindSubData(0, sizeof(int), (void*)m_PointLights.size());
+	int numLights[1] = { (int)m_PointLights.size() };
+	m_LightsUBO->BindSubData(0, sizeof(int), numLights);
 	for (const auto& light : m_PointLights)
 	{
 		PointLight pLightStruct;
 		pLightStruct.lightPosition = light->GetPosition();
 		pLightStruct.lightColor = light->GetColour();
-		m_LightsUBO->BindSubData(sizeof(int), sizeof(PointLight), (void*) &pLightStruct);
+		m_LightsUBO->BindSubData(sizeof(int), sizeof(PointLight), &pLightStruct);
 	}
 	m_LightsUBO->Unbind();
 }
@@ -90,14 +91,16 @@ void LightsManager::OnImGuiRender()
 			const std::string lightHeaderStr = "Light - [" + std::to_string(i) + "]";
 			if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
 			{
+				ImGui::Indent();
 				Vector3 m_LightPos = light->GetPosition();
 				if (ImGui::DragFloat3("Position", (float*)&m_LightPos)) light->SetPosition(m_LightPos);
 
 				Vector4 m_LightColor = light->GetColour();
-				if (ImGui::ColorPicker4("Color", (float*)&m_LightColor)) light->SetColour(m_LightColor);
+				if (ImGui::ColorEdit4("Color", (float*)&m_LightColor)) light->SetColour(m_LightColor);
 
 				float m_LightRadius = light->GetRadius();
 				if (ImGui::DragFloat("Radius", &m_LightRadius, 1.0f, 0.1f, 1000.0f)) light->SetRadius(m_LightRadius);
+				ImGui::Unindent();
 			}
 			i++;
 		}

@@ -183,8 +183,8 @@ void Renderer::RenderHelmet()
 	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
 
 	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
-	m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());
-	m_PBRShader->SetVector4("lightColor", m_PointLight->GetColour());
+	/*m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());
+	m_PBRShader->SetVector4("lightColor", m_PointLight->GetColour());*/
 	
 	m_PBRShader->SetMat4("modelMatrix", modelMatrix);
 
@@ -233,6 +233,8 @@ void Renderer::RenderScene()
 	HandleUBOData();
 	RenderCubeMap();
 	RenderHelmet();
+
+	m_LightsManager->Render();
 	//RenderBillboards();
 		
 	m_GlobalFrameBuffer->Unbind();
