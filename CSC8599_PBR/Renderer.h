@@ -7,6 +7,7 @@ class LookAtCamera;
 class Mesh;
 class MeshMaterial;
 class ImGuiRenderer;
+class LightsManager;
 class FrameBuffer;
 class UniformBuffer;
 class Light;
@@ -19,6 +20,7 @@ public:
 
 	static Renderer* Get() { return m_Renderer; }
 
+	std::shared_ptr<Mesh> GetQuadMesh() { return m_QuadMesh; }
 	std::shared_ptr<LookAtCamera> GetMainCamera() { return m_MainCamera; }
 	std::shared_ptr<FrameBuffer> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
 
@@ -68,6 +70,7 @@ protected:
 	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;
+	std::shared_ptr<LightsManager> m_LightsManager;
 
 private:
 	bool m_showCursor;

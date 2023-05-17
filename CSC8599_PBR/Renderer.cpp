@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "LookAtCamera.h"
 #include "ImGuiRenderer.h"
+#include "LightsManager.h"
 #include <nclgl/Light.h>
 #include <nclgl/FrameBuffer.h>
 #include <nclgl/UniformBuffer.h>
@@ -83,8 +84,10 @@ bool Renderer::InitBuffers()
 
 bool Renderer::InitLights()
 {
-	m_PointLight = std::shared_ptr<Light>(new Light(Vector3(0.0f, 1.0f, 4.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f), 2.0f));
-	return m_PointLight != nullptr;
+	//m_PointLight = std::shared_ptr<Light>(new Light(Vector3(0.0f, 1.0f, 4.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f), 2.0f));
+	//return m_PointLight != nullptr;
+	m_LightsManager = std::shared_ptr<LightsManager>(new LightsManager());
+	return m_LightsManager->IsInitialized();
 }
 
 bool Renderer::InitMesh()
@@ -151,6 +154,8 @@ void Renderer::HandleUBOData()
 	m_MatricesUBO->BindSubData(0, sizeof(Matrix4), m_MainCamera->GetProjectionMatrix().values);
 	m_MatricesUBO->BindSubData(sizeof(Matrix4), sizeof(Matrix4), m_MainCamera->GetViewMatrix().values);
 	m_MatricesUBO->Unbind();
+
+	m_LightsManager->BindLightUBOData();
 
 	/*glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Matrix4), m_MainCamera->GetProjectionMatrix().values);			//Start Offset from 0, size = 64
@@ -228,7 +233,7 @@ void Renderer::RenderScene()
 	HandleUBOData();
 	RenderCubeMap();
 	RenderHelmet();
-	RenderBillboards();
+	//RenderBillboards();
 		
 	m_GlobalFrameBuffer->Unbind();
 

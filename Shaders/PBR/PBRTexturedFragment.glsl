@@ -8,6 +8,19 @@ uniform vec3 cameraPos;
 uniform vec3 lightPos;
 uniform vec4 lightColor;
 
+const int MAX_POINT_LIGHTS = 100;
+struct PointLights
+{
+	Vector3 lightPosition;
+	Vector4 lightColor;
+};
+
+layout(std140, binding = 1) uniform PointLight
+{
+	int numPointLights;
+	PointLight pointLights[MAX_POINT_LIGHTS];
+};
+
 in Vertex 
 {
 	vec2 texCoord;
