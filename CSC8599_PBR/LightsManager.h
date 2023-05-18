@@ -10,7 +10,7 @@ class Light;
 
 struct PointLight
 {
-	Vector3 lightPosition;
+	Vector4 lightPosition;
 	Vector4 lightColor;
 };
 

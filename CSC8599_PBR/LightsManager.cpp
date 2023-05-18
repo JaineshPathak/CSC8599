@@ -15,7 +15,7 @@ LightsManager::LightsManager()
 	m_LightIconTexture = SOIL_load_OGL_texture(TEXTUREDIR"Icons/Icon_Light.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 	if (m_LightIconTexture == 0) { m_IsInitialized = false; return; }
 
-	m_LightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(MAX_POINT_LIGHTS * sizeof(PointLight), NULL, GL_DYNAMIC_DRAW, 1, 0));
+	m_LightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer( (MAX_POINT_LIGHTS * sizeof(PointLight)) + (sizeof(int) * 4), NULL, GL_DYNAMIC_DRAW, 1, 0));
 	if(!m_LightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
 	SpawnPointLight();
@@ -49,9 +49,9 @@ void LightsManager::BindLightUBOData()
 	for (const auto& light : m_PointLights)
 	{
 		PointLight pLightStruct;
-		pLightStruct.lightPosition = light->GetPosition();
+		pLightStruct.lightPosition = Vector4(light->GetPosition().x, light->GetPosition().y, light->GetPosition().z, 1.0f);
 		pLightStruct.lightColor = light->GetColour();
-		m_LightsUBO->BindSubData(sizeof(int), sizeof(PointLight), &pLightStruct);
+		m_LightsUBO->BindSubData(sizeof(int) * 4, sizeof(PointLight), &pLightStruct);
 	}
 	m_LightsUBO->Unbind();
 }
@@ -64,6 +64,8 @@ void LightsManager::Render()
 	m_PBRBillboardShader->SetTexture("mainTex", m_LightIconTexture, 0);
 	for (const auto& light : m_PointLights)
 	{
+		m_PBRBillboardShader->SetVector4("mainColor", light->GetColour());
+
 		Vector3 look = Renderer::Get()->GetMainCamera()->GetPosition() - light->GetPosition();
 		look.Normalise();
 

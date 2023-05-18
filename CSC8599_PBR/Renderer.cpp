@@ -112,10 +112,7 @@ bool Renderer::InitTextures()
 		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 	if (m_CubeMapTexture == 0) return false;
-
-	m_LightIconTexture = SOIL_load_OGL_texture(TEXTUREDIR"Icons/Icon_Light.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	if (m_LightIconTexture == 0) return false;
-
+	
 	return true;
 }
 
