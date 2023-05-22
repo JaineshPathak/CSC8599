@@ -2,6 +2,8 @@
 #include "Renderer.h"
 #include "LookAtCamera.h"
 
+#include <imgui/imgui_internal.h>
+
 ImGuiRenderer* ImGuiRenderer::m_ImGuiRenderer = nullptr;
 
 ImGuiRenderer::ImGuiRenderer(Window& parent)
@@ -18,6 +20,8 @@ ImGuiRenderer::ImGuiRenderer(Window& parent)
 
 	m_ViewportSize.x = parent.GetScreenSize().x;
 	m_ViewportSize.y = parent.GetScreenSize().y;
+
+	m_MouseOverScene = false;
 
 	m_ImGuiRenderer = this;
 }
@@ -44,16 +48,22 @@ void ImGuiRenderer::Render()
 
 	//ImGui::ShowDemoWindow();
 
+	//if (ImGui::GetCurrentContext()->CurrentWindow != nullptr)
+		//std::cout << "Current Window Name: " << ImGui::GetCurrentContext()->CurrentWindow->ID << std::endl;
+	//if(ImGui::GetCurrentContext()->HoveredWindow != nullptr)
+		//std::cout << "Hovered Window Name: " << ImGui::GetCurrentContext()->HoveredWindow->Name << std::endl;
+
 	ImGui::DockSpaceOverViewport();
 	
-	ImGui::Begin("Settings");
+	ImGui::Begin("Settings");	
 	for (const auto& elem : m_ImGuiItems)
 		elem->OnImGuiRender();	
 	ImGui::End();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	ImGui::Begin("Viewport");
-	
+	ImGui::Begin("Scene");
+
+	m_MouseOverScene = ImGui::IsWindowHovered();
 	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 	if (m_ViewportSize.x != viewportPanelSize.x || m_ViewportSize.y != viewportPanelSize.y)
 	{

@@ -24,9 +24,13 @@ public:
 
 	void RegisterItem(IImguiItem* _newItem);
 
+	const bool IsMouseOverScene() const { return m_MouseOverScene; }
+
 protected:
 	static ImGuiRenderer* m_ImGuiRenderer;
 	std::unordered_set<IImguiItem*> m_ImGuiItems;
 
 	ImVec2 m_ViewportSize;
+
+	bool m_MouseOverScene;
 };

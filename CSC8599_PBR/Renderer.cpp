@@ -5,6 +5,7 @@
 #include <nclgl/Light.h>
 #include <nclgl/FrameBuffer.h>
 #include <nclgl/UniformBuffer.h>
+#include <imgui/imgui_internal.h>
 
 #if _DEBUG
 #include <iostream>
@@ -133,12 +134,28 @@ void Renderer::SetupGLParameters()
 }
 
 void Renderer::HandleInputs(float dt)
-{
+{	
 	if (ImGui::GetIO().MouseClicked[1])
 	{
 		m_showCursor = !m_showCursor;
 		ImGui::GetIO().MouseDrawCursor = m_showCursor;
 		m_WindowParent.LockMouseToWindow(!m_showCursor);
+	}
+
+	if (ImGuiRenderer::Get()->IsMouseOverScene() && ImGui::GetIO().MouseClicked[0])
+	{
+		if (ImGui::GetIO().MouseDown[0])
+		{
+			m_showCursor = true;
+			ImGui::GetIO().MouseDrawCursor = m_showCursor;			
+			m_WindowParent.LockMouseToWindow(true);
+		}
+	}
+	else if (ImGui::GetIO().MouseReleased[0])
+	{
+		m_showCursor = true;
+		ImGui::GetIO().MouseDrawCursor = m_showCursor;
+		m_WindowParent.LockMouseToWindow(false);
 	}
 }
 
@@ -152,7 +169,9 @@ void Renderer::HandleUBOData()
 	m_MatricesUBO->BindSubData(sizeof(Matrix4), sizeof(Matrix4), m_MainCamera->GetViewMatrix().values);
 	m_MatricesUBO->Unbind();
 
-	m_LightsManager->BindLightUBOData();
+	// Removed as Lights UBO Data will only be changed when there is any change in the Light Properties. No need for Polling
+	// See LightsManager.cpp
+	//m_LightsManager->BindLightUBOData();
 
 	/*glBindBuffer(GL_UNIFORM_BUFFER, m_UBOMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Matrix4), m_MainCamera->GetProjectionMatrix().values);			//Start Offset from 0, size = 64

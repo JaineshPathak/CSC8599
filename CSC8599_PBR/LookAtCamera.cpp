@@ -27,8 +27,12 @@ LookAtCamera::LookAtCamera(Vector3 _position, Vector3 _rotation) :
 void LookAtCamera::UpdateCamera(float dt)
 {
 	if (ImGui::GetCurrentContext() == nullptr) return;
-	if (!ImGui::GetIO().MouseDrawCursor) return;
+	//if (ImGui::GetIO().MouseDrawCursor) return;
+	if (!ImGuiRenderer::Get()->IsMouseOverScene()) return;
+	//if (ImGui::GetCurrentContext()->HoveredWindow != nullptr && ImGui::GetCurrentContext()->HoveredWindow->Name == "Scene") return;
 	//if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered() || ImGui::IsAnyItemFocused()) return;
+
+	//std::cout << "Mouse Over Scene: " << ImGuiRenderer::Get()->IsMouseOverScene() << std::endl;
 
 	if (m_CameraMovementType == 1)
 	{
