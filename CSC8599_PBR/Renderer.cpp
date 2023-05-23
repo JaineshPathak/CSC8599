@@ -207,6 +207,10 @@ void Renderer::RenderHelmet()
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
 		m_HelmetMesh->DrawSubMesh(i);
 
+	Matrix4 floorModelMat = Matrix4::Translation(Vector3::DOWN) * Matrix4::Rotation(-90.0f, Vector3::RIGHT) * Matrix4::Scale(5.0f);
+	m_PBRShader->SetMat4("modelMatrix", floorModelMat);
+	m_QuadMesh->Draw();
+
 	m_PBRShader->UnBind();
 }
 

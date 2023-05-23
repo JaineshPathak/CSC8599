@@ -14,6 +14,7 @@ struct PointLight
 {
 	Vector4 lightPosition;
 	Vector4 lightColor;
+	Vector4 lightAttenuationData;	//x = Kc (Constant), y = Kl (Linear), z = Kq (Quadratic), w = 1.0
 };
 
 struct DirectionalLightStruct

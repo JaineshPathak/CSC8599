@@ -21,7 +21,7 @@ LightsManager::LightsManager()
 	m_PointLightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer((MAX_POINT_LIGHTS * sizeof(PointLight)) + (sizeof(int) * 4), NULL, GL_DYNAMIC_DRAW, 1, 0));
 	if (!m_PointLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
-	//SpawnPointLight(Vector3(0, 1.0f, -2.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+	SpawnPointLight(Vector3(0, 1.0f, -2.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
 	//SpawnPointLight(Vector3(0, 1.0f, 2.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 	//SpawnPointLight(Vector3(-1.5f, 1.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f));
 	//SpawnPointLight(Vector3(1.5f, 1.0f, 0.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f));
@@ -64,6 +64,7 @@ void LightsManager::SpawnPointLight(const Vector3& lightPosition, const Vector4&
 	PointLight pLightStruct;
 	pLightStruct.lightPosition = Vector4(newPointLight->GetPosition(), 1.0f);
 	pLightStruct.lightColor = newPointLight->GetColour();
+	pLightStruct.lightAttenuationData = Vector4(1.0f, 0.09f, 0.032f, 1.0f);
 	
 	m_PointLights.insert(newPointLight);
 	m_PointLightsVec.push_back(pLightStruct);
@@ -203,7 +204,11 @@ void LightsManager::OnImGuiRender()
 		ImGui::Separator();
 		if (ImGui::Button("New Point Light")) SpawnPointLight();
 		ImGui::SameLine();
-		if (ImGui::Button("Rebuild Light Data")) BindPointLightUBOData();
+		if (ImGui::Button("Rebuild Light Data"))
+		{
+			BindDirectionalLightUBOData();
+			BindPointLightUBOData();
+		}
 	}
 }
 

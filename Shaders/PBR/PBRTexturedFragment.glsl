@@ -11,6 +11,7 @@ struct PointLight
 {
 	vec4 lightPosition;
 	vec4 lightColor;
+	vec4 lightAttenData;
 };
 
 struct DirectionalLight
@@ -77,6 +78,13 @@ void CalcPointsLights(inout vec3 result, in vec3 albedoColor)
 
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 		vec3 specular = specularStrength * spec * vec3(pointLights[i].lightColor.xyz);
+
+		float distance = length(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
+		float attenuation = 1.0 / (pointLights[i].lightAttenData.x + pointLights[i].lightAttenData.y * distance + pointLights[i].lightAttenData.z * (distance * distance));
+
+		ambient *= attenuation;
+		diffuse *= attenuation;
+		specular *= attenuation;
 
 		result += (ambient + diffuse + specular) * albedoColor;
 	}
