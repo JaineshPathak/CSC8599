@@ -4,6 +4,7 @@
 #include <nclgl/Shader.h>
 #include <nclgl/UniformBuffer.h>
 #include <nclgl/Light.h>
+#include <nclgl/DirectionalLight.h>
 
 const int MAX_POINT_LIGHTS = 100;
 
@@ -13,15 +14,33 @@ LightsManager::LightsManager()
 	if (!m_PBRBillboardShader->LoadSuccess()) { m_IsInitialized = false; return; }
 
 	m_LightIconTexture = SOIL_load_OGL_texture(TEXTUREDIR"Icons/Icon_Light.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	if (m_LightIconTexture == 0) { m_IsInitialized = false; return; }
+	if (m_LightIconTexture == 0) { m_IsInitialized = false; return; }	
 
-	m_LightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer( (MAX_POINT_LIGHTS * sizeof(PointLight)) + (sizeof(int) * 4), NULL, GL_DYNAMIC_DRAW, 1, 0));
-	if(!m_LightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
+	//---------------------------------------------------------------------------------------------------------------------------------------
+	//Point Lights
+	m_PointLightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer((MAX_POINT_LIGHTS * sizeof(PointLight)) + (sizeof(int) * 4), NULL, GL_DYNAMIC_DRAW, 1, 0));
+	if (!m_PointLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
-	SpawnPointLight(Vector3(0, 1.0f, -2.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
-	SpawnPointLight(Vector3(0, 1.0f, 2.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-	SpawnPointLight(Vector3(-1.5f, 1.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-	SpawnPointLight(Vector3(1.5f, 1.0f, 0.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f));
+	//SpawnPointLight(Vector3(0, 1.0f, -2.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+	//SpawnPointLight(Vector3(0, 1.0f, 2.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	//SpawnPointLight(Vector3(-1.5f, 1.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+	//SpawnPointLight(Vector3(1.5f, 1.0f, 0.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f));
+	//---------------------------------------------------------------------------------------------------------------------------------------
+
+	//---------------------------------------------------------------------------------------------------------------------------------------
+	//Directional Lights
+	m_DirectionalLightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(sizeof(DirectionalLightStruct), NULL, GL_DYNAMIC_DRAW, 2, 0));
+	if (!m_DirectionalLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
+
+	m_DirectionalLight = std::shared_ptr<DirectionalLight>(new DirectionalLight(Vector3::FORWARD, Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
+	if (m_DirectionalLight == nullptr) { m_IsInitialized = false; return; }
+
+	m_DirectionalLightStruct = DirectionalLightStruct();
+	m_DirectionalLightStruct.lightDirection = Vector4(m_DirectionalLight->GetLightDir(), 0.0f);
+	m_DirectionalLightStruct.lightColor = m_DirectionalLight->GetColour();
+
+	BindDirectionalLightUBOData();
+	//---------------------------------------------------------------------------------------------------------------------------------------
 
 	ImGuiRenderer::Get()->RegisterItem(this);
 
@@ -49,18 +68,18 @@ void LightsManager::SpawnPointLight(const Vector3& lightPosition, const Vector4&
 	m_PointLights.insert(newPointLight);
 	m_PointLightsVec.push_back(pLightStruct);
 
-	BindLightUBOData();
+	BindPointLightUBOData();
 }
 
-void LightsManager::BindLightUBOData(int index)
+void LightsManager::BindPointLightUBOData(int index)
 {
-	m_LightsUBO->Bind();
+	m_PointLightsUBO->Bind();
 
 	if (index == -1)
 	{
 		int numLights[1] = { (int)m_PointLights.size() };
-		m_LightsUBO->BindSubData(0, sizeof(int), numLights);
-		m_LightsUBO->BindSubData(sizeof(int) * 4, sizeof(PointLight) * (int)m_PointLightsVec.size(), m_PointLightsVec.data());
+		m_PointLightsUBO->BindSubData(0, sizeof(int), numLights);
+		m_PointLightsUBO->BindSubData(sizeof(int) * 4, sizeof(PointLight) * (int)m_PointLightsVec.size(), m_PointLightsVec.data());
 	}
 	else
 	{
@@ -71,7 +90,7 @@ void LightsManager::BindLightUBOData(int index)
 			Eg: Index At 5
 				Offset for Index 5 = 16 + (32 * 5) = 16 + (160) = 176
 		*/
-		m_LightsUBO->BindSubData((sizeof(int) * 4) + (sizeof(PointLight) * index), sizeof(PointLight), &m_PointLightsVec[index]);
+		m_PointLightsUBO->BindSubData((sizeof(int) * 4) + (sizeof(PointLight) * index), sizeof(PointLight), &m_PointLightsVec[index]);
 	}
 
 	/*for (const auto& light : m_PointLights)
@@ -81,7 +100,14 @@ void LightsManager::BindLightUBOData(int index)
 		pLightStruct.lightColor = light->GetColour();
 		m_LightsUBO->BindSubData(sizeof(int) * 4, sizeof(PointLight), &pLightStruct);
 	}*/
-	m_LightsUBO->Unbind();
+	m_PointLightsUBO->Unbind();
+}
+
+void LightsManager::BindDirectionalLightUBOData()
+{
+	m_DirectionalLightsUBO->Bind();
+	m_DirectionalLightsUBO->BindSubData(0, sizeof(DirectionalLightStruct), &m_DirectionalLightStruct);
+	m_DirectionalLightsUBO->Unbind();
 }
 
 void LightsManager::Render()
@@ -102,6 +128,16 @@ void LightsManager::Render()
 		Vector3 right = Vector3::Cross(Renderer::Get()->GetMainCamera()->GetUp(), look);
 		Vector3 up = Vector3::Cross(look, right);
 
+		//Arbitrary Axis Billboards (Up Axis)
+		/*Vector3 up = Vector3(0, 1, 0);
+		Vector3 right = Vector3::Cross(up, look);
+		right.Normalise();
+		look = Vector3::Cross(right, up);*/
+
+		//Axis Aligned Billboards (Y Axis)
+		/*Vector3 up = Vector3::UP;
+		Vector3 right = Vector3::Cross(up, look);*/
+
 		Matrix4 billboardMat = Matrix4::Scale(0.2f) * Matrix4::CreateBillboardMatrix(right, up, look, light->GetPosition());
 		m_PBRBillboardShader->SetMat4("billboardMatrix", billboardMat, true);
 
@@ -111,9 +147,28 @@ void LightsManager::Render()
 }
 
 void LightsManager::OnImGuiRender()
-{
-	if ((int)m_PointLights.size() <= 0) return;
+{	
+	if (m_DirectionalLight == nullptr) return;
+	if (ImGui::CollapsingHeader("Directional Light"))
+	{
+		ImGui::Indent();
+		Vector3 m_LightDir = m_DirectionalLight->GetLightDir();
+		if (ImGui::DragFloat3("Direction", (float*)&m_LightDir))
+		{
+			m_DirectionalLight->SetLightDir(m_LightDir);
+			OnDirectionalLightPropertyChanged(m_LightDir, m_DirectionalLight->GetColour());
+		}
 
+		Vector4 m_LightColor = m_DirectionalLight->GetColour();
+		if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
+		{
+			m_DirectionalLight->SetColour(m_LightColor);
+			OnDirectionalLightPropertyChanged(m_DirectionalLight->GetLightDir(), m_LightColor);
+		}
+		ImGui::Unindent();
+	}
+
+	if ((int)m_PointLights.size() <= 0) return;
 	if (ImGui::CollapsingHeader("Point Lights"))
 	{
 		int i = 0;
@@ -128,14 +183,14 @@ void LightsManager::OnImGuiRender()
 				if (ImGui::DragFloat3("Position", (float*)&m_LightPos))
 				{
 					light->SetPosition(m_LightPos);
-					OnLightPropertyChanged(i, m_LightPos, light->GetColour());
+					OnPointLightPropertyChanged(i, m_LightPos, light->GetColour());
 				}
 
 				Vector4 m_LightColor = light->GetColour();
 				if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
 				{
 					light->SetColour(m_LightColor);
-					OnLightPropertyChanged(i, light->GetPosition(), m_LightColor);
+					OnPointLightPropertyChanged(i, light->GetPosition(), m_LightColor);
 				}
 
 				float m_LightRadius = light->GetRadius();
@@ -148,16 +203,24 @@ void LightsManager::OnImGuiRender()
 		ImGui::Separator();
 		if (ImGui::Button("New Point Light")) SpawnPointLight();
 		ImGui::SameLine();
-		if (ImGui::Button("Rebuild Light Data")) BindLightUBOData();
+		if (ImGui::Button("Rebuild Light Data")) BindPointLightUBOData();
 	}
 }
 
-void LightsManager::OnLightPropertyChanged(int index, const Vector3& newLightPos, const Vector4& newLightColor)
+void LightsManager::OnPointLightPropertyChanged(int index, const Vector3& newLightPos, const Vector4& newLightColor)
 {
 	if (index == -1 || index >= (int)m_PointLights.size()) return;
 
 	m_PointLightsVec[index].lightPosition = Vector4(newLightPos, 1.0f);
 	m_PointLightsVec[index].lightColor = newLightColor;
 
-	BindLightUBOData(index);
+	BindPointLightUBOData(index);
+}
+
+void LightsManager::OnDirectionalLightPropertyChanged(const Vector3& newLightDir, const Vector4& newLightColor)
+{
+	m_DirectionalLightStruct.lightDirection = Vector4(newLightDir, 0.0f);
+	m_DirectionalLightStruct.lightColor = newLightColor;
+
+	BindDirectionalLightUBOData();
 }

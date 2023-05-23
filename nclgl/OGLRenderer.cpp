@@ -253,7 +253,6 @@ void OGLRenderer::SetShaderLight(const Light& L)
 {
 	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "lightPos"), 1, (float*)&L.GetPosition());
 	glUniform4fv(glGetUniformLocation(currentShader->GetProgram(), "lightColour"), 1, (float*)&L.GetColour());
-	glUniform4fv(glGetUniformLocation(currentShader->GetProgram(), "specularColour"), 1, (float*)&L.GetSpecularColour());
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "lightRadius"), L.GetRadius());
 }
 

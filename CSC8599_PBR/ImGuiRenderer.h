@@ -31,6 +31,5 @@ protected:
 	std::unordered_set<IImguiItem*> m_ImGuiItems;
 
 	ImVec2 m_ViewportSize;
-
 	bool m_MouseOverScene;
 };

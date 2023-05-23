@@ -8,10 +8,17 @@
 class UniformBuffer;
 class Shader;
 class Light;
+class DirectionalLight;
 
 struct PointLight
 {
 	Vector4 lightPosition;
+	Vector4 lightColor;
+};
+
+struct DirectionalLightStruct
+{
+	Vector4 lightDirection;
 	Vector4 lightColor;
 };
 
@@ -26,19 +33,28 @@ public:
 	void SpawnPointLight();
 	void SpawnPointLight(const Vector3& lightPosition, const Vector4& lightColor);
 
-	void BindLightUBOData(int index = -1);
+	void BindPointLightUBOData(int index = -1);
+	void BindDirectionalLightUBOData();
 	void Render();
 
 	virtual void OnImGuiRender() override;
 
 protected:
-	void OnLightPropertyChanged(int index, const Vector3& newLightPos, const Vector4& newLightColor);
+	void OnPointLightPropertyChanged(int index, const Vector3& newLightPos, const Vector4& newLightColor);
+	void OnDirectionalLightPropertyChanged(const Vector3& newLightDir, const Vector4& newLightColor);
 
 protected:
 	bool m_IsInitialized;
 	unsigned int m_LightIconTexture;
-	std::shared_ptr<UniformBuffer> m_LightsUBO;
+	
+	std::shared_ptr<UniformBuffer> m_PointLightsUBO;
+	std::shared_ptr<UniformBuffer> m_DirectionalLightsUBO;
+	
 	std::shared_ptr<Shader> m_PBRBillboardShader;
+	
 	std::unordered_set<std::shared_ptr<Light>> m_PointLights;
 	std::vector<PointLight> m_PointLightsVec;
+
+	std::shared_ptr<DirectionalLight> m_DirectionalLight;
+	DirectionalLightStruct m_DirectionalLightStruct;
 };

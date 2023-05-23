@@ -40,7 +40,6 @@ protected:
 	void HandleUBOData();
 	void RenderCubeMap();
 	void RenderHelmet();
-	void RenderBillboards();
 
 public:
 	void RenderScene() override;

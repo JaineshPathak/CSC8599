@@ -210,37 +210,6 @@ void Renderer::RenderHelmet()
 	m_PBRShader->UnBind();
 }
 
-void Renderer::RenderBillboards()
-{
-	m_PBRBillboardShader->Bind();
-	m_PBRBillboardShader->SetTexture("mainTex", m_LightIconTexture, 0);
-	m_PBRBillboardShader->SetVector4("mainColor", m_PointLight->GetColour());
-
-	Vector3 look = m_MainCamera->GetPosition() - m_PointLight->GetPosition();
-	look.Normalise();
-	
-	//Point Billboards
-	Vector3 right = Vector3::Cross(m_MainCamera->GetUp(), look);
-	Vector3 up = Vector3::Cross(look, right);
-
-	//Arbitrary Axis Billboards (Up Axis)
-	/*Vector3 up = Vector3(0, 1, 0);
-	Vector3 right = Vector3::Cross(up, look);
-	right.Normalise();
-	look = Vector3::Cross(right, up);*/
-
-	//Axis Aligned Billboards (Y Axis)
-	/*Vector3 up = Vector3::UP;
-	Vector3 right = Vector3::Cross(up, look);*/
-
-	Matrix4 billboardMat = Matrix4::Scale(0.3f) * Matrix4::CreateBillboardMatrix(right, up, look, m_PointLight->GetPosition());
-	m_PBRBillboardShader->SetMat4("billboardMatrix", billboardMat, true);
-
-	m_QuadMesh->Draw();
-
-	m_PBRBillboardShader->UnBind();
-}
-
 void Renderer::RenderScene()
 {
 	m_GlobalFrameBuffer->Bind();
@@ -250,9 +219,7 @@ void Renderer::RenderScene()
 	RenderCubeMap();
 	RenderHelmet();
 
-	m_LightsManager->Render();
-	//RenderBillboards();
-		
+	m_LightsManager->Render();	
 	m_GlobalFrameBuffer->Unbind();
 
 	RenderImGui();
