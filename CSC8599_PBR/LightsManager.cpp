@@ -5,8 +5,10 @@
 #include <nclgl/UniformBuffer.h>
 #include <nclgl/Light.h>
 #include <nclgl/DirectionalLight.h>
+#include <nclgl/SpotLight.h>
 
 const int MAX_POINT_LIGHTS = 100;
+const int MAX_SPOT_LIGHTS = 2;
 
 LightsManager::LightsManager()
 {
@@ -21,8 +23,8 @@ LightsManager::LightsManager()
 	m_PointLightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer((MAX_POINT_LIGHTS * sizeof(PointLight)) + (sizeof(int) * 4), NULL, GL_DYNAMIC_DRAW, 1, 0));
 	if (!m_PointLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
-	SpawnPointLight(Vector3(0, 1.0f, -2.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
-	//SpawnPointLight(Vector3(0, 1.0f, 2.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	//SpawnPointLight(Vector3(0, 1.0f, -2.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
+	SpawnPointLight(Vector3(0, 1.0f, 2.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
 	//SpawnPointLight(Vector3(-1.5f, 1.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f));
 	//SpawnPointLight(Vector3(1.5f, 1.0f, 0.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f));
 	//---------------------------------------------------------------------------------------------------------------------------------------
@@ -40,6 +42,14 @@ LightsManager::LightsManager()
 	m_DirectionalLightStruct.lightColor = m_DirectionalLight->GetColour();
 
 	BindDirectionalLightUBOData();
+	//---------------------------------------------------------------------------------------------------------------------------------------
+
+	//---------------------------------------------------------------------------------------------------------------------------------------
+	//Spot Lights
+	m_SpotLightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer((MAX_SPOT_LIGHTS * sizeof(SpotLightStruct)) + (sizeof(int) * 4), NULL, GL_DYNAMIC_DRAW, 3, 0));
+	if (!m_SpotLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
+
+	SpawnSpotLight();
 	//---------------------------------------------------------------------------------------------------------------------------------------
 
 	ImGuiRenderer::Get()->RegisterItem(this);
@@ -60,16 +70,38 @@ void LightsManager::SpawnPointLight()
 void LightsManager::SpawnPointLight(const Vector3& lightPosition, const Vector4& lightColor)
 {
 	std::shared_ptr<Light> newPointLight = std::shared_ptr<Light>(new Light(lightPosition, lightColor, 2.0f));
+	m_PointLights.insert(newPointLight);
 	
 	PointLight pLightStruct;
 	pLightStruct.lightPosition = Vector4(newPointLight->GetPosition(), 1.0f);
 	pLightStruct.lightColor = newPointLight->GetColour();
 	pLightStruct.lightAttenuationData = Vector4(1.0f, 0.09f, 0.032f, 1.0f);
 	
-	m_PointLights.insert(newPointLight);
 	m_PointLightsVec.push_back(pLightStruct);
 
 	BindPointLightUBOData();
+}
+
+void LightsManager::SpawnSpotLight()
+{
+	SpawnSpotLight(Vector3::UP, Vector3::DOWN, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
+void LightsManager::SpawnSpotLight(const Vector3& lightPosition, const Vector3& lightDir, const Vector4& lightColor)
+{
+	std::shared_ptr<SpotLight> newSpotLight = std::shared_ptr<SpotLight>(new SpotLight(lightPosition, lightDir, lightColor, 12.5f, 12.5f));
+	m_SpotLights.insert(newSpotLight);
+
+	SpotLightStruct sLightStruct;
+	sLightStruct.lightPosition = Vector4(newSpotLight->GetPosition(), 1.0f);
+	sLightStruct.lightDirection = Vector4(newSpotLight->GetLightDir(), 0.0f);
+	sLightStruct.lightColor = lightColor;
+	sLightStruct.lightAttenuationData = Vector4(1.0f, 0.09f, 0.032f, 1.0f);
+	sLightStruct.lightCutOffData = Vector4(newSpotLight->GetInnerCutOff(), newSpotLight->GetOuterCutOff(), 1.0f, 1.0f);
+
+	m_SpotLightsVec.push_back(sLightStruct);
+
+	BindSpotLightUBOData();
 }
 
 void LightsManager::BindPointLightUBOData(int index)
@@ -109,6 +141,24 @@ void LightsManager::BindDirectionalLightUBOData()
 	m_DirectionalLightsUBO->Bind();
 	m_DirectionalLightsUBO->BindSubData(0, sizeof(DirectionalLightStruct), &m_DirectionalLightStruct);
 	m_DirectionalLightsUBO->Unbind();
+}
+
+void LightsManager::BindSpotLightUBOData(int index)
+{
+	m_SpotLightsUBO->Bind();
+
+	if (index == -1)
+	{
+		int numLights[1] = { (int)m_SpotLights.size() };
+		m_SpotLightsUBO->BindSubData(0, sizeof(int), numLights);
+		m_SpotLightsUBO->BindSubData(sizeof(int) * 4, sizeof(SpotLightStruct) * (int)m_SpotLightsVec.size(), m_SpotLightsVec.data());
+	}
+	else
+	{
+		m_SpotLightsUBO->BindSubData((sizeof(int) * 4) + (sizeof(SpotLightStruct) * index), sizeof(SpotLightStruct), &m_SpotLightsVec[index]);
+	}
+	
+	m_SpotLightsUBO->Unbind();
 }
 
 void LightsManager::Render()
@@ -210,6 +260,61 @@ void LightsManager::OnImGuiRender()
 			BindPointLightUBOData();
 		}
 	}
+
+	if ((int)m_SpotLights.size() <= 0) return;
+	if (ImGui::CollapsingHeader("Spot Lights"))
+	{
+		int i = 0;
+		for (auto iter = m_SpotLights.begin(); iter != m_SpotLights.end(); ++iter)
+		{
+			auto& light = *iter;
+			const std::string lightHeaderStr = "Spot Light - [" + std::to_string(i) + "]";
+			if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
+			{
+				ImGui::Indent();
+				Vector3 m_LightPos = light->GetPosition();
+				if (ImGui::DragFloat3("Position", (float*)&m_LightPos))
+				{
+					light->SetPosition(m_LightPos);
+					OnSpotLightPropertyChanged(i, m_LightPos, light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
+				}
+
+				Vector3 m_LightDir = light->GetLightDir();
+				if (ImGui::DragFloat3("Direction", (float*)&m_LightDir))
+				{
+					light->SetLightDir(m_LightDir);
+					OnSpotLightPropertyChanged(i, light->GetPosition(), m_LightDir, light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
+				}
+
+				Vector4 m_LightColor = light->GetColour();
+				if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
+				{
+					light->SetColour(m_LightColor);
+					OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), m_LightColor, light->GetInnerCutOff(), light->GetOuterCutOff());
+				}
+
+				float m_LightInner = light->GetInnerCutOff();
+				if (ImGui::DragFloat("Inner Radius", &m_LightInner, 0.1f, 1.0f, 100.0f))
+				{
+					light->SetInnerCutOff(m_LightInner);
+					OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), m_LightInner, light->GetOuterCutOff());
+				}
+
+				float m_LightOuter = light->GetOuterCutOff();
+				if (ImGui::DragFloat("Outer Radius", &m_LightOuter, 0.1f, 1.0f, 100.0f))
+				{
+					light->SetOuterCutOff(m_LightOuter);
+					OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), m_LightOuter);
+				}
+				
+				ImGui::Unindent();
+			}
+			i++;
+		}
+
+		ImGui::Separator();
+		if (ImGui::Button("New Spot Light")) SpawnSpotLight();
+	}
 }
 
 void LightsManager::OnPointLightPropertyChanged(int index, const Vector3& newLightPos, const Vector4& newLightColor)
@@ -228,4 +333,16 @@ void LightsManager::OnDirectionalLightPropertyChanged(const Vector3& newLightDir
 	m_DirectionalLightStruct.lightColor = newLightColor;
 
 	BindDirectionalLightUBOData();
+}
+
+void LightsManager::OnSpotLightPropertyChanged(int index, const Vector3& newLightPos, const Vector3& newLightDir, const Vector4& newLightColor, const float& innerCutOff, const float& outerCutOff)
+{
+	if (index == -1 || index >= (int)m_SpotLights.size()) return;
+
+	m_SpotLightsVec[index].lightPosition = Vector4(newLightPos, 1.0f);
+	m_SpotLightsVec[index].lightDirection = Vector4(newLightDir, 1.0f);
+	m_SpotLightsVec[index].lightColor = newLightColor;
+	m_SpotLightsVec[index].lightCutOffData = Vector4(innerCutOff, outerCutOff, 1.0f, 1.0f);
+
+	BindSpotLightUBOData(index);
 }

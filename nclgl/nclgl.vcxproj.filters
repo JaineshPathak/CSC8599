@@ -145,6 +145,7 @@
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="UniformBuffer.h" />
+    <ClInclude Include="SpotLight.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">
