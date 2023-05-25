@@ -62,6 +62,7 @@ protected:
 protected:
 	bool m_IsInitialized;
 	unsigned int m_LightIconTexture;
+	unsigned int m_SpotLightIconTexture;
 	
 	std::shared_ptr<UniformBuffer> m_PointLightsUBO;
 	std::shared_ptr<UniformBuffer> m_DirectionalLightsUBO;

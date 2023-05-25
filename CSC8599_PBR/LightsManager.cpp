@@ -6,6 +6,7 @@
 #include <nclgl/Light.h>
 #include <nclgl/DirectionalLight.h>
 #include <nclgl/SpotLight.h>
+#include <nclgl/common.h>
 
 const int MAX_POINT_LIGHTS = 100;
 const int MAX_SPOT_LIGHTS = 2;
@@ -17,6 +18,9 @@ LightsManager::LightsManager()
 
 	m_LightIconTexture = SOIL_load_OGL_texture(TEXTUREDIR"Icons/Icon_Light.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 	if (m_LightIconTexture == 0) { m_IsInitialized = false; return; }	
+
+	m_SpotLightIconTexture = SOIL_load_OGL_texture(TEXTUREDIR"Icons/Icon_SpotLight.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	if (m_SpotLightIconTexture == 0) { m_IsInitialized = false; return; }
 
 	//---------------------------------------------------------------------------------------------------------------------------------------
 	//Point Lights
@@ -49,7 +53,7 @@ LightsManager::LightsManager()
 	m_SpotLightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer((MAX_SPOT_LIGHTS * sizeof(SpotLightStruct)) + (sizeof(int) * 4), NULL, GL_DYNAMIC_DRAW, 3, 0));
 	if (!m_SpotLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
-	SpawnSpotLight();
+	SpawnSpotLight(Vector3::UP * 2.5f, Vector3::DOWN, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	//---------------------------------------------------------------------------------------------------------------------------------------
 
 	ImGuiRenderer::Get()->RegisterItem(this);
@@ -60,6 +64,7 @@ LightsManager::LightsManager()
 LightsManager::~LightsManager()
 {
 	glDeleteTextures(1, &m_LightIconTexture);
+	glDeleteTextures(1, &m_SpotLightIconTexture);
 }
 
 void LightsManager::SpawnPointLight()
@@ -96,8 +101,8 @@ void LightsManager::SpawnSpotLight(const Vector3& lightPosition, const Vector3& 
 	sLightStruct.lightPosition = Vector4(newSpotLight->GetPosition(), 1.0f);
 	sLightStruct.lightDirection = Vector4(newSpotLight->GetLightDir(), 0.0f);
 	sLightStruct.lightColor = lightColor;
-	sLightStruct.lightAttenuationData = Vector4(1.0f, 0.09f, 0.032f, 1.0f);
-	sLightStruct.lightCutOffData = Vector4(newSpotLight->GetInnerCutOff(), newSpotLight->GetOuterCutOff(), 1.0f, 1.0f);
+	sLightStruct.lightAttenuationData = Vector4(1.0f, 0.09f, 0.032f, 0.0f);
+	sLightStruct.lightCutOffData = Vector4(std::cos(DegToRad(newSpotLight->GetInnerCutOff())), std::cos(DegToRad(newSpotLight->GetOuterCutOff())), 0.0f, 0.0f);
 
 	m_SpotLightsVec.push_back(sLightStruct);
 
@@ -194,126 +199,162 @@ void LightsManager::Render()
 
 		Renderer::Get()->GetQuadMesh()->Draw();
 	}
+
+	m_PBRBillboardShader->SetTexture("mainTex", m_SpotLightIconTexture, 0);
+	for (auto iter = m_SpotLights.cbegin(); iter != m_SpotLights.cend(); ++iter)
+	{
+		const auto& light = *iter;
+		m_PBRBillboardShader->SetVector4("mainColor", light->GetColour());
+
+		Vector3 look = Renderer::Get()->GetMainCamera()->GetPosition() - light->GetPosition();
+		look.Normalise();
+
+		//Point Billboards
+		Vector3 right = Vector3::Cross(Renderer::Get()->GetMainCamera()->GetUp(), look);
+		Vector3 up = Vector3::Cross(look, right);
+
+		//Arbitrary Axis Billboards (Up Axis)
+		/*Vector3 up = Vector3(0, 1, 0);
+		Vector3 right = Vector3::Cross(up, look);
+		right.Normalise();
+		look = Vector3::Cross(right, up);*/
+
+		//Axis Aligned Billboards (Y Axis)
+		/*Vector3 up = Vector3::UP;
+		Vector3 right = Vector3::Cross(up, look);*/
+
+		Matrix4 billboardMat = Matrix4::Scale(0.2f) * Matrix4::CreateBillboardMatrix(right, up, look, light->GetPosition());
+		m_PBRBillboardShader->SetMat4("billboardMatrix", billboardMat, true);
+
+		Renderer::Get()->GetQuadMesh()->Draw();
+	}
 	m_PBRBillboardShader->UnBind();
 }
 
 void LightsManager::OnImGuiRender()
 {	
-	if (m_DirectionalLight == nullptr) return;
-	if (ImGui::CollapsingHeader("Directional Light"))
+	if (ImGui::CollapsingHeader("Lights"))
 	{
-		ImGui::Indent();
-		Vector3 m_LightDir = m_DirectionalLight->GetLightDir();
-		if (ImGui::DragFloat3("Direction", (float*)&m_LightDir))
+		if (m_DirectionalLight == nullptr) return;
+		if (ImGui::CollapsingHeader("Directional Light"))
 		{
-			m_DirectionalLight->SetLightDir(m_LightDir);
-			OnDirectionalLightPropertyChanged(m_LightDir, m_DirectionalLight->GetColour());
-		}
-
-		Vector4 m_LightColor = m_DirectionalLight->GetColour();
-		if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
-		{
-			m_DirectionalLight->SetColour(m_LightColor);
-			OnDirectionalLightPropertyChanged(m_DirectionalLight->GetLightDir(), m_LightColor);
-		}
-		ImGui::Unindent();
-	}
-
-	if ((int)m_PointLights.size() <= 0) return;
-	if (ImGui::CollapsingHeader("Point Lights"))
-	{
-		int i = 0;
-		for (auto iter = m_PointLights.begin(); iter != m_PointLights.end(); ++iter)
-		{
-			auto& light = *iter;
-			const std::string lightHeaderStr = "Light - [" + std::to_string(i) + "]";
-			if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
+			ImGui::Indent();
+			Vector3 m_LightDir = m_DirectionalLight->GetLightDir();
+			if (ImGui::DragFloat3("Direction", (float*)&m_LightDir, 0.1f, -1.0f, 1.0f))
 			{
-				ImGui::Indent();
-				Vector3 m_LightPos = light->GetPosition();
-				if (ImGui::DragFloat3("Position", (float*)&m_LightPos))
-				{
-					light->SetPosition(m_LightPos);
-					OnPointLightPropertyChanged(i, m_LightPos, light->GetColour());
-				}
-
-				Vector4 m_LightColor = light->GetColour();
-				if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
-				{
-					light->SetColour(m_LightColor);
-					OnPointLightPropertyChanged(i, light->GetPosition(), m_LightColor);
-				}
-
-				float m_LightRadius = light->GetRadius();
-				if (ImGui::DragFloat("Radius", &m_LightRadius, 1.0f, 0.1f, 1000.0f)) light->SetRadius(m_LightRadius);
-				ImGui::Unindent();
+				m_DirectionalLight->SetLightDir(m_LightDir);
+				OnDirectionalLightPropertyChanged(m_LightDir, m_DirectionalLight->GetColour());
 			}
-			i++;
+
+			Vector4 m_LightColor = m_DirectionalLight->GetColour();
+			if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
+			{
+				m_DirectionalLight->SetColour(m_LightColor);
+				OnDirectionalLightPropertyChanged(m_DirectionalLight->GetLightDir(), m_LightColor);
+			}
+			ImGui::Unindent();
 		}
+
+		if ((int)m_PointLights.size() <= 0) return;
+		if (ImGui::CollapsingHeader("Point Lights"))
+		{
+			int i = 0;
+			for (auto iter = m_PointLights.begin(); iter != m_PointLights.end(); ++iter)
+			{
+				auto& light = *iter;
+				const std::string lightHeaderStr = "Light - [" + std::to_string(i) + "]";
+				if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
+				{
+					ImGui::Indent();
+					Vector3 m_LightPos = light->GetPosition();
+					if (ImGui::DragFloat3("Position", (float*)&m_LightPos))
+					{
+						light->SetPosition(m_LightPos);
+						OnPointLightPropertyChanged(i, m_LightPos, light->GetColour());
+					}
+
+					Vector4 m_LightColor = light->GetColour();
+					if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
+					{
+						light->SetColour(m_LightColor);
+						OnPointLightPropertyChanged(i, light->GetPosition(), m_LightColor);
+					}
+
+					float m_LightRadius = light->GetRadius();
+					if (ImGui::DragFloat("Radius", &m_LightRadius, 1.0f, 0.1f, 1000.0f)) light->SetRadius(m_LightRadius);
+					ImGui::Unindent();
+				}
+				i++;
+			}
 		
-		ImGui::Separator();
-		if (ImGui::Button("New Point Light")) SpawnPointLight();
-		ImGui::SameLine();
-		if (ImGui::Button("Rebuild Light Data"))
-		{
-			BindDirectionalLightUBOData();
-			BindPointLightUBOData();
-		}
-	}
-
-	if ((int)m_SpotLights.size() <= 0) return;
-	if (ImGui::CollapsingHeader("Spot Lights"))
-	{
-		int i = 0;
-		for (auto iter = m_SpotLights.begin(); iter != m_SpotLights.end(); ++iter)
-		{
-			auto& light = *iter;
-			const std::string lightHeaderStr = "Spot Light - [" + std::to_string(i) + "]";
-			if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
+			ImGui::Separator();
+			if ((int)m_PointLights.size() < MAX_POINT_LIGHTS)
+				if (ImGui::Button("New Point Light")) 
+					SpawnPointLight();
+			ImGui::SameLine();
+			if (ImGui::Button("Rebuild Light Data"))
 			{
-				ImGui::Indent();
-				Vector3 m_LightPos = light->GetPosition();
-				if (ImGui::DragFloat3("Position", (float*)&m_LightPos))
-				{
-					light->SetPosition(m_LightPos);
-					OnSpotLightPropertyChanged(i, m_LightPos, light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
-				}
-
-				Vector3 m_LightDir = light->GetLightDir();
-				if (ImGui::DragFloat3("Direction", (float*)&m_LightDir))
-				{
-					light->SetLightDir(m_LightDir);
-					OnSpotLightPropertyChanged(i, light->GetPosition(), m_LightDir, light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
-				}
-
-				Vector4 m_LightColor = light->GetColour();
-				if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
-				{
-					light->SetColour(m_LightColor);
-					OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), m_LightColor, light->GetInnerCutOff(), light->GetOuterCutOff());
-				}
-
-				float m_LightInner = light->GetInnerCutOff();
-				if (ImGui::DragFloat("Inner Radius", &m_LightInner, 0.1f, 1.0f, 100.0f))
-				{
-					light->SetInnerCutOff(m_LightInner);
-					OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), m_LightInner, light->GetOuterCutOff());
-				}
-
-				float m_LightOuter = light->GetOuterCutOff();
-				if (ImGui::DragFloat("Outer Radius", &m_LightOuter, 0.1f, 1.0f, 100.0f))
-				{
-					light->SetOuterCutOff(m_LightOuter);
-					OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), m_LightOuter);
-				}
-				
-				ImGui::Unindent();
+				BindDirectionalLightUBOData();
+				BindPointLightUBOData();
 			}
-			i++;
 		}
 
-		ImGui::Separator();
-		if (ImGui::Button("New Spot Light")) SpawnSpotLight();
+		if ((int)m_SpotLights.size() <= 0) return;
+		if (ImGui::CollapsingHeader("Spot Lights"))
+		{
+			int i = 0;
+			for (auto iter = m_SpotLights.begin(); iter != m_SpotLights.end(); ++iter)
+			{
+				auto& light = *iter;
+				const std::string lightHeaderStr = "Spot Light - [" + std::to_string(i) + "]";
+				if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
+				{
+					ImGui::Indent();
+					Vector3 m_LightPos = light->GetPosition();
+					if (ImGui::DragFloat3("Position", (float*)&m_LightPos, 0.25f))
+					{
+						light->SetPosition(m_LightPos);
+						OnSpotLightPropertyChanged(i, m_LightPos, light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
+					}
+
+					Vector3 m_LightDir = light->GetLightDir();
+					if (ImGui::DragFloat3("Direction", (float*)&m_LightDir, 0.1f, -1.0f, 1.0f))
+					{
+						light->SetLightDir(m_LightDir);
+						OnSpotLightPropertyChanged(i, light->GetPosition(), m_LightDir, light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
+					}
+
+					Vector4 m_LightColor = light->GetColour();
+					if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
+					{
+						light->SetColour(m_LightColor);
+						OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), m_LightColor, light->GetInnerCutOff(), light->GetOuterCutOff());
+					}
+
+					float m_LightInner = light->GetInnerCutOff();
+					if (ImGui::DragFloat("Inner Radius", &m_LightInner, 0.1f, 1.0f, 180.0f))
+					{
+						light->SetInnerCutOff(m_LightInner);
+						OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), m_LightInner, light->GetOuterCutOff());
+					}
+
+					float m_LightOuter = light->GetOuterCutOff();
+					if (ImGui::DragFloat("Outer Radius", &m_LightOuter, 0.1f, 1.0f, 100.0f))
+					{
+						light->SetOuterCutOff(m_LightOuter);
+						OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), m_LightOuter);
+					}
+				
+					ImGui::Unindent();
+				}
+				i++;
+			}
+
+			ImGui::Separator();
+			if((int)m_SpotLights.size() < MAX_SPOT_LIGHTS) 
+				if (ImGui::Button("New Spot Light")) 
+					SpawnSpotLight();
+		}
 	}
 }
 
@@ -340,9 +381,9 @@ void LightsManager::OnSpotLightPropertyChanged(int index, const Vector3& newLigh
 	if (index == -1 || index >= (int)m_SpotLights.size()) return;
 
 	m_SpotLightsVec[index].lightPosition = Vector4(newLightPos, 1.0f);
-	m_SpotLightsVec[index].lightDirection = Vector4(newLightDir, 1.0f);
+	m_SpotLightsVec[index].lightDirection = Vector4(newLightDir, 0.0f);
 	m_SpotLightsVec[index].lightColor = newLightColor;
-	m_SpotLightsVec[index].lightCutOffData = Vector4(innerCutOff, outerCutOff, 1.0f, 1.0f);
+	m_SpotLightsVec[index].lightCutOffData = Vector4(std::cos(DegToRad(innerCutOff)), std::cos(DegToRad(outerCutOff)), 0.0f, 0.0f);
 
 	BindSpotLightUBOData(index);
 }

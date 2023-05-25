@@ -68,9 +68,10 @@ void CalcDirectionalLight(inout vec3 result, in vec3 albedoColor)
 
 	float specularStrength = 1.0;
 	vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
-	vec3 reflectDir = reflect(-lightDir, norm);
+	vec3 viewDirHalf = normalize(lightDir + viewDir);
+	//vec3 reflectDir = reflect(-lightDir, norm);
 
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	float spec = pow(max(dot(norm, viewDirHalf), 0.0), 64.0);
 	vec3 specular = specularStrength * spec * vec3(directionalLight.lightColor.xyz);
 
 	result = (ambient + diffuse + specular) * albedoColor;
@@ -90,13 +91,15 @@ void CalcPointsLights(inout vec3 result, in vec3 albedoColor)
 
 		float specularStrength = 1.0;
 		vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
-		vec3 reflectDir = reflect(-lightDir, norm);
+		vec3 viewDirHalf = normalize(lightDir + viewDir);
+		//vec3 reflectDir = reflect(-lightDir, norm);
 
-		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+		float spec = pow(max(dot(norm, viewDirHalf), 0.0), 64.0);
 		vec3 specular = specularStrength * spec * vec3(pointLights[i].lightColor.xyz);
 
 		float distance = length(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
 		float attenuation = 1.0 / (pointLights[i].lightAttenData.x + pointLights[i].lightAttenData.y * distance + pointLights[i].lightAttenData.z * (distance * distance));
+		//float attenuation = 1.0 / distance * distance;
 
 		ambient *= attenuation;
 		diffuse *= attenuation;
@@ -111,33 +114,34 @@ void CalcSpotLights(inout vec3 result, in vec3 albedoColor)
 	for(int i = 0; i < numSpotLights; i++)
 	{
 		vec3 lightDir = normalize(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
-		float theta = dot(lightDir, normalize(spotLights[i].lightDirection.xyz));
+		float theta = dot(lightDir, normalize(-spotLights[i].lightDirection.xyz));
+		float epsilon = spotLights[i].lightCutoffData.x - spotLights[i].lightCutoffData.y;
+		float edgeFactor = clamp((theta - spotLights[i].lightCutoffData.y) / epsilon, 0.0, 1.0);
 
-		if(theta > spotLights[i].lightCutoffData.x)
-		{
-			float ambientStrength = 0.5;
-			vec3 ambient = ambientStrength * vec3(spotLights[i].lightColor.xyz);
+		float ambientStrength = 0.5;
+		vec3 ambient = ambientStrength * vec3(spotLights[i].lightColor.xyz);
 			
-			vec3 norm = normalize(IN.normal);
-			float diff = max(dot(norm, lightDir), 0.0);
-			vec3 diffuse = diff * vec3(spotLights[i].lightColor.xyz);
+		vec3 norm = normalize(IN.normal);
+		float diff = max(dot(norm, lightDir), 0.0);
+		vec3 diffuse = diff * vec3(spotLights[i].lightColor.xyz);
 
-			float specularStrength = 1.0;
-			vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
-			vec3 reflectDir = reflect(-lightDir, norm);
+		float specularStrength = 1.0;
+		vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
+		vec3 viewDirHalf = normalize(lightDir + viewDir);
+		//vec3 reflectDir = reflect(-lightDir, norm);
 
-			float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-			vec3 specular = specularStrength * spec * vec3(spotLights[i].lightColor.xyz);
+		float spec = pow(max(dot(norm, viewDirHalf), 0.0), 64.0);
+		vec3 specular = specularStrength * spec * vec3(spotLights[i].lightColor.xyz);
 
-			float distance = length(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
-			float attenuation = 1.0 / (spotLights[i].lightAttenData.x + spotLights[i].lightAttenData.y * distance + spotLights[i].lightAttenData.z * (distance * distance));
+		float distance = length(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
+		float attenuation = 1.0 / (spotLights[i].lightAttenData.x + spotLights[i].lightAttenData.y * distance + spotLights[i].lightAttenData.z * (distance * distance));
+		//float attenuation = 1.0 / distance * distance;
 
-			ambient *= attenuation;
-			diffuse *= attenuation;
-			specular *= attenuation;
+		ambient *= attenuation * edgeFactor;
+		diffuse *= attenuation * edgeFactor;
+		specular *= attenuation * edgeFactor;
 
-			result += (ambient + diffuse + specular) * albedoColor;
-		}
+		result += (ambient + diffuse + specular) * albedoColor;
 	}
 }
 
@@ -146,13 +150,15 @@ void main(void)
 	vec3 albedoColor = texture(albedoTex, IN.texCoord).rgb;
 
 	vec3 result = vec3(0.0);
-	//CalcDirectionalLight(result, albedoColor);
+	CalcDirectionalLight(result, albedoColor);
 	
-	//if(numPointLights > 0)
-		//CalcPointsLights(result, albedoColor);
+	if(numPointLights > 0)
+		CalcPointsLights(result, albedoColor);
 
 	if(numSpotLights > 0)
 		CalcSpotLights(result, albedoColor);
 
-	fragColour = vec4(result, 1.0);
+	//Gamma
+	//result = pow(result, vec3(1.0 / 2.2));
+	fragColour = vec4(result, 1.0);	
 }
