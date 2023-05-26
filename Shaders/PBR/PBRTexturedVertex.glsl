@@ -4,6 +4,7 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 colour;
 layout(location = 2) in vec2 texCoord;
 layout(location = 3) in vec3 normal;
+layout(location = 4) in vec4 tangent;
 
 layout(std140, binding = 0) uniform Matrices
 {
@@ -18,6 +19,9 @@ out Vertex
 	vec2 texCoord;
 	vec3 normal;
 	vec3 fragWorldPos;
+	vec3 tangent;
+	vec3 bitangent;
+	mat3 TBN;
 } OUT;
 
 void main(void) 
@@ -25,8 +29,17 @@ void main(void)
 	mat4 mvp = projMatrix * viewMatrix * modelMatrix;
 	gl_Position = mvp * vec4(position, 1.0);
 
-	//OUT.texCoord = (textureMatrix * vec4(texCoord , 0.0, 1.0)).xy;
+	mat3 normalMatrix = mat3(transpose(inverse(modelMatrix)));
+	vec3 oNormal = normalMatrix * normal;
+	vec3 oTangent = normalMatrix * tangent.xyz;
+	vec3 oBiTangent = cross(oTangent, oNormal) * tangent.w;
+
+	mat3 oTBN = mat3(normalize(oNormal), normalize(oBiTangent), normalize(oNormal));
+
 	OUT.texCoord = texCoord;
-	OUT.normal = mat3(transpose(inverse(modelMatrix))) * normal;
+	OUT.normal = oNormal;
 	OUT.fragWorldPos = vec3(modelMatrix * vec4(position, 1.0));
+	OUT.tangent = oTangent;
+	OUT.bitangent = oBiTangent;
+	OUT.TBN = oTBN;
 }

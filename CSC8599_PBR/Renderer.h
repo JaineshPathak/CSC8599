@@ -63,6 +63,7 @@ protected:
 	std::shared_ptr<Light> m_PointLight;
 
 	unsigned int m_HelmetTextureAlbedo;
+	unsigned int m_HelmetTextureNormal;
 	unsigned int m_CubeMapTexture;
 	unsigned int m_LightIconTexture;
 

@@ -107,6 +107,9 @@ bool Renderer::InitTextures()
 	m_HelmetTextureAlbedo = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 	if (m_HelmetTextureAlbedo == 0) return false;
 
+	m_HelmetTextureNormal = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Normal_Raw.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	if (m_HelmetTextureNormal == 0) return false;
+
 	m_CubeMapTexture = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
 		TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
@@ -197,6 +200,7 @@ void Renderer::RenderHelmet()
 	m_PBRShader->Bind();
 
 	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
+	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal, 1);
 
 	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
 	/*m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());

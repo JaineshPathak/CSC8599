@@ -28,7 +28,7 @@ LightsManager::LightsManager()
 	if (!m_PointLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
 	//SpawnPointLight(Vector3(0, 1.0f, -2.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
-	SpawnPointLight(Vector3(0, 1.0f, 2.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+	SpawnPointLight(Vector3(0, 1.0f, 2.0f), Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	//SpawnPointLight(Vector3(-1.5f, 1.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f));
 	//SpawnPointLight(Vector3(1.5f, 1.0f, 0.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f));
 	//---------------------------------------------------------------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ LightsManager::LightsManager()
 	m_SpotLightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer((MAX_SPOT_LIGHTS * sizeof(SpotLightStruct)) + (sizeof(int) * 4), NULL, GL_DYNAMIC_DRAW, 3, 0));
 	if (!m_SpotLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
-	SpawnSpotLight(Vector3::UP * 2.5f, Vector3::DOWN, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	//SpawnSpotLight(Vector3::UP * 2.5f, Vector3::DOWN, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	//---------------------------------------------------------------------------------------------------------------------------------------
 
 	ImGuiRenderer::Get()->RegisterItem(this);
@@ -235,6 +235,7 @@ void LightsManager::OnImGuiRender()
 {	
 	if (ImGui::CollapsingHeader("Lights"))
 	{
+		ImGui::Indent();
 		if (m_DirectionalLight == nullptr) return;
 		if (ImGui::CollapsingHeader("Directional Light"))
 		{
@@ -261,6 +262,7 @@ void LightsManager::OnImGuiRender()
 			int i = 0;
 			for (auto iter = m_PointLights.begin(); iter != m_PointLights.end(); ++iter)
 			{
+				ImGui::Indent();
 				auto& light = *iter;
 				const std::string lightHeaderStr = "Light - [" + std::to_string(i) + "]";
 				if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
@@ -285,6 +287,8 @@ void LightsManager::OnImGuiRender()
 					ImGui::Unindent();
 				}
 				i++;
+
+				ImGui::Unindent();
 			}
 		
 			ImGui::Separator();
@@ -305,6 +309,7 @@ void LightsManager::OnImGuiRender()
 			int i = 0;
 			for (auto iter = m_SpotLights.begin(); iter != m_SpotLights.end(); ++iter)
 			{
+				ImGui::Indent();
 				auto& light = *iter;
 				const std::string lightHeaderStr = "Spot Light - [" + std::to_string(i) + "]";
 				if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
@@ -348,6 +353,7 @@ void LightsManager::OnImGuiRender()
 					ImGui::Unindent();
 				}
 				i++;
+				ImGui::Unindent();
 			}
 
 			ImGui::Separator();
@@ -355,6 +361,7 @@ void LightsManager::OnImGuiRender()
 				if (ImGui::Button("New Spot Light")) 
 					SpawnSpotLight();
 		}
+		ImGui::Unindent();
 	}
 }
 
