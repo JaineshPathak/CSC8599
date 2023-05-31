@@ -56,7 +56,7 @@ void ImGuiRenderer::Render()
 	ImGui::DockSpaceOverViewport();
 	
 	ImGui::Begin("Settings");	
-	for (const auto& elem : m_ImGuiItems)
+	for (const auto& elem : m_ImGuiItems) 
 		elem->OnImGuiRender();	
 	ImGui::End();
 

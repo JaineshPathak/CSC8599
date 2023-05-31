@@ -8,7 +8,7 @@ class Mesh;
 class MeshMaterial;
 class ImGuiRenderer;
 class LightsManager;
-class FrameBuffer;
+class FrameBufferFP;
 class UniformBuffer;
 class Light;
 
@@ -22,7 +22,7 @@ public:
 
 	std::shared_ptr<Mesh> GetQuadMesh() { return m_QuadMesh; }
 	std::shared_ptr<LookAtCamera> GetMainCamera() { return m_MainCamera; }
-	std::shared_ptr<FrameBuffer> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
+	std::shared_ptr<FrameBufferFP> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
 
 protected:
 	bool Initialize();
@@ -48,7 +48,6 @@ public:
 
 protected:
 	static Renderer* m_Renderer;
-	static std::vector <std::shared_ptr<Light>> m_Lights;
 
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 
@@ -58,16 +57,13 @@ protected:
 
 	std::shared_ptr<Mesh> m_QuadMesh;
 	std::shared_ptr<Mesh> m_HelmetMesh;
-	std::shared_ptr<MeshMaterial> m_HelmetMeshMaterial;
-
-	std::shared_ptr<Light> m_PointLight;
 
 	unsigned int m_HelmetTextureAlbedo;
 	unsigned int m_HelmetTextureNormal;
 	unsigned int m_CubeMapTexture;
 	unsigned int m_LightIconTexture;
 
-	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
+	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;
 	std::shared_ptr<LightsManager> m_LightsManager;

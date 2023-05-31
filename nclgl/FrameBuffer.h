@@ -7,10 +7,10 @@ class FrameBuffer
 public:
 	FrameBuffer() = delete;
 	FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY);
-	~FrameBuffer();
+	virtual ~FrameBuffer();
 
 protected:
-	void Invalidate();
+	virtual void Invalidate();
 
 public:
 	void Bind();

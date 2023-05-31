@@ -3,7 +3,7 @@
 #include "ImGuiRenderer.h"
 #include "LightsManager.h"
 #include <nclgl/Light.h>
-#include <nclgl/FrameBuffer.h>
+#include <nclgl/FrameBufferFP.h>
 #include <nclgl/UniformBuffer.h>
 #include <imgui/imgui_internal.h>
 
@@ -74,7 +74,7 @@ bool Renderer::InitBuffers()
 	float w = m_WindowParent.GetScreenSize().x;
 	float h = m_WindowParent.GetScreenSize().y;
 
-	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(w, h));
+	m_GlobalFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(w, h));
 	if (m_GlobalFrameBuffer == nullptr) return false;
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));

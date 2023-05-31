@@ -3,7 +3,7 @@
 #include "IImguiItem.h"
 
 #include <nclgl/Window.h>
-#include <nclgl/FrameBuffer.h>
+#include <nclgl/FrameBufferFP.h>
 
 #include <imgui/imgui_impl_opengl3.h>
 #include <imgui/imgui_impl_win32.h>

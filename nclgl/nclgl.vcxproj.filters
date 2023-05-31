@@ -64,6 +64,7 @@
       <Filter>Maths</Filter>
     </ClCompile>
     <ClCompile Include="UniformBuffer.cpp" />
+    <ClCompile Include="FrameBufferFP.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -146,6 +147,7 @@
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="UniformBuffer.h" />
     <ClInclude Include="SpotLight.h" />
+    <ClInclude Include="FrameBufferFP.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">
