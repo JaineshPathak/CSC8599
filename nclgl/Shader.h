@@ -49,6 +49,7 @@ public:
 	void SetVector3(const std::string& name, const Vector3& val);
 	void SetVector4(const std::string& name, const Vector4& val);
 	void SetTexture(const std::string& name, const unsigned int& texID, const int& texSlot);
+	void SetTextureCubeMap(const std::string& name, const unsigned int& texID, const int& texSlot);
 
 	void Bind();
 	void UnBind();

@@ -3,12 +3,15 @@
 //Textures
 uniform sampler2D albedoTex;
 uniform sampler2D normalTex;
+uniform samplerCube cubeTex;
 
 //Lightings
 uniform vec3 cameraPos;
 
+const float GAMMA = 2.2;
 const int MAX_POINT_LIGHTS = 100;
 const int MAX_SPOT_LIGHTS = 2;
+
 struct PointLight
 {
 	vec4 lightPosition;
@@ -50,6 +53,7 @@ layout(std140, binding = 3) uniform u_SpotLights
 
 in Vertex 
 {
+	vec3 position;
 	vec2 texCoord;
 	vec3 normal;
 	vec3 fragWorldPos;
@@ -79,6 +83,7 @@ void CalcDirectionalLight(inout vec3 result, in vec3 albedoColor, in vec3 normal
 	vec3 specular = specularStrength * spec * vec3(directionalLight.lightColor.xyz);
 
 	result = (ambient + diffuse + specular) * albedoColor;
+	//result = pow(result, vec3(1.0 / GAMMA));
 }
 
 void CalcPointsLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
@@ -110,6 +115,7 @@ void CalcPointsLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColo
 		specular *= attenuation;
 
 		result += (ambient + diffuse + specular) * albedoColor;
+		//result = pow(result, vec3(1.0 / GAMMA));
 	}
 }
 
@@ -146,15 +152,25 @@ void CalcSpotLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
 		specular *= attenuation * edgeFactor;
 
 		result += (ambient + diffuse + specular) * albedoColor;
+		//result = pow(result, vec3(1.0 / GAMMA));
 	}
+}
+
+void CalcReflection(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
+{
+	vec3 I = normalize(IN.position - cameraPos);
+	vec3 R = reflect(I, normalize(normalColor));
+	result += texture(cubeTex, R).rgb;
 }
 
 void main(void) 
 {
 	vec3 albedoColor = texture(albedoTex, IN.texCoord).rgb;
+	//albedoColor = pow(albedoColor, vec3(GAMMA));
+
 	vec3 normalColor = texture(normalTex, IN.texCoord).rgb;
 	normalColor = normalColor * 2.0 - 1.0;
-	normalColor.xy *= 1.5;
+	normalColor.xy *= 1.0;
 	normalColor = normalize(IN.TBN * normalColor);
 
 	vec3 result = vec3(0.0);
@@ -166,7 +182,13 @@ void main(void)
 	if(numSpotLights > 0)
 		CalcSpotLights(result, albedoColor, normalColor);
 
-	//Gamma
-	//result = pow(result, vec3(1.0 / 2.2));
+	CalcReflection(result, albedoColor, normalColor);
+	//Gamma	
+	//result = vec3(1.0) - exp(-result * 1.5);
+	//result = pow(result, vec3(1.0 / GAMMA));
+	//result = result / (vec3(0.5) + result);
+	//result = reinhardSimple(result);
+	//result = reinhardExtended(result, 1.0f);
+
 	fragColour = vec4(result, 1.0);	
 }

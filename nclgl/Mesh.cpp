@@ -207,7 +207,7 @@ Mesh* Mesh::GenerateCube()
 	m->vertices = new Vector3[m->numVertices];
 	m->colours = new Vector4[m->numVertices];
 
-	m->vertices[0] = Vector3(-0.5f, -0.5f, -0.5f);
+	/*m->vertices[0] = Vector3(-0.5f, -0.5f, -0.5f);
 	m->vertices[1] = Vector3(0.5f, -0.5f, -0.5f);
 	m->vertices[2] = Vector3(0.5f, 0.5f, -0.5f);
 	m->vertices[3] = Vector3(0.5f, 0.5f, -0.5f);
@@ -247,7 +247,50 @@ Mesh* Mesh::GenerateCube()
 	m->vertices[32] = Vector3(0.5f, 0.5f, 0.5f);
 	m->vertices[33] = Vector3(0.5f, 0.5f, 0.5f);
 	m->vertices[34] = Vector3(-0.5f, 0.5f, 0.5f);
-	m->vertices[35] = Vector3(-0.5f, 0.5f, -0.5f);
+	m->vertices[35] = Vector3(-0.5f, 0.5f, -0.5f);*/
+
+	m->vertices[0] = Vector3(-1.0f, 1.0f, -1.0f);
+	m->vertices[1] = Vector3(-1.0f, -1.0f, -1.0f);
+	m->vertices[2] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[3] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[4] = Vector3(1.0f, 1.0f, -1.0f);
+	m->vertices[5] = Vector3(-1.0f, 1.0f, -1.0f);
+
+	m->vertices[6] = Vector3(-1.0f, -1.0f, 1.0f);
+	m->vertices[7] = Vector3(-1.0f, -1.0f, -1.0f);
+	m->vertices[8] = Vector3(-1.0f, 1.0f, -1.0f);
+	m->vertices[9] = Vector3(-1.0f, 1.0f, -1.0f);
+	m->vertices[10] = Vector3(-1.0f, 1.0f, 1.0f);
+	m->vertices[11] = Vector3(-1.0f, -1.0f, 1.0f);
+
+	m->vertices[12] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[13] = Vector3(1.0f, -1.0f, 1.0f);
+	m->vertices[14] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[15] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[16] = Vector3(1.0f, 1.0f, -1.0f);
+	m->vertices[17] = Vector3(1.0f, -1.0f, -1.0f);
+
+	m->vertices[18] = Vector3(-1.0f, -1.0f, 1.0f);
+	m->vertices[19] = Vector3(-1.0f, 1.0f, 1.0f);
+	m->vertices[20] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[21] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[22] = Vector3(1.0f, -1.0f, 1.0f);
+	m->vertices[23] = Vector3(-1.0f, -1.0f, 1.0f);
+
+	m->vertices[24] = Vector3(-1.0f, 1.0f, -1.0f);
+	m->vertices[25] = Vector3(1.0f, 1.0f, -1.0f);
+	m->vertices[26] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[27] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[28] = Vector3(-1.0f, 1.0f, 1.0f);
+	m->vertices[29] = Vector3(-1.0f, 1.0f, -1.0f);
+
+	m->vertices[30] = Vector3(-1.0f, -1.0f, -1.0f);
+	m->vertices[31] = Vector3(-1.0f, -1.0f, 1.0f);
+	m->vertices[32] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[33] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[34] = Vector3(-1.0f, -1.0f, 1.0f);
+	m->vertices[35] = Vector3(1.0f, -1.0f, 1.0f);
+ 
 
 	m->textureCoords = new Vector2[m->numVertices];
 	m->textureCoords[0] = Vector2(0.0f, 0.0f);
@@ -307,7 +350,7 @@ void Mesh::SetAllVertexColour(Mesh* M, const Vector4& colour)
 
 	M->BufferData();
 }
-
+ 
 void UploadAttribute(GLuint* id, int numElements, int dataSize, int attribSize, int attribID, void* pointer, const string&debugName) {
 	glGenBuffers(1, id);
 	glBindBuffer(GL_ARRAY_BUFFER, *id);

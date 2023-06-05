@@ -63,7 +63,7 @@ bool Renderer::InitShaders()
 	m_PBRBillboardShader = std::shared_ptr<Shader>(new Shader("PBR/PBRBillboardVertex.glsl", "PBR/PBRBillboardFragment.glsl"));
 	if (!m_PBRBillboardShader->LoadSuccess()) return false;
 
-	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBRSkyBoxVertex.glsl", "PBR/PBRSkyBoxFragment.glsl"));
+	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBRSkyBox2Vertex.glsl", "PBR/PBRSkyBox2Fragment.glsl"));
 	if (!m_CubeMapShader->LoadSuccess()) return false;
 
 	return true;
@@ -98,6 +98,9 @@ bool Renderer::InitMesh()
 
 	m_QuadMesh = std::shared_ptr<Mesh>(Mesh::GenerateQuad());
 	if (m_QuadMesh == nullptr) return false;
+
+	m_CubeMesh = std::shared_ptr<Mesh>(Mesh::GenerateCube());
+	if (m_CubeMesh == nullptr) return false;
 
 	return true;
 }
@@ -186,13 +189,23 @@ void Renderer::RenderCubeMap()
 {
 	glDepthMask(GL_FALSE);
 
-	m_CubeMapShader->Bind();
-	
+	m_CubeMapShader->Bind();	
 	m_QuadMesh->Draw();
-
 	m_CubeMapShader->UnBind();
 
 	glDepthMask(GL_TRUE);
+}
+
+void Renderer::RenderCubeMap2()
+{
+	glDepthFunc(GL_LEQUAL);
+
+	m_CubeMapShader->Bind();
+	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 0);
+	m_CubeMesh->Draw();
+	m_CubeMapShader->UnBind();
+
+	glDepthFunc(GL_LESS);
 }
 
 void Renderer::RenderHelmet()
@@ -201,6 +214,7 @@ void Renderer::RenderHelmet()
 
 	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
 	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal, 1);
+	m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 2);
 
 	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
 	/*m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());
@@ -211,9 +225,9 @@ void Renderer::RenderHelmet()
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
 		m_HelmetMesh->DrawSubMesh(i);
 
-	Matrix4 floorModelMat = Matrix4::Translation(Vector3::DOWN) * Matrix4::Rotation(-90.0f, Vector3::RIGHT) * Matrix4::Scale(5.0f);
+	/*Matrix4 floorModelMat = Matrix4::Translation(Vector3::DOWN) * Matrix4::Rotation(-90.0f, Vector3::RIGHT) * Matrix4::Scale(5.0f);
 	m_PBRShader->SetMat4("modelMatrix", floorModelMat);
-	m_QuadMesh->Draw();
+	m_QuadMesh->Draw();*/
 
 	m_PBRShader->UnBind();
 }
@@ -224,8 +238,8 @@ void Renderer::RenderScene()
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	HandleUBOData();
-	RenderCubeMap();
 	RenderHelmet();
+	RenderCubeMap2();
 
 	m_LightsManager->Render();	
 	m_GlobalFrameBuffer->Unbind();

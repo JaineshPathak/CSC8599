@@ -16,6 +16,7 @@ uniform mat4 modelMatrix;
 
 out Vertex 
 {
+	vec3 position;
 	vec2 texCoord;
 	vec3 normal;
 	vec3 fragWorldPos;
@@ -36,7 +37,8 @@ void main(void)
 
 	mat3 oTBN = mat3(normalize(oNormal), normalize(oBiTangent), normalize(oNormal));
 
-	OUT.texCoord = texCoord;
+	OUT.position = vec3(modelMatrix * vec4(position, 1.0));
+	OUT.texCoord = vec2(texCoord.x, texCoord.y);
 	OUT.normal = oNormal;
 	OUT.fragWorldPos = vec3(modelMatrix * vec4(position, 1.0));
 	OUT.tangent = oTangent;

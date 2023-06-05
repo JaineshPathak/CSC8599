@@ -39,6 +39,7 @@ protected:
 
 	void HandleUBOData();
 	void RenderCubeMap();
+	void RenderCubeMap2();
 	void RenderHelmet();
 
 public:
@@ -56,6 +57,7 @@ protected:
 	std::shared_ptr<Shader> m_CubeMapShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
+	std::shared_ptr<Mesh> m_CubeMesh;
 	std::shared_ptr<Mesh> m_HelmetMesh;
 
 	unsigned int m_HelmetTextureAlbedo;

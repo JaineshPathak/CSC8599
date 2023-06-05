@@ -126,6 +126,14 @@ void Shader::SetTexture(const std::string& name, const unsigned int& texID, cons
 	glUniform1i(uniformID, texSlot);
 }
 
+void Shader::SetTextureCubeMap(const std::string& name, const unsigned int& texID, const int& texSlot)
+{
+	int uniformID = GetUniformLocation(name);
+	glActiveTexture(GL_TEXTURE0 + texSlot);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texID);
+	glUniform1i(uniformID, texSlot);
+}
+
 bool	Shader::LoadShaderFile(const string& filename, string &into)	{
 	ifstream	file(SHADERDIR + filename);
 	string		textLine;
