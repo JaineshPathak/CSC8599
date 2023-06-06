@@ -1,1 +1,3 @@
 Filmic Tone Mapping and SSAO: https://www.slideshare.net/ozlael/hable-john-uncharted2-hdr-lighting
+
+BRDF: http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
