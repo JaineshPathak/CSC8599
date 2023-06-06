@@ -5,6 +5,8 @@ uniform sampler2D albedoTex;
 uniform sampler2D normalTex;
 uniform samplerCube cubeTex;
 
+//Flags
+
 //Lightings
 uniform vec3 cameraPos;
 
@@ -160,7 +162,15 @@ void CalcReflection(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
 {
 	vec3 I = normalize(IN.position - cameraPos);
 	vec3 R = reflect(I, normalize(normalColor));
-	result += texture(cubeTex, R).rgb;
+	result += texture(cubeTex, R).rgb * albedoColor;
+}
+
+void CalcRefraction(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
+{
+	float refractiveIndex = 1.00 / 4.52;
+	vec3 I = normalize(IN.position - cameraPos);
+	vec3 R = refract(I, normalize(normalColor), refractiveIndex);
+	result += texture(cubeTex, R).rgb * albedoColor;
 }
 
 void main(void) 
@@ -190,5 +200,5 @@ void main(void)
 	//result = reinhardSimple(result);
 	//result = reinhardExtended(result, 1.0f);
 
-	fragColour = vec4(result, 1.0);	
+	fragColour = vec4(result, 1.0);
 }
