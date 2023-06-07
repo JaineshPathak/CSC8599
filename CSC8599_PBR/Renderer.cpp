@@ -58,6 +58,7 @@ bool Renderer::InitCamera()
 bool Renderer::InitShaders()
 {
 	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
+	//m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
 	if (!m_PBRShader->LoadSuccess()) return false;
 
 	m_PBRBillboardShader = std::shared_ptr<Shader>(new Shader("PBR/PBRBillboardVertex.glsl", "PBR/PBRBillboardFragment.glsl"));
@@ -112,6 +113,15 @@ bool Renderer::InitTextures()
 
 	m_HelmetTextureNormal = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Normal_Raw.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 	if (m_HelmetTextureNormal == 0) return false;
+
+	m_HelmetTextureMetallic = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Metallic_Raw.png", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	if (m_HelmetTextureMetallic == 0) return false;
+
+	m_HelmetTextureRoughness = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Roughness_Raw.png", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	if (m_HelmetTextureRoughness == 0) return false;
+
+	m_HelmetTextureEmissive = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	if (m_HelmetTextureEmissive == 0) return false;
 
 	m_CubeMapTexture = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
@@ -214,7 +224,10 @@ void Renderer::RenderHelmet()
 
 	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
 	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal, 1);
-	m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 2);
+	m_PBRShader->SetTexture("metallicTex", m_HelmetTextureMetallic, 2);
+	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness, 3);
+	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive, 4);
+	//m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 2);
 
 	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
 	/*m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());

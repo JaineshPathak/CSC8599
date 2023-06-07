@@ -156,6 +156,7 @@
     <None Include="..\Shaders\PBR\PBRSkyBoxFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRSkyBoxVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentBlinnPhong.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedVertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

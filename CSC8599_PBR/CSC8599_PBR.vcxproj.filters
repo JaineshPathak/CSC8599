@@ -55,5 +55,6 @@
     <None Include="..\Shaders\PBR\PBRSkyBoxVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRBillboardFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRBillboardVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentBlinnPhong.glsl" />
   </ItemGroup>
 </Project>

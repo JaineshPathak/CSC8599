@@ -62,8 +62,10 @@ protected:
 
 	unsigned int m_HelmetTextureAlbedo;
 	unsigned int m_HelmetTextureNormal;
+	unsigned int m_HelmetTextureMetallic;
+	unsigned int m_HelmetTextureRoughness;
+	unsigned int m_HelmetTextureEmissive;
 	unsigned int m_CubeMapTexture;
-	unsigned int m_LightIconTexture;
 
 	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;

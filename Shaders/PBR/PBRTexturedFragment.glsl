@@ -3,7 +3,9 @@
 //Textures
 uniform sampler2D albedoTex;
 uniform sampler2D normalTex;
-uniform samplerCube cubeTex;
+uniform sampler2D metallicTex;
+uniform sampler2D roughnessTex;
+uniform sampler2D emissiveTex;
 
 //Flags
 
@@ -13,6 +15,7 @@ uniform vec3 cameraPos;
 const float GAMMA = 2.2;
 const int MAX_POINT_LIGHTS = 100;
 const int MAX_SPOT_LIGHTS = 2;
+const float PI = 3.14159265359;
 
 struct PointLight
 {
@@ -66,139 +69,139 @@ in Vertex
 
 out vec4 fragColour;
 
-void CalcDirectionalLight(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
+float DistributionGGX(in vec3 N, in vec3 H, in float roughnessStrength)
 {
-	float ambientStrength = 0.3;
-	vec3 ambient = ambientStrength * vec3(directionalLight.lightColor.xyz);
+	float numerator = roughnessStrength * roughnessStrength;
+	
+	float NdotH = max(dot(N, H), 0.0);
+	float NdotHSq = NdotH * NdotH;
 
-	vec3 norm = normalize(normalColor);
-	vec3 lightDir = normalize(-directionalLight.lightDirection.xyz);
-	float diff = max(dot(norm, lightDir), 0.0);
-	vec3 diffuse = diff * vec3(directionalLight.lightColor.xyz);
-
-	float specularStrength = 1.0;
-	vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
-	vec3 viewDirHalf = normalize(lightDir + viewDir);
-	//vec3 reflectDir = reflect(-lightDir, norm);
-
-	float spec = pow(max(dot(norm, viewDirHalf), 0.0), 128.0);
-	vec3 specular = specularStrength * spec * vec3(directionalLight.lightColor.xyz);
-
-	result = (ambient + diffuse + specular) * albedoColor;
-	//result = pow(result, vec3(1.0 / GAMMA));
+	float denominator = (NdotHSq * (numerator - 1.0) + 1.0);
+	denominator = PI * denominator * denominator;
+	
+	return numerator / denominator;
 }
 
-void CalcPointsLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
+float GeometrySchlickGGX(in float dot, in float roughnessStrength)
 {
+	float numerator = dot;
+	float k = (roughnessStrength * roughnessStrength) / 8;
+
+	float denominator = dot / (1.0 - k) + k;
+
+	return numerator / denominator;
+}
+
+float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughnessStrength)
+{
+	float NdotV = max(dot(N, V), 0.0);
+	float NdotL = max(dot(N, L), 0.0);
+
+	float GSubOne = GeometrySchlickGGX(NdotV, roughnessStrength);
+	float GSubTwo = GeometrySchlickGGX(NdotL, roughnessStrength);
+
+	return GSubOne * GSubTwo;
+}
+
+vec3 FresnelSchlick(float cos, vec3 F0)
+{
+	return F0 + (1.0 - F0) * pow(1.0 - cos, 5.0);
+}
+
+void CalcDirectionalLight(inout vec3 result, in vec3 albedoColor, in vec3 normalColor, in float metallicStrength, in float roughnessStrength)
+{
+	vec3 N = normalize(normalColor);
+	vec3 V = normalize(cameraPos - IN.fragWorldPos);
+
+	vec3 F0 = vec3(0.04);
+	F0 = mix(F0, albedoColor, metallicStrength);
+
+	vec3 L = normalize(-directionalLight.lightDirection.xyz);
+	vec3 H = normalize(V + L);
+
+	vec3 radiance = directionalLight.lightColor.xyz;
+
+	float NDF = DistributionGGX(N, H, roughnessStrength);
+	float G = GeometrySmith(N, V, L, roughnessStrength);
+	vec3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
+
+	vec3 kS = F;
+	vec3 kD = vec3(1.0) - kS;
+	kD *= 1.0 - metallicStrength;
+
+	//Cook-Torrance BRDF
+	vec3 numerator = NDF * G * F;
+	float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+	vec3 specular = numerator / denominator;
+
+	float NdotL = max(dot(N, L), 0.0);
+	result = (kD * albedoColor / PI + specular) * radiance * NdotL;
+}
+
+void CalcPointLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor, in float metallicStrength, in float roughnessStrength)
+{
+	vec3 N = normalize(normalColor);
+	vec3 V = normalize(cameraPos - IN.fragWorldPos);
+
+	vec3 F0 = vec3(0.09);
+	F0 = mix(F0, albedoColor, metallicStrength);
+
 	for(int i = 0; i < numPointLights; i++)
 	{
-		float ambientStrength = 0.3;
-		vec3 ambient = ambientStrength * vec3(pointLights[i].lightColor.xyz);
-
-		vec3 norm = normalize(normalColor);
-		vec3 lightDir = normalize(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
-		float diff = max(dot(norm, lightDir), 0.0);
-		vec3 diffuse = diff * vec3(pointLights[i].lightColor.xyz);
-
-		float specularStrength = 1.0;
-		vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
-		vec3 viewDirHalf = normalize(lightDir + viewDir);
-		//vec3 reflectDir = reflect(-lightDir, norm);
-
-		float spec = pow(max(dot(norm, viewDirHalf), 0.0), 128.0);
-		vec3 specular = specularStrength * spec * vec3(pointLights[i].lightColor.xyz);
+		vec3 L = normalize(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
+		vec3 H = normalize(V + L);
 
 		float distance = length(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
+		//float attenuation = 1.0 / (distance * distance);
 		float attenuation = 1.0 / (pointLights[i].lightAttenData.x + pointLights[i].lightAttenData.y * distance + pointLights[i].lightAttenData.z * (distance * distance));
-		//float attenuation = 1.0 / distance * distance;
+		vec3 radiance = pointLights[i].lightColor.xyz * attenuation;
 
-		ambient *= attenuation;
-		diffuse *= attenuation;
-		specular *= attenuation;
+		float NDF = DistributionGGX(N, H, roughnessStrength);
+		float G = GeometrySmith(N, V, L, roughnessStrength);
+		vec3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
 
-		result += (ambient + diffuse + specular) * albedoColor;
-		//result = pow(result, vec3(1.0 / GAMMA));
+		vec3 kS = F;
+		vec3 kD = vec3(1.0) - kS;
+		kD *= 1.0 - metallicStrength;
+
+		//Cook-Torrance BRDF
+		vec3 numerator = NDF * G * F;
+		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+		vec3 specular = numerator / denominator;
+
+		float NdotL = max(dot(N, L), 0.0);
+		result += (kD * albedoColor / PI + specular) * radiance * NdotL;
 	}
-}
-
-void CalcSpotLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
-{
-	for(int i = 0; i < numSpotLights; i++)
-	{
-		vec3 lightDir = normalize(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
-		float theta = dot(lightDir, normalize(-spotLights[i].lightDirection.xyz));
-		float epsilon = spotLights[i].lightCutoffData.x - spotLights[i].lightCutoffData.y;
-		float edgeFactor = clamp((theta - spotLights[i].lightCutoffData.y) / epsilon, 0.0, 1.0);
-
-		float ambientStrength = 0.3;
-		vec3 ambient = ambientStrength * vec3(spotLights[i].lightColor.xyz);
-			
-		vec3 norm = normalize(normalColor);
-		float diff = max(dot(norm, lightDir), 0.0);
-		vec3 diffuse = diff * vec3(spotLights[i].lightColor.xyz);
-
-		float specularStrength = 1.0;
-		vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
-		vec3 viewDirHalf = normalize(lightDir + viewDir);
-		//vec3 reflectDir = reflect(-lightDir, norm);
-
-		float spec = pow(max(dot(norm, viewDirHalf), 0.0), 128.0);
-		vec3 specular = specularStrength * spec * vec3(spotLights[i].lightColor.xyz);
-
-		float distance = length(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
-		float attenuation = 1.0 / (spotLights[i].lightAttenData.x + spotLights[i].lightAttenData.y * distance + spotLights[i].lightAttenData.z * (distance * distance));
-		//float attenuation = 1.0 / distance * distance;
-
-		ambient *= attenuation * edgeFactor;
-		diffuse *= attenuation * edgeFactor;
-		specular *= attenuation * edgeFactor;
-
-		result += (ambient + diffuse + specular) * albedoColor;
-		//result = pow(result, vec3(1.0 / GAMMA));
-	}
-}
-
-void CalcReflection(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
-{
-	vec3 I = normalize(IN.position - cameraPos);
-	vec3 R = reflect(I, normalize(normalColor));
-	result += texture(cubeTex, R).rgb * albedoColor;
-}
-
-void CalcRefraction(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
-{
-	float refractiveIndex = 1.00 / 4.52;
-	vec3 I = normalize(IN.position - cameraPos);
-	vec3 R = refract(I, normalize(normalColor), refractiveIndex);
-	result += texture(cubeTex, R).rgb * albedoColor;
 }
 
 void main(void) 
 {
 	vec3 albedoColor = texture(albedoTex, IN.texCoord).rgb;
-	//albedoColor = pow(albedoColor, vec3(GAMMA));
+	albedoColor = pow(albedoColor, vec3(GAMMA));
 
 	vec3 normalColor = texture(normalTex, IN.texCoord).rgb;
 	normalColor = normalColor * 2.0 - 1.0;
 	normalColor.xy *= 1.0;
 	normalColor = normalize(IN.TBN * normalColor);
 
+	float metallicStrength = texture(metallicTex, IN.texCoord).r;
+	float roughnessStrength = texture(roughnessTex, IN.texCoord).r;
+
+	//float metallicStrength = 1.0;
+	//float roughnessStrength = 0.1;
+
 	vec3 result = vec3(0.0);
-	CalcDirectionalLight(result, albedoColor, normalColor);
-	
-	if(numPointLights > 0)
-		CalcPointsLights(result, albedoColor, normalColor);
+	CalcDirectionalLight(result, albedoColor, normalColor, metallicStrength, roughnessStrength);
+	CalcPointLights(result, albedoColor, normalColor, metallicStrength, roughnessStrength);
 
-	if(numSpotLights > 0)
-		CalcSpotLights(result, albedoColor, normalColor);
+	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb * 0.5;
+	result += emissiveColor;
 
-	CalcReflection(result, albedoColor, normalColor);
-	//Gamma	
-	//result = vec3(1.0) - exp(-result * 1.5);
-	//result = pow(result, vec3(1.0 / GAMMA));
-	//result = result / (vec3(0.5) + result);
-	//result = reinhardSimple(result);
-	//result = reinhardExtended(result, 1.0f);
+	vec3 ambient = vec3(0.01) * albedoColor;
+	result = ambient + result;
+
+	result = vec3(1.0) - exp(-result * 10.0);
+	result = pow(result, vec3(1.0 / GAMMA));
 
 	fragColour = vec4(result, 1.0);
 }
