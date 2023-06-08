@@ -203,5 +203,8 @@ void main(void)
 	result = vec3(1.0) - exp(-result * 10.0);
 	result = pow(result, vec3(1.0 / GAMMA));
 
+	vec3 metallicColor = texture(metallicTex, IN.texCoord).rgb;
+	vec3 roughnessColor = texture(roughnessTex, IN.texCoord).rgb;
+
 	fragColour = vec4(result, 1.0);
 }

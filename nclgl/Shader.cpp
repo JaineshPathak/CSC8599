@@ -131,6 +131,7 @@ void Shader::SetTextureCubeMap(const std::string& name, const unsigned int& texI
 	int uniformID = GetUniformLocation(name);
 	glActiveTexture(GL_TEXTURE0 + texSlot);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texID);
+
 	glUniform1i(uniformID, texSlot);
 }
 

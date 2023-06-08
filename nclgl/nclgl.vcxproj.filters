@@ -65,6 +65,7 @@
     </ClCompile>
     <ClCompile Include="UniformBuffer.cpp" />
     <ClCompile Include="FrameBufferFP.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -148,6 +149,7 @@
     <ClInclude Include="UniformBuffer.h" />
     <ClInclude Include="SpotLight.h" />
     <ClInclude Include="FrameBufferFP.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">

@@ -1188,6 +1188,9 @@ unsigned int
 		case 4:
 			original_texture_format = GL_RGBA;
 			break;
+		case 5:
+			original_texture_format = GL_RED;
+			break;
 		}
 		internal_texture_format = original_texture_format;
 		/*	does the user want me to, and can I, save as DXT?	*/

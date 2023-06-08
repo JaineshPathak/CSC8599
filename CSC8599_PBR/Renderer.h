@@ -11,6 +11,7 @@ class LightsManager;
 class FrameBufferFP;
 class UniformBuffer;
 class Light;
+class Texture;
 
 class Renderer : public OGLRenderer
 {
@@ -66,6 +67,12 @@ protected:
 	unsigned int m_HelmetTextureRoughness;
 	unsigned int m_HelmetTextureEmissive;
 	unsigned int m_CubeMapTexture;
+
+	/*std::shared_ptr<Texture> m_HelmetTextureAlbedo;
+	std::shared_ptr<Texture> m_HelmetTextureNormal;
+	std::shared_ptr<Texture> m_HelmetTextureMetallic;
+	std::shared_ptr<Texture> m_HelmetTextureRoughness;
+	std::shared_ptr<Texture> m_HelmetTextureEmissive;*/
 
 	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;

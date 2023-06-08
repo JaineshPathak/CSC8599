@@ -2,6 +2,7 @@
 #include "LookAtCamera.h"
 #include "ImGuiRenderer.h"
 #include "LightsManager.h"
+#include <nclgl/Texture.h>
 #include <nclgl/Light.h>
 #include <nclgl/FrameBufferFP.h>
 #include <nclgl/UniformBuffer.h>
@@ -86,8 +87,6 @@ bool Renderer::InitBuffers()
 
 bool Renderer::InitLights()
 {
-	//m_PointLight = std::shared_ptr<Light>(new Light(Vector3(0.0f, 1.0f, 4.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f), 2.0f));
-	//return m_PointLight != nullptr;
 	m_LightsManager = std::shared_ptr<LightsManager>(new LightsManager());
 	return m_LightsManager->IsInitialized();
 }
@@ -122,6 +121,21 @@ bool Renderer::InitTextures()
 
 	m_HelmetTextureEmissive = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 	if (m_HelmetTextureEmissive == 0) return false;
+
+	/*m_HelmetTextureAlbedo = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png"));
+	if (!m_HelmetTextureAlbedo->IsInitialized()) return false;
+
+	m_HelmetTextureNormal = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Normal_Raw.png"));
+	if (!m_HelmetTextureNormal->IsInitialized()) return false;
+
+	m_HelmetTextureMetallic = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Metallic_Raw.png"));
+	if (!m_HelmetTextureMetallic->IsInitialized()) return false;
+
+	m_HelmetTextureRoughness = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Roughness_Raw.png"));
+	if (!m_HelmetTextureRoughness->IsInitialized()) return false;
+
+	m_HelmetTextureEmissive = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png"));
+	if (!m_HelmetTextureEmissive->IsInitialized()) return false;*/
 
 	m_CubeMapTexture = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
