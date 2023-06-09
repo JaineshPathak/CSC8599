@@ -84,5 +84,12 @@ public:
 	float y;
 	float z;
 	float w;
+
+	static const Vector4 RED;
+	static const Vector4 GREEN;
+	static const Vector4 BLUE;
+	static const Vector4 BLACK;
+	static const Vector4 WHITE;
+	static const Vector4 CLEAR;
 };
 

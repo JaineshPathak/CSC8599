@@ -61,18 +61,18 @@ protected:
 	std::shared_ptr<Mesh> m_CubeMesh;
 	std::shared_ptr<Mesh> m_HelmetMesh;
 
-	unsigned int m_HelmetTextureAlbedo;
+	/*unsigned int m_HelmetTextureAlbedo;
 	unsigned int m_HelmetTextureNormal;
 	unsigned int m_HelmetTextureMetallic;
 	unsigned int m_HelmetTextureRoughness;
-	unsigned int m_HelmetTextureEmissive;
+	unsigned int m_HelmetTextureEmissive;*/
 	unsigned int m_CubeMapTexture;
 
-	/*std::shared_ptr<Texture> m_HelmetTextureAlbedo;
+	std::shared_ptr<Texture> m_HelmetTextureAlbedo;
 	std::shared_ptr<Texture> m_HelmetTextureNormal;
 	std::shared_ptr<Texture> m_HelmetTextureMetallic;
 	std::shared_ptr<Texture> m_HelmetTextureRoughness;
-	std::shared_ptr<Texture> m_HelmetTextureEmissive;*/
+	std::shared_ptr<Texture> m_HelmetTextureEmissive;
 
 	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;

@@ -28,7 +28,7 @@ LightsManager::LightsManager()
 	if (!m_PointLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
 	//SpawnPointLight(Vector3(0, 1.0f, -2.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f));
-	SpawnPointLight(Vector3(0, 1.0f, 2.0f), Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+	SpawnPointLight(Vector3(0, 1.0f, 1.5f), Vector4::RED);
 	//SpawnPointLight(Vector3(-1.5f, 1.0f, 0.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f));
 	//SpawnPointLight(Vector3(1.5f, 1.0f, 0.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f));
 	//---------------------------------------------------------------------------------------------------------------------------------------

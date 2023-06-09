@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include <SOIL/SOIL.h>
 
 Texture::Texture(const std::string& filePath) :
 	m_ProgramID(0),
@@ -27,21 +28,22 @@ Texture::Texture(const std::string& filePath) :
 
 	glCreateTextures(GL_TEXTURE_2D, 1, &m_ProgramID);
 	glBindTexture(GL_TEXTURE_2D, m_ProgramID);
-	glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, m_Data);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
+	glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, m_Data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	std::cout << "File: " << m_FilePath << ", Channels: " << m_Channel << ", Format: " << std::to_string(format) << ", Program ID: " << m_ProgramID << std::endl;
-
-	m_IsInitialized = true;
+	//std::cout << "File: " << m_FilePath << ", Channels: " << m_Channel << ", Format: " << std::to_string(format) << ", Program ID: " << m_ProgramID << std::endl;
 
 	if(m_Data)
 		SOIL_free_image_data(m_Data);
+
+	m_IsInitialized = true;
 }
 
 Texture::~Texture()

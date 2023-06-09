@@ -3,6 +3,7 @@
 //Textures
 uniform sampler2D albedoTex;
 uniform sampler2D normalTex;
+uniform sampler2D emissiveTex;
 uniform samplerCube cubeTex;
 
 //Flags
@@ -194,6 +195,10 @@ void main(void)
 
 	CalcReflection(result, albedoColor, normalColor);
 	CalcRefraction(result, albedoColor, normalColor);
+
+	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb * 2.0;
+	result += emissiveColor;
+
 	//Gamma	
 	//result = vec3(1.0) - exp(-result * 1.5);
 	//result = pow(result, vec3(1.0 / GAMMA));

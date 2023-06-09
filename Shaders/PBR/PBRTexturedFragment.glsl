@@ -85,7 +85,7 @@ float DistributionGGX(in vec3 N, in vec3 H, in float roughnessStrength)
 float GeometrySchlickGGX(in float dot, in float roughnessStrength)
 {
 	float numerator = dot;
-	float k = (roughnessStrength * roughnessStrength) / 8;
+	float k = pow(roughnessStrength + 1, 2) / 8.0;
 
 	float denominator = dot / (1.0 - k) + k;
 
@@ -143,7 +143,7 @@ void CalcPointLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor
 	vec3 N = normalize(normalColor);
 	vec3 V = normalize(cameraPos - IN.fragWorldPos);
 
-	vec3 F0 = vec3(0.09);
+	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, albedoColor, metallicStrength);
 
 	for(int i = 0; i < numPointLights; i++)
@@ -152,8 +152,8 @@ void CalcPointLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor
 		vec3 H = normalize(V + L);
 
 		float distance = length(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
-		//float attenuation = 1.0 / (distance * distance);
-		float attenuation = 1.0 / (pointLights[i].lightAttenData.x + pointLights[i].lightAttenData.y * distance + pointLights[i].lightAttenData.z * (distance * distance));
+		float attenuation = 1.0 / (distance * distance);
+		//float attenuation = 1.0 / (pointLights[i].lightAttenData.x + pointLights[i].lightAttenData.y * distance + pointLights[i].lightAttenData.z * (distance * distance));
 		vec3 radiance = pointLights[i].lightColor.xyz * attenuation;
 
 		float NDF = DistributionGGX(N, H, roughnessStrength);
@@ -197,7 +197,7 @@ void main(void)
 	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb * 0.5;
 	result += emissiveColor;
 
-	vec3 ambient = vec3(0.01) * albedoColor;
+	vec3 ambient = vec3(0.03) * albedoColor;
 	result = ambient + result;
 
 	result = vec3(1.0) - exp(-result * 10.0);

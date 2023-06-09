@@ -107,7 +107,7 @@ bool Renderer::InitMesh()
 
 bool Renderer::InitTextures()
 {
-	m_HelmetTextureAlbedo = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	/*m_HelmetTextureAlbedo = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 	if (m_HelmetTextureAlbedo == 0) return false;
 
 	m_HelmetTextureNormal = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Normal_Raw.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
@@ -120,9 +120,9 @@ bool Renderer::InitTextures()
 	if (m_HelmetTextureRoughness == 0) return false;
 
 	m_HelmetTextureEmissive = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	if (m_HelmetTextureEmissive == 0) return false;
+	if (m_HelmetTextureEmissive == 0) return false;*/
 
-	/*m_HelmetTextureAlbedo = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png"));
+	m_HelmetTextureAlbedo = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png"));
 	if (!m_HelmetTextureAlbedo->IsInitialized()) return false;
 
 	m_HelmetTextureNormal = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Normal_Raw.png"));
@@ -135,7 +135,7 @@ bool Renderer::InitTextures()
 	if (!m_HelmetTextureRoughness->IsInitialized()) return false;
 
 	m_HelmetTextureEmissive = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png"));
-	if (!m_HelmetTextureEmissive->IsInitialized()) return false;*/
+	if (!m_HelmetTextureEmissive->IsInitialized()) return false;
 
 	m_CubeMapTexture = SOIL_load_OGL_cubemap(
 		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
@@ -236,17 +236,25 @@ void Renderer::RenderHelmet()
 {
 	m_PBRShader->Bind();
 
-	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
+	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
 	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal, 1);
 	m_PBRShader->SetTexture("metallicTex", m_HelmetTextureMetallic, 2);
 	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness, 3);
-	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive, 4);
-	//m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 2);
+	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive, 4);*/
+
+	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
+	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
+	m_PBRShader->SetTexture("metallicTex", m_HelmetTextureMetallic->GetID(), 2);
+	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness->GetID(), 3);
+	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 4);
+
+	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
+	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
+	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 2);
+	m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 3);*/
 
 	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
-	/*m_PBRShader->SetVector3("lightPos", m_PointLight->GetPosition());
-	m_PBRShader->SetVector4("lightColor", m_PointLight->GetColour());*/
-	
+
 	m_PBRShader->SetMat4("modelMatrix", modelMatrix);
 
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
