@@ -14,7 +14,7 @@ public:
 	int GetWidth() const { return m_Width; }
 	int GetHeight() const { return m_Height; }
 
-	bool IsInitialized() const 
+	bool IsInitialized() const
 	{ 
 		if (!m_IsInitialized)
 			std::cout << "Texture: " << m_FilePath << " is not initialized!" << std::endl;
@@ -28,5 +28,5 @@ protected:
 
 	std::string m_FilePath;
 	int m_Width, m_Height, m_Channel;
-	unsigned char* m_Data;
+	void* m_Data;
 };

@@ -12,6 +12,7 @@ class FrameBufferFP;
 class UniformBuffer;
 class Light;
 class Texture;
+class TextureHDR;
 
 class Renderer : public OGLRenderer
 {
@@ -73,6 +74,8 @@ protected:
 	std::shared_ptr<Texture> m_HelmetTextureMetallic;
 	std::shared_ptr<Texture> m_HelmetTextureRoughness;
 	std::shared_ptr<Texture> m_HelmetTextureEmissive;
+
+	std::shared_ptr<TextureHDR> m_CubeMapHDRTexture;
 
 	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;

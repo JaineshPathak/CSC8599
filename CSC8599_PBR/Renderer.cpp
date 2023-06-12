@@ -3,6 +3,7 @@
 #include "ImGuiRenderer.h"
 #include "LightsManager.h"
 #include <nclgl/Texture.h>
+#include <nclgl/TextureHDR.h>
 #include <nclgl/Light.h>
 #include <nclgl/FrameBufferFP.h>
 #include <nclgl/UniformBuffer.h>
@@ -143,13 +144,16 @@ bool Renderer::InitTextures()
 		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
 		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 	if (m_CubeMapTexture == 0) return false;
+
+	m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR"HDR/clarens_night_02_2k.hdr"));
+	if (!m_CubeMapHDRTexture->IsInitialized()) return false;
 	
 	return true;
 }
 
 void Renderer::SetupGLParameters()
 {
-	m_MainCamera->SetAspectRatio((float)width, (float)height);
+	m_MainCamera->SetAspectRatio((float)width, (float)height); 
 	projMatrix = m_MainCamera->GetProjectionMatrix();
 
 	glEnable(GL_DEPTH_TEST);

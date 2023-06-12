@@ -69,6 +69,7 @@
     <ClCompile Include="Vector4.cpp">
       <Filter>Maths</Filter>
     </ClCompile>
+    <ClCompile Include="TextureHDR.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -153,6 +154,7 @@
     <ClInclude Include="SpotLight.h" />
     <ClInclude Include="FrameBufferFP.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureHDR.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">

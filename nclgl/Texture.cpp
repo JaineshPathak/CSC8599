@@ -10,7 +10,7 @@ Texture::Texture(const std::string& filePath) :
 	m_Data(nullptr)
 {
 	//m_Data = stbi_load(filePath.c_str(), &m_Width, &m_Height, &m_Channel, 0);
-	m_Data = SOIL_load_image(m_FilePath.c_str(), &m_Width, &m_Height, &m_Channel, 0);
+	m_Data = (unsigned char*)SOIL_load_image(m_FilePath.c_str(), &m_Width, &m_Height, &m_Channel, 0);
 
 	if (!m_Data)
 	{
@@ -41,7 +41,7 @@ Texture::Texture(const std::string& filePath) :
 	//std::cout << "File: " << m_FilePath << ", Channels: " << m_Channel << ", Format: " << std::to_string(format) << ", Program ID: " << m_ProgramID << std::endl;
 
 	if(m_Data)
-		SOIL_free_image_data(m_Data);
+		SOIL_free_image_data((unsigned char*)m_Data);
 
 	m_IsInitialized = true;
 }
