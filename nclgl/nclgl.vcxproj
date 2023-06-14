@@ -32,6 +32,7 @@
     <ClCompile Include="CubeRobot.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="FrameBufferFP.cpp" />
+    <ClCompile Include="FrameBufferHDR.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameTimer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
@@ -49,6 +50,7 @@
     <ClCompile Include="SceneNode.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureEnvCubeMap.cpp" />
     <ClCompile Include="TextureHDR.cpp" />
     <ClCompile Include="UniformBuffer.cpp" />
     <ClCompile Include="Vector3.cpp" />
@@ -73,6 +75,7 @@
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="FrameBufferFP.h" />
+    <ClInclude Include="FrameBufferHDR.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="HeightMap.h" />
@@ -93,6 +96,7 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SpotLight.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureEnvCubeMap.h" />
     <ClInclude Include="TextureHDR.h" />
     <ClInclude Include="UniformBuffer.h" />
     <ClInclude Include="Vector2.h" />

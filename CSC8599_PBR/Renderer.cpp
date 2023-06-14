@@ -4,8 +4,10 @@
 #include "LightsManager.h"
 #include <nclgl/Texture.h>
 #include <nclgl/TextureHDR.h>
+#include <nclgl/TextureEnvCubeMap.h>
 #include <nclgl/Light.h>
 #include <nclgl/FrameBufferFP.h>
+#include <nclgl/FrameBufferHDR.h>
 #include <nclgl/UniformBuffer.h>
 #include <imgui/imgui_internal.h>
 
@@ -39,6 +41,7 @@ bool Renderer::Initialize()
 	if (!InitTextures())	return false;
 
 	SetupGLParameters();
+	CaptureCubeMap();
 
 	return true;
 }
@@ -69,6 +72,9 @@ bool Renderer::InitShaders()
 	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBRSkyBox2Vertex.glsl", "PBR/PBRSkyBox2Fragment.glsl"));
 	if (!m_CubeMapShader->LoadSuccess()) return false;
 
+	m_EquiRect2CubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBREquiRect2CubeMapVertex.glsl", "PBR/PBREquiRect2CubeMapFragment.glsl"));
+	if (!m_EquiRect2CubeMapShader->LoadSuccess()) return false;
+
 	return true;
 }
 
@@ -79,6 +85,9 @@ bool Renderer::InitBuffers()
 
 	m_GlobalFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(w, h));
 	if (m_GlobalFrameBuffer == nullptr) return false;
+
+	m_CaptureFrameBuffer = std::shared_ptr<FrameBufferHDR>(new FrameBufferHDR(512, 512));
+	if (m_CaptureFrameBuffer == nullptr) return false;
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
 	if (!m_MatricesUBO->IsInitialized()) return false;	
@@ -104,6 +113,11 @@ bool Renderer::InitMesh()
 	if (m_CubeMesh == nullptr) return false;
 
 	return true;
+}
+
+void Renderer::LoadTexture(const std::string& filePath)
+{
+	m_HelmetTextureAlbedo = std::shared_ptr<Texture>(new Texture(filePath));
 }
 
 bool Renderer::InitTextures()
@@ -147,6 +161,9 @@ bool Renderer::InitTextures()
 
 	m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR"HDR/clarens_night_02_2k.hdr"));
 	if (!m_CubeMapHDRTexture->IsInitialized()) return false;
+
+	m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(512, 512));
+	if (!m_CubeMapEnvTexture->IsInitialized()) return false;
 	
 	return true;
 }
@@ -191,6 +208,25 @@ void Renderer::HandleInputs(float dt)
 		ImGui::GetIO().MouseDrawCursor = m_showCursor;
 		m_WindowParent.LockMouseToWindow(false);
 	}
+}
+
+void Renderer::CaptureCubeMap()
+{
+	m_EquiRect2CubeMapShader->Bind();
+	m_EquiRect2CubeMapShader->SetMat4("proj", m_CaptureFrameBuffer->GetCaptureProjection());
+	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", m_CubeMapHDRTexture->GetID(), 0);
+
+	m_CaptureFrameBuffer->Bind();
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		m_EquiRect2CubeMapShader->SetMat4("view", m_CaptureFrameBuffer->GetCaptureViews()[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapEnvTexture->GetID(), 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		m_CubeMesh->Draw();
+	}
+	m_CaptureFrameBuffer->Unbind();
+	m_EquiRect2CubeMapShader->UnBind();
 }
 
 void Renderer::HandleUBOData()

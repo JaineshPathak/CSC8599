@@ -13,8 +13,8 @@ protected:
 	virtual void Invalidate();
 
 public:
-	void Bind();
-	void Unbind();
+	virtual void Bind();
+	virtual void Unbind();
 	void Resize(const unsigned int& new_width, const unsigned int& new_height);
 
 	const unsigned int GetID() const { return m_ProgramID; }

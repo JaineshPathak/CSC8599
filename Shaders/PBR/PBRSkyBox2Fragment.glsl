@@ -11,5 +11,9 @@ out vec4 fragColour;
 
 void main(void)
 {
-	fragColour = texture(cubeTex, IN.viewDir);
+	vec3 cubeColor = texture(cubeTex, IN.viewDir).rgb;
+	cubeColor = cubeColor / (cubeColor + vec3(1.0));
+	cubeColor = pow(cubeColor, vec3(1.0 / 2.2));
+
+	fragColour = vec4(cubeColor, 1.0);
 }

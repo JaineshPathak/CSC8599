@@ -11,6 +11,8 @@ TextureHDR::TextureHDR(const std::string& filePath) : Texture(filePath)
 		return;
 	}
 
+	glDeleteTextures(1, &m_ProgramID);
+
 	glGenTextures(1, &m_ProgramID);
 	glBindTexture(GL_TEXTURE_2D, m_ProgramID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, m_Width, m_Height, 0, GL_RGB, GL_FLOAT, m_Data);

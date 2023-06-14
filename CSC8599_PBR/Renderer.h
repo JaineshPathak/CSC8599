@@ -2,6 +2,7 @@
 #include "..\nclgl\OGLRenderer.h"
 #include <vector>
 #include <memory>
+#include <thread>
 
 class LookAtCamera;
 class Mesh;
@@ -9,10 +10,12 @@ class MeshMaterial;
 class ImGuiRenderer;
 class LightsManager;
 class FrameBufferFP;
+class FrameBufferHDR;
 class UniformBuffer;
 class Light;
 class Texture;
 class TextureHDR;
+class TextureEnvCubeMap;
 
 class Renderer : public OGLRenderer
 {
@@ -34,15 +37,18 @@ protected:
 	bool InitBuffers();
 	bool InitLights();
 	bool InitMesh();
+	void LoadTexture(const std::string& filePath);
 	bool InitTextures();
 	void SetupGLParameters();
 
 	void HandleInputs(float dt);
+	void CaptureCubeMap();
 
 	void HandleUBOData();
 	void RenderCubeMap();
 	void RenderCubeMap2();
 	void RenderHelmet();
+
 
 public:
 	void RenderScene() override;
@@ -57,6 +63,7 @@ protected:
 	std::shared_ptr<Shader> m_PBRShader;
 	std::shared_ptr<Shader> m_PBRBillboardShader;
 	std::shared_ptr<Shader> m_CubeMapShader;
+	std::shared_ptr<Shader> m_EquiRect2CubeMapShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
 	std::shared_ptr<Mesh> m_CubeMesh;
@@ -75,10 +82,15 @@ protected:
 	std::shared_ptr<Texture> m_HelmetTextureRoughness;
 	std::shared_ptr<Texture> m_HelmetTextureEmissive;
 
+	std::thread m_ThreadTextureAlbedo;
+
 	std::shared_ptr<TextureHDR> m_CubeMapHDRTexture;
+	std::shared_ptr<TextureEnvCubeMap> m_CubeMapEnvTexture;
 
 	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
+	std::shared_ptr<FrameBufferHDR> m_CaptureFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;
+
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;
 	std::shared_ptr<LightsManager> m_LightsManager;
 

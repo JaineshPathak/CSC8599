@@ -47,8 +47,8 @@ void FrameBuffer::Invalidate()
 
 void FrameBuffer::Bind()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);
 	glViewport(0, 0, m_Width, m_Height);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);
 }
 
 void FrameBuffer::Unbind()

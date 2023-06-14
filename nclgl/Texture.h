@@ -6,7 +6,8 @@
 class Texture
 {
 public:
-	Texture() = delete;
+	Texture(const unsigned int width, const unsigned int height);
+	Texture(const std::string& filePath, const unsigned int width, const unsigned int height);
 	Texture(const std::string& filePath);	
 	virtual ~Texture();
 
@@ -23,6 +24,8 @@ public:
 	}
 
 protected:
+	virtual void Validate();
+
 	bool m_IsInitialized;
 	unsigned int m_ProgramID;
 

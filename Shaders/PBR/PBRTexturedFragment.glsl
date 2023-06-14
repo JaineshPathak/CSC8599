@@ -85,7 +85,7 @@ float DistributionGGX(in vec3 N, in vec3 H, in float roughnessStrength)
 float GeometrySchlickGGX(in float dot, in float roughnessStrength)
 {
 	float numerator = dot;
-	float k = pow(roughnessStrength + 1, 2) / 8.0;
+	float k = roughnessStrength * roughnessStrength;
 
 	float denominator = dot / (1.0 - k) + k;
 
@@ -96,6 +96,9 @@ float GeometrySmith(in vec3 N, in vec3 V, in vec3 L, in float roughnessStrength)
 {
 	float NdotV = max(dot(N, V), 0.0);
 	float NdotL = max(dot(N, L), 0.0);
+
+	//float NdotV = dot(N, V);
+	//float NdotL = dot(N, L);
 
 	float GSubOne = GeometrySchlickGGX(NdotV, roughnessStrength);
 	float GSubTwo = GeometrySchlickGGX(NdotL, roughnessStrength);

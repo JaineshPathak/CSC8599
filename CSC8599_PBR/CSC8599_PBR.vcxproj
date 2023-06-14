@@ -154,6 +154,10 @@
   <ItemGroup>
     <None Include="..\Shaders\PBR\PBRBillboardFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRBillboardVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBREquiRect2CubeMapFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBREquiRect2CubeMapVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRSkyBox2Fragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRSkyBox2Vertex.glsl" />
     <None Include="..\Shaders\PBR\PBRSkyBoxFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRSkyBoxVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl" />

@@ -70,6 +70,8 @@
       <Filter>Maths</Filter>
     </ClCompile>
     <ClCompile Include="TextureHDR.cpp" />
+    <ClCompile Include="FrameBufferHDR.cpp" />
+    <ClCompile Include="TextureEnvCubeMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -155,6 +157,8 @@
     <ClInclude Include="FrameBufferFP.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureHDR.h" />
+    <ClInclude Include="FrameBufferHDR.h" />
+    <ClInclude Include="TextureEnvCubeMap.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">
