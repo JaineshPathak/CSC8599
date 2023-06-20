@@ -62,8 +62,8 @@ bool Renderer::InitCamera()
 
 bool Renderer::InitShaders()
 {
-	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
-	//m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
+	//m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
+	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
 	if (!m_PBRShader->LoadSuccess()) return false;
 
 	m_PBRBillboardShader = std::shared_ptr<Shader>(new Shader("PBR/PBRBillboardVertex.glsl", "PBR/PBRBillboardFragment.glsl"));
@@ -282,16 +282,16 @@ void Renderer::RenderHelmet()
 	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness, 3);
 	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive, 4);*/
 
-	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
+	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
 	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
 	m_PBRShader->SetTexture("metallicTex", m_HelmetTextureMetallic->GetID(), 2);
 	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness->GetID(), 3);
-	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 4);
+	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 4);*/
 
-	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
+	m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
 	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
 	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 2);
-	m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 3);*/
+	m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 3);
 
 	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
 

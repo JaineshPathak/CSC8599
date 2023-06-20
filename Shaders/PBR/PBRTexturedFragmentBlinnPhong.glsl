@@ -193,8 +193,8 @@ void main(void)
 	if(numSpotLights > 0)
 		CalcSpotLights(result, albedoColor, normalColor);
 
-	CalcReflection(result, albedoColor, normalColor);
-	CalcRefraction(result, albedoColor, normalColor);
+	//CalcReflection(result, albedoColor, normalColor);
+	//CalcRefraction(result, albedoColor, normalColor);
 
 	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb * 2.0;
 	result += emissiveColor;
