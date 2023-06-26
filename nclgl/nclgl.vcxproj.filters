@@ -72,6 +72,10 @@
     <ClCompile Include="TextureHDR.cpp" />
     <ClCompile Include="FrameBufferHDR.cpp" />
     <ClCompile Include="TextureEnvCubeMap.cpp" />
+    <ClCompile Include="..\Third Party\stb_image\stb_image.cpp">
+      <Filter>stb_image</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureCubeMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -159,6 +163,10 @@
     <ClInclude Include="TextureHDR.h" />
     <ClInclude Include="FrameBufferHDR.h" />
     <ClInclude Include="TextureEnvCubeMap.h" />
+    <ClInclude Include="..\Third Party\stb_image\stb_image.h">
+      <Filter>stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureCubeMap.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">
@@ -172,6 +180,9 @@
     </Filter>
     <Filter Include="imgui">
       <UniqueIdentifier>{d2be9ae0-9619-4f57-9b36-a441199c030d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="stb_image">
+      <UniqueIdentifier>{321fd1bd-5416-46ed-89e8-c08256670d07}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

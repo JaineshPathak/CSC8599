@@ -5,11 +5,12 @@
 #include <nclgl/Texture.h>
 #include <nclgl/TextureHDR.h>
 #include <nclgl/TextureEnvCubeMap.h>
-#include <nclgl/Light.h>
+#include <nclgl/TextureCubeMap.h>
+#include <nclgl/FrameBuffer.h>
 #include <nclgl/FrameBufferFP.h>
 #include <nclgl/FrameBufferHDR.h>
 #include <nclgl/UniformBuffer.h>
-#include <imgui/imgui_internal.h>
+#include <stb_image/stb_image.h>
 
 #if _DEBUG
 #include <iostream>
@@ -43,6 +44,52 @@ bool Renderer::Initialize()
 	SetupGLParameters();
 	CaptureCubeMap();
 
+	/*
+	//----------------------------------------------------------------------------------------------------------------------------
+	// Temporary TESTING AREA
+	
+	glGenTextures(1, &envCubeMap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubeMap);
+	for (unsigned int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_FLOAT, nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+	
+	int width, height, nrComponents;
+	stbi_set_flip_vertically_on_load(true);
+	float* data = stbi_loadf(TEXTUREDIR"HDR/clarens_night_02_2k.hdr", &width, &height, &nrComponents, 0);
+	if (data)
+	{
+		glGenTextures(1, &hdrTexture);
+		glBindTexture(GL_TEXTURE_2D, hdrTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		stbi_image_free(data);
+	}
+	stbi_set_flip_vertically_on_load(false);
+
+	m_CaptureProjection = Matrix4::Perspective(1.0f, 10.0f, 1.0f, DegToRad(90.0f));
+
+	m_CaptureViews[0] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::RIGHT, Vector3::DOWN);
+	m_CaptureViews[1] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::LEFT, Vector3::DOWN);
+	m_CaptureViews[2] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::UP, Vector3::BACK);
+	m_CaptureViews[3] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::DOWN, Vector3::FORWARD);
+	m_CaptureViews[4] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::BACK, Vector3::DOWN);
+	m_CaptureViews[5] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::FORWARD, Vector3::DOWN);
+	//----------------------------------------------------------------------------------------------------------------------------
+	*/
 	return true;
 }
 
@@ -75,6 +122,9 @@ bool Renderer::InitShaders()
 	m_EquiRect2CubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBREquiRect2CubeMapVertex.glsl", "PBR/PBREquiRect2CubeMapFragment.glsl"));
 	if (!m_EquiRect2CubeMapShader->LoadSuccess()) return false;
 
+	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PBR/PBRCombinedVert.glsl", "PBR/PBRCombinedFrag.glsl"));
+	if (!m_CombinedShader->LoadSuccess()) return false;
+
 	return true;
 }
 
@@ -83,10 +133,10 @@ bool Renderer::InitBuffers()
 	float w = m_WindowParent.GetScreenSize().x;
 	float h = m_WindowParent.GetScreenSize().y;
 
-	m_GlobalFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(w, h));
+	m_GlobalFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP((unsigned int)w, (unsigned int)h));
 	if (m_GlobalFrameBuffer == nullptr) return false;
 
-	m_CaptureFrameBuffer = std::shared_ptr<FrameBufferHDR>(new FrameBufferHDR(512, 512));
+	m_CaptureFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(512, 512));
 	if (m_CaptureFrameBuffer == nullptr) return false;
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
@@ -152,18 +202,17 @@ bool Renderer::InitTextures()
 	m_HelmetTextureEmissive = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png"));
 	if (!m_HelmetTextureEmissive->IsInitialized()) return false;
 
-	m_CubeMapTexture = SOIL_load_OGL_cubemap(
+	m_CubeMapTexture = std::shared_ptr<TextureCubeMap>(new TextureCubeMap(
 		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
 		TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
-		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
-		SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
-	if (m_CubeMapTexture == 0) return false;
+		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg"));
+	if (!m_CubeMapTexture->IsInitialized()) return false;
 
-	m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR"HDR/clarens_night_02_2k.hdr"));
-	if (!m_CubeMapHDRTexture->IsInitialized()) return false;
+	//m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR"HDR/clarens_night_02_2k.hdr"));
+	//if (!m_CubeMapHDRTexture->IsInitialized()) return false;
 
-	m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(512, 512));
-	if (!m_CubeMapEnvTexture->IsInitialized()) return false;
+	//m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(512, 512));
+	//if (!m_CubeMapEnvTexture->IsInitialized()) return false;
 	
 	return true;
 }
@@ -195,12 +244,8 @@ void Renderer::HandleInputs(float dt)
 
 	if (ImGuiRenderer::Get()->IsMouseOverScene() && ImGui::GetIO().MouseClicked[0])
 	{
-		if (ImGui::GetIO().MouseDown[0])
-		{
-			m_showCursor = true;
-			ImGui::GetIO().MouseDrawCursor = m_showCursor;			
-			m_WindowParent.LockMouseToWindow(true);
-		}
+		ImGui::GetIO().MouseDrawCursor = m_showCursor;
+		m_WindowParent.LockMouseToWindow(true);		
 	}
 	else if (ImGui::GetIO().MouseReleased[0])
 	{
@@ -213,14 +258,14 @@ void Renderer::HandleInputs(float dt)
 void Renderer::CaptureCubeMap()
 {
 	m_EquiRect2CubeMapShader->Bind();
-	m_EquiRect2CubeMapShader->SetMat4("proj", m_CaptureFrameBuffer->GetCaptureProjection());
-	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", m_CubeMapHDRTexture->GetID(), 0);
+	m_EquiRect2CubeMapShader->SetMat4("proj", m_CaptureProjection);
+	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", hdrTexture, 0);
 
 	m_CaptureFrameBuffer->Bind();
 	for (unsigned int i = 0; i < 6; i++)
 	{
-		m_EquiRect2CubeMapShader->SetMat4("view", m_CaptureFrameBuffer->GetCaptureViews()[i]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapEnvTexture->GetID(), 0);
+		m_EquiRect2CubeMapShader->SetMat4("view", m_CaptureViews[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubeMap, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		m_CubeMesh->Draw();
@@ -265,7 +310,7 @@ void Renderer::RenderCubeMap2()
 	glDepthFunc(GL_LEQUAL);
 
 	m_CubeMapShader->Bind();
-	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 0);
+	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture->GetID(), 0);
 	m_CubeMesh->Draw();
 	m_CubeMapShader->UnBind();
 
@@ -294,7 +339,6 @@ void Renderer::RenderHelmet()
 	m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 3);*/
 
 	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
-
 	m_PBRShader->SetMat4("modelMatrix", modelMatrix);
 
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
@@ -316,10 +360,23 @@ void Renderer::RenderScene()
 	RenderHelmet();
 	RenderCubeMap2();
 
-	m_LightsManager->Render();	
+	m_LightsManager->Render();
 	m_GlobalFrameBuffer->Unbind();
 
 	RenderImGui();
+	
+	/*
+	//----------------------------------------------------------------------------
+	// TESTING AREA
+	
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	m_CombinedShader->Bind();	
+	m_CombinedShader->SetTexture("diffuseTex", m_CaptureFrameBuffer->GetDepthAttachmentTex(), 0);
+	m_QuadMesh->Draw();
+	m_CombinedShader->UnBind();
+	//----------------------------------------------------------------------------
+	*/
 }
 
 void Renderer::RenderImGui()

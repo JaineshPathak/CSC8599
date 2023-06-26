@@ -6,6 +6,7 @@
 #include <nclgl/Light.h>
 #include <nclgl/DirectionalLight.h>
 #include <nclgl/SpotLight.h>
+#include <nclgl/Texture.h>
 #include <nclgl/common.h>
 
 const int MAX_POINT_LIGHTS = 100;
@@ -16,10 +17,10 @@ LightsManager::LightsManager()
 	m_PBRBillboardShader = std::shared_ptr<Shader>(new Shader("PBR/PBRBillboardVertex.glsl", "PBR/PBRBillboardFragment.glsl"));
 	if (!m_PBRBillboardShader->LoadSuccess()) { m_IsInitialized = false; return; }
 
-	m_LightIconTexture = SOIL_load_OGL_texture(TEXTUREDIR"Icons/Icon_Light.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	m_LightIconTexture = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Icons/Icon_Light.png"));
 	if (m_LightIconTexture == 0) { m_IsInitialized = false; return; }	
 
-	m_SpotLightIconTexture = SOIL_load_OGL_texture(TEXTUREDIR"Icons/Icon_SpotLight.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+	m_SpotLightIconTexture = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Icons/Icon_SpotLight.png"));
 	if (m_SpotLightIconTexture == 0) { m_IsInitialized = false; return; }
 
 	//---------------------------------------------------------------------------------------------------------------------------------------
@@ -59,12 +60,6 @@ LightsManager::LightsManager()
 	ImGuiRenderer::Get()->RegisterItem(this);
 
 	m_IsInitialized = true;
-}
-
-LightsManager::~LightsManager()
-{
-	glDeleteTextures(1, &m_LightIconTexture);
-	glDeleteTextures(1, &m_SpotLightIconTexture);
 }
 
 void LightsManager::SpawnPointLight()
@@ -171,7 +166,7 @@ void LightsManager::Render()
 	if ((int)m_PointLights.size() <= 0) return;
 
 	m_PBRBillboardShader->Bind();
-	m_PBRBillboardShader->SetTexture("mainTex", m_LightIconTexture, 0);
+	m_PBRBillboardShader->SetTexture("mainTex", m_LightIconTexture->GetID(), 0);
 	for (auto iter = m_PointLights.cbegin(); iter != m_PointLights.cend(); ++iter)
 	{
 		const auto& light = *iter;
@@ -200,7 +195,7 @@ void LightsManager::Render()
 		Renderer::Get()->GetQuadMesh()->Draw();
 	}
 
-	m_PBRBillboardShader->SetTexture("mainTex", m_SpotLightIconTexture, 0);
+	m_PBRBillboardShader->SetTexture("mainTex", m_SpotLightIconTexture->GetID(), 0);
 	for (auto iter = m_SpotLights.cbegin(); iter != m_SpotLights.cend(); ++iter)
 	{
 		const auto& light = *iter;

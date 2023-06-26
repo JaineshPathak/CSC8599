@@ -5,7 +5,10 @@
 class FrameBufferHDR : public FrameBuffer
 {
 public:
-	FrameBufferHDR(const unsigned int& sizeX, const unsigned int& sizeY) : m_RenderBufferID(-1), FrameBuffer(sizeX, sizeY) {}
+	FrameBufferHDR(const unsigned int& sizeX, const unsigned int& sizeY) : m_RenderBufferID(-1), FrameBuffer(sizeX, sizeY) 
+	{
+		Invalidate();
+	}
 	~FrameBufferHDR();
 
 	const unsigned int GetRenderBufferID() const { return m_RenderBufferID; }

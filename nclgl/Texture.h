@@ -1,7 +1,7 @@
 #pragma once
+#include <iostream>
 #include <string>
 #include <glad/glad.h>
-#include <iostream>
 
 class Texture
 {

@@ -10,6 +10,7 @@ class Shader;
 class Light;
 class DirectionalLight;
 class SpotLight;
+class Texture;
 
 struct PointLight
 {
@@ -37,7 +38,7 @@ class LightsManager : public IImguiItem
 {
 public:
 	LightsManager();
-	~LightsManager();
+	~LightsManager() {};
 
 	const bool IsInitialized() const { return m_IsInitialized; }
 
@@ -61,8 +62,8 @@ protected:
 
 protected:
 	bool m_IsInitialized;
-	unsigned int m_LightIconTexture;
-	unsigned int m_SpotLightIconTexture;
+	std::shared_ptr<Texture> m_LightIconTexture;
+	std::shared_ptr<Texture> m_SpotLightIconTexture;
 	
 	std::shared_ptr<UniformBuffer> m_PointLightsUBO;
 	std::shared_ptr<UniformBuffer> m_DirectionalLightsUBO;

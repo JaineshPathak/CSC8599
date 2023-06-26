@@ -1,5 +1,5 @@
 #pragma once
-#include "..\nclgl\OGLRenderer.h"
+#include <nclgl/OGLRenderer.h>
 #include <vector>
 #include <memory>
 #include <thread>
@@ -12,9 +12,9 @@ class LightsManager;
 class FrameBufferFP;
 class FrameBufferHDR;
 class UniformBuffer;
-class Light;
 class Texture;
 class TextureHDR;
+class TextureCubeMap;
 class TextureEnvCubeMap;
 
 class Renderer : public OGLRenderer
@@ -64,6 +64,7 @@ protected:
 	std::shared_ptr<Shader> m_PBRBillboardShader;
 	std::shared_ptr<Shader> m_CubeMapShader;
 	std::shared_ptr<Shader> m_EquiRect2CubeMapShader;
+	std::shared_ptr<Shader> m_CombinedShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
 	std::shared_ptr<Mesh> m_CubeMesh;
@@ -74,7 +75,11 @@ protected:
 	unsigned int m_HelmetTextureMetallic;
 	unsigned int m_HelmetTextureRoughness;
 	unsigned int m_HelmetTextureEmissive;*/
-	unsigned int m_CubeMapTexture;
+	unsigned int envCubeMap;
+	unsigned int hdrTexture;
+
+	Matrix4 m_CaptureProjection;
+	Matrix4 m_CaptureViews[6];
 
 	std::shared_ptr<Texture> m_HelmetTextureAlbedo;
 	std::shared_ptr<Texture> m_HelmetTextureNormal;
@@ -84,11 +89,13 @@ protected:
 
 	std::thread m_ThreadTextureAlbedo;
 
+	std::shared_ptr<TextureCubeMap> m_CubeMapTexture;
 	std::shared_ptr<TextureHDR> m_CubeMapHDRTexture;
 	std::shared_ptr<TextureEnvCubeMap> m_CubeMapEnvTexture;
 
 	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
-	std::shared_ptr<FrameBufferHDR> m_CaptureFrameBuffer;
+	std::shared_ptr<FrameBufferFP> m_CaptureFrameBuffer;
+	//std::shared_ptr<FrameBufferHDR> m_CaptureFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;
 
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;

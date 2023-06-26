@@ -1,8 +1,9 @@
 #include "TextureHDR.h"
-#include <SOIL/Simple OpenGL Image Library/src/stb_image_aug.h>
+#include <stb_image/stb_image.h>
 
 TextureHDR::TextureHDR(const std::string& filePath) : Texture(filePath)
 {
+	stbi_set_flip_vertically_on_load(true);
 	m_Data = (float*)stbi_loadf(filePath.c_str(), &m_Width, &m_Height, &m_Channel, 0);
 	
 	if (!m_Data)
@@ -12,7 +13,6 @@ TextureHDR::TextureHDR(const std::string& filePath) : Texture(filePath)
 	}
 
 	glDeleteTextures(1, &m_ProgramID);
-
 	glGenTextures(1, &m_ProgramID);
 	glBindTexture(GL_TEXTURE_2D, m_ProgramID);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, m_Width, m_Height, 0, GL_RGB, GL_FLOAT, m_Data);
@@ -26,6 +26,8 @@ TextureHDR::TextureHDR(const std::string& filePath) : Texture(filePath)
 
 	if (m_Data)
 		stbi_image_free(m_Data);
+
+	stbi_set_flip_vertically_on_load(true);
 
 	m_IsInitialized = true;
 }

@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\Third Party\;$(ProjectDir)..\;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\SOIL\$(Configuration)\;..\$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\Third Party\;$(ProjectDir)..\;$(IncludePath)</IncludePath>
@@ -117,7 +117,6 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>nclgl.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,6 +153,8 @@
   <ItemGroup>
     <None Include="..\Shaders\PBR\PBRBillboardFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRBillboardVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRCombinedFrag.glsl" />
+    <None Include="..\Shaders\PBR\PBRCombinedVert.glsl" />
     <None Include="..\Shaders\PBR\PBREquiRect2CubeMapFragment.glsl" />
     <None Include="..\Shaders\PBR\PBREquiRect2CubeMapVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRSkyBox2Fragment.glsl" />

@@ -3,3 +3,9 @@ Filmic Tone Mapping and SSAO: https://www.slideshare.net/ozlael/hable-john-uncha
 BRDF: http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
 
 Billboards: https://archive.fo/SLzw2
+
+nclgl Linked Directory:
+..\Third Party\SOIL\$(Platform)\$(Configuration)
+
+Main Project Linked Directory:
+..\..\SOIL\$(Configuration)\

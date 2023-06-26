@@ -1,5 +1,5 @@
 #include "Texture.h"
-#include <SOIL/SOIL.h>
+#include <stb_image/stb_image.h>
 
 Texture::Texture(const unsigned int width, const unsigned int height) :
 	m_ProgramID(0),
@@ -53,8 +53,8 @@ Texture::~Texture()
 
 void Texture::Validate()
 {
-	m_Data = (unsigned char*)SOIL_load_image(m_FilePath.c_str(), &m_Width, &m_Height, &m_Channel, 0);
-
+	stbi_set_flip_vertically_on_load(true);
+	m_Data = (unsigned char*)stbi_load(m_FilePath.c_str(), &m_Width, &m_Height, &m_Channel, 0);	
 	if (!m_Data)
 	{
 		m_IsInitialized = false;
@@ -84,7 +84,9 @@ void Texture::Validate()
 	std::cout << "File: " << m_FilePath << ", Channels: " << m_Channel << ", Format: " << std::to_string(format) << ", Program ID: " << m_ProgramID << std::endl;
 
 	if (m_Data)
-		SOIL_free_image_data((unsigned char*)m_Data);
+		stbi_image_free(m_Data);
+	
+	stbi_set_flip_vertically_on_load(false);
 
 	m_IsInitialized = true;
 }

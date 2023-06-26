@@ -31,11 +31,11 @@ int main()
 			Shader::ReloadAllShaders();
 		}
 
-		/*if (Window::GetMouse()->ButtonDown(MouseButtons::MOUSE_RIGHT))
+		if (Window::GetMouse()->ButtonDown(MouseButtons::MOUSE_RIGHT))
 		{
 			showPointer = !showPointer;
 			w.ShowOSPointer(showPointer);
-		}*/
+		}
 
 		//if (ImGui::GetIO().MouseClicked[1])
 		//{

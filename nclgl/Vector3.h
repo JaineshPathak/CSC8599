@@ -165,11 +165,11 @@ public:
 		return v;
 	}
 
-	static const Vector3 ZERO;		//Vector3(0, 1, 0);
-	static const Vector3 UP;		//Vector3(0, -1, 0);
-	static const Vector3 DOWN;		//Vector3(0, 0, -1);
-	static const Vector3 FORWARD;	//Vector3(0, 0, 1);
-	static const Vector3 BACK;		//Vector3(1, 0, 0);
-	static const Vector3 RIGHT;		//Vector3(-1, 0, 0);
-	static const Vector3 LEFT;		//Vector3(0, 0, 0);
+	static const Vector3 ZERO;		//Vector3(0, 0, 0);
+	static const Vector3 UP;		//Vector3(0, 1, 0);
+	static const Vector3 DOWN;		//Vector3(0, -1, 0);
+	static const Vector3 FORWARD;	//Vector3(0, 0, -1);
+	static const Vector3 BACK;		//Vector3(0, 0, 1);
+	static const Vector3 LEFT;		//Vector3(-1, 0, 0);
+	static const Vector3 RIGHT;		//Vector3(1, 0, 0);
 };

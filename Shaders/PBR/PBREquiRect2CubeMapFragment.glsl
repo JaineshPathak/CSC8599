@@ -21,6 +21,6 @@ vec2 SampleSphericalMap(vec3 v)
 
 void main(void)
 {
-	vec2 uv = SampleSphericalMap(IN.localPos);	
+	vec2 uv = SampleSphericalMap(normalize(IN.localPos));
 	fragColour = vec4(texture(equiRectTex, uv).rgb, 1.0);
 }

@@ -180,9 +180,9 @@ Mesh* Mesh::GenerateCircle(float cx, float cy, float r, Vector4 color, GLuint ty
 
 	m->vertices = new Vector3[m->numVertices];
 	m->colours = new Vector4[m->numVertices];
-	for (int i = 0; i < m->numVertices; i++)
+	for (int i = 0; i < (int)m->numVertices; i++)
 	{
-		float theta = 2.0f * 3.14 * float(i) / float(m->numVertices);
+		float theta = 2.0f * 3.14f * float(i) / float(m->numVertices);
 		float x = r * cos(theta);
 		float y = r * sin(theta);
 
@@ -822,7 +822,7 @@ void Mesh::GenerateBoundingBox()
 	minY = maxY = vertices[0].y;
 	minZ = maxZ = vertices[0].z;
 
-	for (int i = 0; i < numVertices; i++)
+	for (int i = 0; i < (int)numVertices; i++)
 	{
 		if (vertices[i].x < minX) minX = vertices[i].x;
 		if (vertices[i].x > maxX) maxX = vertices[i].x;

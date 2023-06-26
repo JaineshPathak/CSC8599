@@ -1,10 +1,11 @@
 #include "HeightMap.h"
 #include <iostream>
+#include <stb_image/stb_image.h>
 
 HeightMap::HeightMap(const std::string& name)
 {
 	int iWidth, iHeight, iChans;
-	unsigned char* data = SOIL_load_image(name.c_str(), &iWidth, &iHeight, &iChans, 1);
+	unsigned char* data = stbi_load(name.c_str(), &iWidth, &iHeight, &iChans, 1);
 
 	if (!data) 
 	{
@@ -34,7 +35,7 @@ HeightMap::HeightMap(const std::string& name)
 			colours[offset] = Vector4(color, color, color, 1.0f);
 		}
 	}
-	SOIL_free_image_data(data);
+	stbi_image_free(data);
 
 	int i = 0;
 	for (int z = 0; z < iHeight - 1; ++z) 

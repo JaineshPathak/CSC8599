@@ -20,8 +20,7 @@ void FrameBufferHDR::Invalidate()
 	if (m_ProgramID)
 	{
 		glDeleteFramebuffers(1, &m_ProgramID);
-		glDeleteTextures(1, &m_ColorAttachmentTex);
-		glDeleteTextures(1, &m_DepthAttachmentTex);
+		glDeleteRenderbuffers(1, &m_RenderBufferID);
 	}
 
 	glGenFramebuffers(1, &m_ProgramID);
