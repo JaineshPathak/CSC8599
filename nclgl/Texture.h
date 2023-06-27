@@ -8,7 +8,7 @@ class Texture
 public:
 	Texture(const unsigned int width, const unsigned int height);
 	Texture(const std::string& filePath, const unsigned int width, const unsigned int height);
-	Texture(const std::string& filePath);	
+	Texture(const std::string& filePath, bool shouldValidate = true);	
 	virtual ~Texture();
 
 	unsigned int GetID() const { return m_ProgramID; }
@@ -18,7 +18,7 @@ public:
 	bool IsInitialized() const
 	{ 
 		if (!m_IsInitialized)
-			std::cout << "Texture: " << m_FilePath << " is not initialized!" << std::endl;
+			std::cout << "Texture: " << m_FilePath << " is not initialized! Program ID: " << m_ProgramID << std::endl;
 
 		return m_IsInitialized; 
 	}

@@ -35,7 +35,7 @@ Texture::Texture(const std::string& filePath, const unsigned int width, const un
 	Validate();
 }
 
-Texture::Texture(const std::string& filePath) :
+Texture::Texture(const std::string& filePath, bool shouldValidate) :
 	m_ProgramID(0),
 	m_FilePath(filePath),
 	m_Width(0),
@@ -43,7 +43,8 @@ Texture::Texture(const std::string& filePath) :
 	m_Channel(0),
 	m_Data(nullptr)
 {
-	Validate();
+	if(shouldValidate)
+		Validate();
 }
 
 Texture::~Texture()

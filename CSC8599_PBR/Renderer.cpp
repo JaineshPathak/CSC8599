@@ -42,7 +42,6 @@ bool Renderer::Initialize()
 	if (!InitTextures())	return false;
 
 	SetupGLParameters();
-	CaptureCubeMap();
 
 	/*
 	//----------------------------------------------------------------------------------------------------------------------------
@@ -80,7 +79,7 @@ bool Renderer::Initialize()
 	}
 	stbi_set_flip_vertically_on_load(false);
 
-	m_CaptureProjection = Matrix4::Perspective(1.0f, 10.0f, 1.0f, DegToRad(90.0f));
+	m_CaptureProjection = Matrix4::Perspective(0.1f, 10.0f, 1.0f, 45.0f);
 
 	m_CaptureViews[0] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::RIGHT, Vector3::DOWN);
 	m_CaptureViews[1] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::LEFT, Vector3::DOWN);
@@ -90,6 +89,18 @@ bool Renderer::Initialize()
 	m_CaptureViews[5] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::FORWARD, Vector3::DOWN);
 	//----------------------------------------------------------------------------------------------------------------------------
 	*/
+
+	m_CaptureProjection = Matrix4::Perspective(0.1f, 100.0f, 1.0f, 90.0f);
+
+	m_CaptureViews[0] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::RIGHT, Vector3::DOWN);
+	m_CaptureViews[1] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::LEFT, Vector3::DOWN);
+	m_CaptureViews[2] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::UP, Vector3::BACK);
+	m_CaptureViews[3] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::DOWN, Vector3::FORWARD);
+	m_CaptureViews[4] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::BACK, Vector3::DOWN);
+	m_CaptureViews[5] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::FORWARD, Vector3::DOWN);
+
+	m_AlreadyCapturedCubeMap = false;
+	
 	return true;
 }
 
@@ -136,7 +147,7 @@ bool Renderer::InitBuffers()
 	m_GlobalFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP((unsigned int)w, (unsigned int)h));
 	if (m_GlobalFrameBuffer == nullptr) return false;
 
-	m_CaptureFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(512, 512));
+	m_CaptureFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(2048, 2048));
 	if (m_CaptureFrameBuffer == nullptr) return false;
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
@@ -172,21 +183,6 @@ void Renderer::LoadTexture(const std::string& filePath)
 
 bool Renderer::InitTextures()
 {
-	/*m_HelmetTextureAlbedo = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	if (m_HelmetTextureAlbedo == 0) return false;
-
-	m_HelmetTextureNormal = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Normal_Raw.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	if (m_HelmetTextureNormal == 0) return false;
-
-	m_HelmetTextureMetallic = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Metallic_Raw.png", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	if (m_HelmetTextureMetallic == 0) return false;
-
-	m_HelmetTextureRoughness = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Roughness_Raw.png", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	if (m_HelmetTextureRoughness == 0) return false;
-
-	m_HelmetTextureEmissive = SOIL_load_OGL_texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-	if (m_HelmetTextureEmissive == 0) return false;*/
-
 	m_HelmetTextureAlbedo = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png"));
 	if (!m_HelmetTextureAlbedo->IsInitialized()) return false;
 
@@ -208,11 +204,11 @@ bool Renderer::InitTextures()
 		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg"));
 	if (!m_CubeMapTexture->IsInitialized()) return false;
 
-	//m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR"HDR/clarens_night_02_2k.hdr"));
-	//if (!m_CubeMapHDRTexture->IsInitialized()) return false;
+	m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR"HDR/clarens_night_02_2k.hdr"));
+	if (!m_CubeMapHDRTexture->IsInitialized()) return false;
 
-	//m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(512, 512));
-	//if (!m_CubeMapEnvTexture->IsInitialized()) return false;
+	m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(2048, 2048));
+	if (!m_CubeMapEnvTexture->IsInitialized()) return false;
 	
 	return true;
 }
@@ -259,13 +255,14 @@ void Renderer::CaptureCubeMap()
 {
 	m_EquiRect2CubeMapShader->Bind();
 	m_EquiRect2CubeMapShader->SetMat4("proj", m_CaptureProjection);
-	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", hdrTexture, 0);
+	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", m_CubeMapHDRTexture->GetID(), 0);
 
 	m_CaptureFrameBuffer->Bind();
+	//glViewport(0, 0, 2048, 2048);
 	for (unsigned int i = 0; i < 6; i++)
 	{
 		m_EquiRect2CubeMapShader->SetMat4("view", m_CaptureViews[i]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubeMap, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapEnvTexture->GetID(), 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		m_CubeMesh->Draw();
@@ -298,7 +295,7 @@ void Renderer::RenderCubeMap()
 {
 	glDepthMask(GL_FALSE);
 
-	m_CubeMapShader->Bind();	
+	m_CubeMapShader->Bind();
 	m_QuadMesh->Draw();
 	m_CubeMapShader->UnBind();
 
@@ -310,7 +307,7 @@ void Renderer::RenderCubeMap2()
 	glDepthFunc(GL_LEQUAL);
 
 	m_CubeMapShader->Bind();
-	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture->GetID(), 0);
+	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
 	m_CubeMesh->Draw();
 	m_CubeMapShader->UnBind();
 
@@ -354,10 +351,16 @@ void Renderer::RenderHelmet()
 void Renderer::RenderScene()
 {
 	m_GlobalFrameBuffer->Bind();
+	//glViewport(0, 0, width, height);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	HandleUBOData();
 	RenderHelmet();
+	if (!m_AlreadyCapturedCubeMap)
+	{
+		m_AlreadyCapturedCubeMap = true;
+		CaptureCubeMap();
+	}
 	RenderCubeMap2();
 
 	m_LightsManager->Render();
@@ -372,7 +375,7 @@ void Renderer::RenderScene()
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	m_CombinedShader->Bind();	
-	m_CombinedShader->SetTexture("diffuseTex", m_CaptureFrameBuffer->GetDepthAttachmentTex(), 0);
+	m_CombinedShader->SetTexture("diffuseTex", m_CubeMapHDRTexture->GetID(), 0);
 	m_QuadMesh->Draw();
 	m_CombinedShader->UnBind();
 	//----------------------------------------------------------------------------
@@ -397,4 +400,3 @@ void Renderer::UpdateScene(float dt)
 		m_MainCamera->CalcViewMatrix();
 	}
 }
- 

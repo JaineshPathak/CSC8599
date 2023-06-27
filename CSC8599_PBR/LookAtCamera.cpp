@@ -27,8 +27,8 @@ LookAtCamera::LookAtCamera(Vector3 _position, Vector3 _rotation) :
 void LookAtCamera::UpdateCamera(float dt)
 {
 	if (ImGui::GetCurrentContext() == nullptr) return;
-	//if (ImGui::GetIO().MouseDrawCursor) return;
 	if (!ImGuiRenderer::Get()->IsMouseOverScene()) return;
+	//if (ImGui::GetIO().MouseDrawCursor) return;
 	//if (ImGui::GetCurrentContext()->HoveredWindow != nullptr && ImGui::GetCurrentContext()->HoveredWindow->Name == "Scene") return;
 	//if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered() || ImGui::IsAnyItemFocused()) return;
 

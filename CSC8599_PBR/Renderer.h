@@ -104,4 +104,5 @@ protected:
 private:
 	bool m_showCursor;
 	Window& m_WindowParent;
+	bool m_AlreadyCapturedCubeMap;
 };

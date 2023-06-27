@@ -1,7 +1,5 @@
 #version 420 core
 
-out vec4 fragColour;
-
 in Vertex
 {
 	vec3 localPos;
@@ -10,6 +8,8 @@ in Vertex
 uniform sampler2D equiRectTex;
 
 const vec2 invAtan = vec2(0.1591, 0.3183);
+
+out vec4 fragColour;
 
 vec2 SampleSphericalMap(vec3 v)
 {
