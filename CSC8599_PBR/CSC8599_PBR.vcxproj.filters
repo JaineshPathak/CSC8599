@@ -62,5 +62,6 @@
     <None Include="..\Shaders\PBR\PBRSkyBox2Vertex.glsl" />
     <None Include="..\Shaders\PBR\PBRCombinedFrag.glsl" />
     <None Include="..\Shaders\PBR\PBRCombinedVert.glsl" />
+    <None Include="..\Shaders\PBR\PBRIrradianceCubeMapFragment.glsl" />
   </ItemGroup>
 </Project>

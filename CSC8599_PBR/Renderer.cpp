@@ -29,7 +29,7 @@ Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 #endif
 
 	m_Renderer = this;
-}
+} 
 
 bool Renderer::Initialize()
 {
@@ -100,6 +100,7 @@ bool Renderer::Initialize()
 	m_CaptureViews[5] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::FORWARD, Vector3::DOWN);
 
 	m_AlreadyCapturedCubeMap = false;
+	m_AlreadyCapturedIrradianceMap = false;
 	
 	return true;
 }
@@ -133,6 +134,9 @@ bool Renderer::InitShaders()
 	m_EquiRect2CubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBREquiRect2CubeMapVertex.glsl", "PBR/PBREquiRect2CubeMapFragment.glsl"));
 	if (!m_EquiRect2CubeMapShader->LoadSuccess()) return false;
 
+	m_IrradianceCubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBREquiRect2CubeMapVertex.glsl", "PBR/PBRIrradianceCubeMapFragment.glsl"));
+	if (!m_IrradianceCubeMapShader->LoadSuccess()) return false;
+
 	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PBR/PBRCombinedVert.glsl", "PBR/PBRCombinedFrag.glsl"));
 	if (!m_CombinedShader->LoadSuccess()) return false;
 
@@ -147,8 +151,11 @@ bool Renderer::InitBuffers()
 	m_GlobalFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP((unsigned int)w, (unsigned int)h));
 	if (m_GlobalFrameBuffer == nullptr) return false;
 
-	m_CaptureFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(2048, 2048));
-	if (m_CaptureFrameBuffer == nullptr) return false;
+	m_CaptureHDRFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(2048, 2048));
+	if (m_CaptureHDRFrameBuffer == nullptr) return false;
+
+	m_CaptureIrradianceFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(32, 32));
+	if (m_CaptureIrradianceFrameBuffer == nullptr) return false;
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
 	if (!m_MatricesUBO->IsInitialized()) return false;	
@@ -209,6 +216,9 @@ bool Renderer::InitTextures()
 
 	m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(2048, 2048));
 	if (!m_CubeMapEnvTexture->IsInitialized()) return false;
+
+	m_CubeMapIrradianceTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(32, 32));
+	if (!m_CubeMapIrradianceTexture->IsInitialized()) return false;
 	
 	return true;
 }
@@ -251,14 +261,13 @@ void Renderer::HandleInputs(float dt)
 	}
 }
 
-void Renderer::CaptureCubeMap()
+void Renderer::CaptureHDRCubeMap()
 {
 	m_EquiRect2CubeMapShader->Bind();
 	m_EquiRect2CubeMapShader->SetMat4("proj", m_CaptureProjection);
 	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", m_CubeMapHDRTexture->GetID(), 0);
 
-	m_CaptureFrameBuffer->Bind();
-	//glViewport(0, 0, 2048, 2048);
+	m_CaptureHDRFrameBuffer->Bind();
 	for (unsigned int i = 0; i < 6; i++)
 	{
 		m_EquiRect2CubeMapShader->SetMat4("view", m_CaptureViews[i]);
@@ -267,8 +276,27 @@ void Renderer::CaptureCubeMap()
 
 		m_CubeMesh->Draw();
 	}
-	m_CaptureFrameBuffer->Unbind();
+	m_CaptureHDRFrameBuffer->Unbind();
 	m_EquiRect2CubeMapShader->UnBind();
+}
+
+void Renderer::CaptureIrradianceMap()
+{
+	m_IrradianceCubeMapShader->Bind();
+	m_IrradianceCubeMapShader->SetMat4("proj", m_CaptureProjection);
+	m_IrradianceCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapEnvTexture->GetID(), 0);
+
+	m_CaptureIrradianceFrameBuffer->Bind();
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		m_IrradianceCubeMapShader->SetMat4("view", m_CaptureViews[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapIrradianceTexture->GetID(), 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		m_CubeMesh->Draw();
+	}
+	m_CaptureIrradianceFrameBuffer->Unbind();
+	m_IrradianceCubeMapShader->UnBind();
 }
 
 void Renderer::HandleUBOData()
@@ -307,6 +335,7 @@ void Renderer::RenderCubeMap2()
 	glDepthFunc(GL_LEQUAL);
 
 	m_CubeMapShader->Bind();
+	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapIrradianceTexture->GetID(), 0);
 	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
 	m_CubeMesh->Draw();
 	m_CubeMapShader->UnBind();
@@ -329,6 +358,7 @@ void Renderer::RenderHelmet()
 	m_PBRShader->SetTexture("metallicTex", m_HelmetTextureMetallic->GetID(), 2);
 	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness->GetID(), 3);
 	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 4);
+	m_PBRShader->SetTextureCubeMap("irradianceTex", m_CubeMapIrradianceTexture->GetID(), 5);
 
 	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
 	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
@@ -359,7 +389,12 @@ void Renderer::RenderScene()
 	if (!m_AlreadyCapturedCubeMap)
 	{
 		m_AlreadyCapturedCubeMap = true;
-		CaptureCubeMap();
+		CaptureHDRCubeMap();
+	}
+	if (!m_AlreadyCapturedIrradianceMap)
+	{
+		m_AlreadyCapturedIrradianceMap = true;
+		CaptureIrradianceMap();
 	}
 	RenderCubeMap2();
 
