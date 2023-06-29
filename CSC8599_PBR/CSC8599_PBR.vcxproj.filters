@@ -63,5 +63,6 @@
     <None Include="..\Shaders\PBR\PBRCombinedFrag.glsl" />
     <None Include="..\Shaders\PBR\PBRCombinedVert.glsl" />
     <None Include="..\Shaders\PBR\PBRIrradianceCubeMapFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRPreFilterConvolutionFragment.glsl" />
   </ItemGroup>
 </Project>

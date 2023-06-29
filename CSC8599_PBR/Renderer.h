@@ -41,8 +41,10 @@ protected:
 	void SetupGLParameters();
 
 	void HandleInputs(float dt);
+
 	void CaptureHDRCubeMap();
 	void CaptureIrradianceMap();
+	void CapturePreFilterMipMaps();
 
 	void HandleUBOData();
 	void RenderCubeMap();
@@ -65,6 +67,7 @@ protected:
 	std::shared_ptr<Shader> m_CubeMapShader;
 	std::shared_ptr<Shader> m_EquiRect2CubeMapShader;
 	std::shared_ptr<Shader> m_IrradianceCubeMapShader;
+	std::shared_ptr<Shader> m_PreFilterCubeMapShader;
 	std::shared_ptr<Shader> m_CombinedShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
@@ -92,10 +95,12 @@ protected:
 	std::shared_ptr<TextureHDR> m_CubeMapHDRTexture;
 	std::shared_ptr<TextureEnvCubeMap> m_CubeMapEnvTexture;
 	std::shared_ptr<TextureEnvCubeMap> m_CubeMapIrradianceTexture;
+	std::shared_ptr<TextureEnvCubeMap> m_CubeMapPreFilterTexture;
 
 	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
 	std::shared_ptr<FrameBufferFP> m_CaptureHDRFrameBuffer;
 	std::shared_ptr<FrameBufferFP> m_CaptureIrradianceFrameBuffer;
+	std::shared_ptr<FrameBufferHDR> m_CapturePreFilterFrameBuffer;
 	//std::shared_ptr<FrameBufferHDR> m_CaptureFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;
 
@@ -103,8 +108,10 @@ protected:
 	std::shared_ptr<LightsManager> m_LightsManager;
 
 private:
-	bool m_showCursor;
 	Window& m_WindowParent;
+
+	bool m_showCursor;
 	bool m_AlreadyCapturedCubeMap;
 	bool m_AlreadyCapturedIrradianceMap;
+	bool m_AlreadyCapturedPreFilterMipMaps;
 };

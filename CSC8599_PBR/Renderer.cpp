@@ -101,6 +101,7 @@ bool Renderer::Initialize()
 
 	m_AlreadyCapturedCubeMap = false;
 	m_AlreadyCapturedIrradianceMap = false;
+	m_AlreadyCapturedPreFilterMipMaps = false;
 	
 	return true;
 }
@@ -137,6 +138,9 @@ bool Renderer::InitShaders()
 	m_IrradianceCubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBREquiRect2CubeMapVertex.glsl", "PBR/PBRIrradianceCubeMapFragment.glsl"));
 	if (!m_IrradianceCubeMapShader->LoadSuccess()) return false;
 
+	m_PreFilterCubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBREquiRect2CubeMapVertex.glsl", "PBR/PBRPreFilterConvolutionFragment.glsl"));
+	if (!m_PreFilterCubeMapShader->LoadSuccess()) return false;
+
 	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PBR/PBRCombinedVert.glsl", "PBR/PBRCombinedFrag.glsl"));
 	if (!m_CombinedShader->LoadSuccess()) return false;
 
@@ -156,6 +160,9 @@ bool Renderer::InitBuffers()
 
 	m_CaptureIrradianceFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(32, 32));
 	if (m_CaptureIrradianceFrameBuffer == nullptr) return false;
+
+	m_CapturePreFilterFrameBuffer = std::shared_ptr<FrameBufferHDR>(new FrameBufferHDR(128, 128));
+	if (m_CapturePreFilterFrameBuffer == nullptr) return false;
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
 	if (!m_MatricesUBO->IsInitialized()) return false;	
@@ -219,6 +226,9 @@ bool Renderer::InitTextures()
 
 	m_CubeMapIrradianceTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(32, 32));
 	if (!m_CubeMapIrradianceTexture->IsInitialized()) return false;
+
+	m_CubeMapPreFilterTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(128, 128));
+	if (!m_CubeMapPreFilterTexture->IsInitialized()) return false;
 	
 	return true;
 }
@@ -297,6 +307,39 @@ void Renderer::CaptureIrradianceMap()
 	}
 	m_CaptureIrradianceFrameBuffer->Unbind();
 	m_IrradianceCubeMapShader->UnBind();
+}
+
+void Renderer::CapturePreFilterMipMaps()
+{
+	m_PreFilterCubeMapShader->Bind();
+	m_PreFilterCubeMapShader->SetMat4("proj", m_CaptureProjection);
+	m_PreFilterCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapEnvTexture->GetID(), 0);
+
+	m_CapturePreFilterFrameBuffer->Bind();
+	unsigned int maxMipLevels = 5;
+	for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+	{
+		unsigned int mipWidth = 128 * std::pow(0.5, mip);
+		unsigned int mipHeight = 128 * std::pow(0.5, mip);
+		glBindRenderbuffer(GL_RENDERBUFFER, m_CapturePreFilterFrameBuffer->GetRenderBufferID());
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+		glViewport(0, 0, mipWidth, mipHeight);
+
+		float roughness = (float)mip / (float)(maxMipLevels - 1);
+		m_PreFilterCubeMapShader->SetFloat("roughnessStrength", roughness);
+
+		for (unsigned int i = 0; i < 6; i++)
+		{
+			m_PreFilterCubeMapShader->SetMat4("view", m_CaptureViews[i]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapPreFilterTexture->GetID(), mip);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			m_CubeMesh->Draw();
+		}
+	}
+
+	m_CapturePreFilterFrameBuffer->Unbind();
+	m_PreFilterCubeMapShader->UnBind();
 }
 
 void Renderer::HandleUBOData()
@@ -395,6 +438,11 @@ void Renderer::RenderScene()
 	{
 		m_AlreadyCapturedIrradianceMap = true;
 		CaptureIrradianceMap();
+	}
+	if (!m_AlreadyCapturedPreFilterMipMaps)
+	{
+		m_AlreadyCapturedPreFilterMipMaps = true;
+		CapturePreFilterMipMaps();
 	}
 	RenderCubeMap2();
 

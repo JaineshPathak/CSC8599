@@ -158,6 +158,7 @@
     <None Include="..\Shaders\PBR\PBREquiRect2CubeMapFragment.glsl" />
     <None Include="..\Shaders\PBR\PBREquiRect2CubeMapVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRIrradianceCubeMapFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRPreFilterConvolutionFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRSkyBox2Fragment.glsl" />
     <None Include="..\Shaders\PBR\PBRSkyBox2Vertex.glsl" />
     <None Include="..\Shaders\PBR\PBRSkyBoxFragment.glsl" />
