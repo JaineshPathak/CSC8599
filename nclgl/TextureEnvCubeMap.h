@@ -8,5 +8,6 @@ public:
 
 protected:
 	virtual void Validate() override;
-	bool m_ShouldGenerateMipMaps;
+
+	bool m_ShouldGenerateMipMaps;	
 };

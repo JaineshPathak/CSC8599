@@ -7,6 +7,8 @@ Texture::Texture(const unsigned int width, const unsigned int height) :
 	m_Width(width),
 	m_Height(height),
 	m_Channel(0),
+	m_InternalFormat(GL_RGBA),
+	m_Format(GL_RGBA),
 	m_Data(nullptr)
 {
 	glCreateTextures(GL_TEXTURE_2D, 1, &m_ProgramID);
@@ -18,7 +20,32 @@ Texture::Texture(const unsigned int width, const unsigned int height) :
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, GL_UNSIGNED_BYTE, nullptr);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	m_IsInitialized = true;
+}
+
+Texture::Texture(const unsigned int width, const unsigned int height, const int internalFormat, const int normalFormat) :
+	m_ProgramID(0),
+	m_FilePath(""),
+	m_Width(width),
+	m_Height(height),
+	m_Channel(0),
+	m_InternalFormat(internalFormat),
+	m_Format(normalFormat),
+	m_Data(nullptr)
+{
+	glCreateTextures(GL_TEXTURE_2D, 1, &m_ProgramID);
+	glBindTexture(GL_TEXTURE_2D, m_ProgramID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, GL_FLOAT, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	m_IsInitialized = true;

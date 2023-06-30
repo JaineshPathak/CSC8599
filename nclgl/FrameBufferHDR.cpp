@@ -6,6 +6,18 @@ FrameBufferHDR::~FrameBufferHDR()
 	glDeleteRenderbuffers(1, &m_RenderBufferID);
 }
 
+void FrameBufferHDR::Bind()
+{
+	glViewport(0, 0, m_Width, m_Height);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_RenderBufferID);
+}
+
+void FrameBufferHDR::Unbind()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void FrameBufferHDR::Invalidate()
 {
 	m_CaptureProjection = Matrix4::Perspective(1.0f, 10.0f, 1.0f, DegToRad(90.0f));

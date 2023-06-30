@@ -45,6 +45,7 @@ protected:
 	void CaptureHDRCubeMap();
 	void CaptureIrradianceMap();
 	void CapturePreFilterMipMaps();
+	void CaptureBRDFLUTMap();
 
 	void HandleUBOData();
 	void RenderCubeMap();
@@ -68,6 +69,7 @@ protected:
 	std::shared_ptr<Shader> m_EquiRect2CubeMapShader;
 	std::shared_ptr<Shader> m_IrradianceCubeMapShader;
 	std::shared_ptr<Shader> m_PreFilterCubeMapShader;
+	std::shared_ptr<Shader> m_BRDFIntegrateShader;
 	std::shared_ptr<Shader> m_CombinedShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
@@ -96,6 +98,7 @@ protected:
 	std::shared_ptr<TextureEnvCubeMap> m_CubeMapEnvTexture;
 	std::shared_ptr<TextureEnvCubeMap> m_CubeMapIrradianceTexture;
 	std::shared_ptr<TextureEnvCubeMap> m_CubeMapPreFilterTexture;
+	std::shared_ptr<Texture> m_BRDFLUTTexture;
 
 	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;
 	std::shared_ptr<FrameBufferFP> m_CaptureHDRFrameBuffer;
@@ -114,4 +117,5 @@ private:
 	bool m_AlreadyCapturedCubeMap;
 	bool m_AlreadyCapturedIrradianceMap;
 	bool m_AlreadyCapturedPreFilterMipMaps;
+	bool m_AlreadyCapturedBRDFLUTMap;
 };

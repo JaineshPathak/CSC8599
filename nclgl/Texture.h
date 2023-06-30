@@ -7,6 +7,7 @@ class Texture
 {
 public:
 	Texture(const unsigned int width, const unsigned int height);
+	Texture(const unsigned int width, const unsigned int height, const int internalFormat, const int normalFormat);
 	Texture(const std::string& filePath, const unsigned int width, const unsigned int height);
 	Texture(const std::string& filePath, bool shouldValidate = true);	
 	virtual ~Texture();
@@ -31,5 +32,7 @@ protected:
 
 	std::string m_FilePath;
 	int m_Width, m_Height, m_Channel;
+	int m_InternalFormat;
+	int m_Format;
 	void* m_Data;
 };

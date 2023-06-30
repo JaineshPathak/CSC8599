@@ -153,6 +153,8 @@
   <ItemGroup>
     <None Include="..\Shaders\PBR\PBRBillboardFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRBillboardVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRBRDFConvolutionFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRBRDFConvolutionVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRCombinedFrag.glsl" />
     <None Include="..\Shaders\PBR\PBRCombinedVert.glsl" />
     <None Include="..\Shaders\PBR\PBREquiRect2CubeMapFragment.glsl" />

@@ -15,6 +15,9 @@ public:
 	const Matrix4 GetCaptureProjection() const { return m_CaptureProjection; }
 	const Matrix4* GetCaptureViews() const { return m_CaptureViews; }
 
+	virtual void Bind() override;
+	virtual void Unbind() override;
+
 protected:
 	virtual void Invalidate() override;
 

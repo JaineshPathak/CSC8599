@@ -102,6 +102,7 @@ bool Renderer::Initialize()
 	m_AlreadyCapturedCubeMap = false;
 	m_AlreadyCapturedIrradianceMap = false;
 	m_AlreadyCapturedPreFilterMipMaps = false;
+	m_AlreadyCapturedBRDFLUTMap = false;
 	
 	return true;
 }
@@ -140,6 +141,9 @@ bool Renderer::InitShaders()
 
 	m_PreFilterCubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBREquiRect2CubeMapVertex.glsl", "PBR/PBRPreFilterConvolutionFragment.glsl"));
 	if (!m_PreFilterCubeMapShader->LoadSuccess()) return false;
+	
+	m_BRDFIntegrateShader = std::shared_ptr<Shader>(new Shader("PBR/PBRBRDFConvolutionVertex.glsl", "PBR/PBRBRDFConvolutionFragment.glsl"));
+	if (!m_BRDFIntegrateShader->LoadSuccess()) return false;
 
 	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PBR/PBRCombinedVert.glsl", "PBR/PBRCombinedFrag.glsl"));
 	if (!m_CombinedShader->LoadSuccess()) return false;
@@ -227,8 +231,11 @@ bool Renderer::InitTextures()
 	m_CubeMapIrradianceTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(32, 32));
 	if (!m_CubeMapIrradianceTexture->IsInitialized()) return false;
 
-	m_CubeMapPreFilterTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(128, 128));
+	m_CubeMapPreFilterTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(128, 128, true));
 	if (!m_CubeMapPreFilterTexture->IsInitialized()) return false;
+
+	m_BRDFLUTTexture = std::shared_ptr<Texture>(new Texture(512, 512, GL_RG16F, GL_RG));
+	if (!m_BRDFLUTTexture->IsInitialized()) return false;
 	
 	return true;
 }
@@ -294,7 +301,7 @@ void Renderer::CaptureIrradianceMap()
 {
 	m_IrradianceCubeMapShader->Bind();
 	m_IrradianceCubeMapShader->SetMat4("proj", m_CaptureProjection);
-	m_IrradianceCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapEnvTexture->GetID(), 0);
+	m_IrradianceCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapTexture->GetID(), 0);
 
 	m_CaptureIrradianceFrameBuffer->Bind();
 	for (unsigned int i = 0; i < 6; i++)
@@ -309,11 +316,12 @@ void Renderer::CaptureIrradianceMap()
 	m_IrradianceCubeMapShader->UnBind();
 }
 
+//Creates a Cube Map with different mips based on roughness strength
 void Renderer::CapturePreFilterMipMaps()
 {
 	m_PreFilterCubeMapShader->Bind();
 	m_PreFilterCubeMapShader->SetMat4("proj", m_CaptureProjection);
-	m_PreFilterCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapEnvTexture->GetID(), 0);
+	m_PreFilterCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapTexture->GetID(), 0);
 
 	m_CapturePreFilterFrameBuffer->Bind();
 	unsigned int maxMipLevels = 5;
@@ -340,6 +348,21 @@ void Renderer::CapturePreFilterMipMaps()
 
 	m_CapturePreFilterFrameBuffer->Unbind();
 	m_PreFilterCubeMapShader->UnBind();
+}
+
+void Renderer::CaptureBRDFLUTMap()
+{
+	m_CapturePreFilterFrameBuffer->Bind();
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BRDFLUTTexture->GetID(), 0);
+	glViewport(0, 0, 512, 512);
+
+	m_BRDFIntegrateShader->Bind();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	m_QuadMesh->Draw();
+	m_BRDFIntegrateShader->UnBind();
+
+	m_CapturePreFilterFrameBuffer->Unbind();
 }
 
 void Renderer::HandleUBOData()
@@ -379,7 +402,8 @@ void Renderer::RenderCubeMap2()
 
 	m_CubeMapShader->Bind();
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapIrradianceTexture->GetID(), 0);
-	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
+	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
+	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture->GetID(), 0);
 	m_CubeMesh->Draw();
 	m_CubeMapShader->UnBind();
 
@@ -402,6 +426,8 @@ void Renderer::RenderHelmet()
 	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness->GetID(), 3);
 	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 4);
 	m_PBRShader->SetTextureCubeMap("irradianceTex", m_CubeMapIrradianceTexture->GetID(), 5);
+	m_PBRShader->SetTextureCubeMap("prefilterTex", m_CubeMapPreFilterTexture->GetID(), 6);
+	m_PBRShader->SetTexture("brdfLUTTex", m_BRDFLUTTexture->GetID(), 7);
 
 	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
 	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
@@ -443,6 +469,11 @@ void Renderer::RenderScene()
 	{
 		m_AlreadyCapturedPreFilterMipMaps = true;
 		CapturePreFilterMipMaps();
+	}
+	if(!m_AlreadyCapturedBRDFLUTMap) 
+	{
+		m_AlreadyCapturedBRDFLUTMap = true;
+		CaptureBRDFLUTMap();
 	}
 	RenderCubeMap2();
 

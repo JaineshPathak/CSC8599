@@ -6,7 +6,10 @@ uniform sampler2D normalTex;
 uniform sampler2D metallicTex;
 uniform sampler2D roughnessTex;
 uniform sampler2D emissiveTex;
+
 uniform samplerCube irradianceTex;
+uniform samplerCube prefilterTex;
+uniform sampler2D brdfLUTTex;
 
 //Flags
 
@@ -86,9 +89,11 @@ float DistributionGGX(vec3 N, vec3 H, float roughnessStrength)
 float GeometrySchlickGGX(float dot, float roughnessStrength)
 {
 	float numerator = dot;
-	float k = roughnessStrength * roughnessStrength;
 
-	float denominator = dot / (1.0 - k) + k;
+	float a = roughnessStrength + 1;
+	float k = (a * a) / 8.0;
+
+	float denominator = dot * (1.0 - k) + k;
 
 	return numerator / denominator;
 }
@@ -171,17 +176,26 @@ void CalcPointLights(inout vec3 result, vec3 albedoColor, float metallicStrength
 	}
 }
 
-void CalcAmbientLight(inout vec3 result, vec3 albedoColor, float metallicStrength, vec3 N, vec3 V, vec3 F0)
+void CalcAmbientLight(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 N, vec3 V, vec3 R, vec3 F0)
 {
-	vec3 kS = FresnelSchlick(max(dot(N, V), 0.0), F0);
+	float NdotV = max(dot(N, V), 0.0);	
+	vec3 F = FresnelSchlickRoughness(NdotV, F0, roughnessStrength);
+	
+	vec3 kS = F;
 	vec3 kD = vec3(1.0) - kS;
 	kD *= 1.0 - metallicStrength;
 
 	vec3 irradiance = texture(irradianceTex, N).rgb;
-	vec3 diffuse = irradiance * albedoColor;
-	vec3 ambient = (kD * diffuse);
+	vec3 diffuse = irradiance * albedoColor;	
+
+	const float MAX_REFLECTION_LOD = 4.0;
+	vec3 prefilteredColor = textureLod(prefilterTex, R, roughnessStrength * MAX_REFLECTION_LOD).rgb;
+		
+	vec2 envBRDF = texture(brdfLUTTex, vec2(NdotV, roughnessStrength)).rg;
+	vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
 	//vec3 ambient = vec3(0.03) * albedoColor;
+	vec3 ambient = (kD * diffuse + specular);
 
 	result += ambient;
 }
@@ -196,6 +210,9 @@ void main(void)
 	normalColor.xy *= 1.0;
 	normalColor = normalize(IN.TBN * normalColor);
 
+	//float metallicStrength = 1.0;
+	//float roughnessStrength = 0.1;
+
 	float metallicStrength = texture(metallicTex, IN.texCoord).r;
 	float roughnessStrength = texture(roughnessTex, IN.texCoord).r;
 
@@ -204,23 +221,21 @@ void main(void)
 
 	vec3 N = normalize(normalColor);
 	vec3 V = normalize(cameraPos - IN.fragWorldPos);
-
-	//float metallicStrength = 1.0;
-	//float roughnessStrength = 0.1;
+	vec3 R = reflect(-V, N);	
 
 	vec3 result = vec3(0.0);
 	CalcDirectionalLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
 	CalcPointLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
-	CalcAmbientLight(result, albedoColor, metallicStrength, N, V, F0);
+	CalcAmbientLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, R, F0);	
+
+	result = vec3(1.0) - exp(-result * 5.0);
+	result = pow(result, vec3(1.0 / GAMMA));
 
 	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;
 	result += emissiveColor;
 
-	result = vec3(1.0) - exp(-result * 10.0);
-	result = pow(result, vec3(1.0 / GAMMA));
-
-	vec3 metallicColor = texture(metallicTex, IN.texCoord).rgb;
-	vec3 roughnessColor = texture(roughnessTex, IN.texCoord).rgb;
+	//vec3 metallicColor = texture(metallicTex, IN.texCoord).rgb;
+	//vec3 roughnessColor = texture(roughnessTex, IN.texCoord).rgb;
 
 	fragColour = vec4(result, 1.0);
 }
