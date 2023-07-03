@@ -60,6 +60,11 @@ layout(std140, binding = 3) uniform u_SpotLights
 	SpotLight spotLights[MAX_SPOT_LIGHTS];
 };
 
+layout(std140, binding = 4) uniform u_SkyboxData
+{
+	vec4 skyboxData;
+};
+
 in Vertex 
 {
 	vec3 position;
@@ -228,7 +233,7 @@ void main(void)
 	CalcPointLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
 	CalcAmbientLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, R, F0);	
 
-	result = vec3(1.0) - exp(-result * 5.0);
+	result = vec3(1.0) - exp(-result * skyboxData.x);
 	result = pow(result, vec3(1.0 / GAMMA));
 
 	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;

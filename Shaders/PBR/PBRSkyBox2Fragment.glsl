@@ -1,5 +1,10 @@
 #version 420 core
 
+layout(std140, binding = 4) uniform u_SkyboxData
+{
+	vec4 skyboxData;
+};
+
 uniform samplerCube cubeTex;
 
 in Vertex
@@ -16,7 +21,7 @@ void main(void)
 	//vec3 cubeColor = textureLod(cubeTex, IN.viewDir, 1.0).rgb;
 	
 	//cubeColor = cubeColor / (cubeColor + vec3(1.0));
-	cubeColor = vec3(1.0) - exp(-cubeColor * 5.0);
+	cubeColor = vec3(1.0) - exp(-cubeColor * skyboxData.x);
 	cubeColor = pow(cubeColor, vec3(1.0 / 2.2));
 
 	fragColour = vec4(cubeColor, 1.0);

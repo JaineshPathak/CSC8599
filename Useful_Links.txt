@@ -1,6 +1,7 @@
 Filmic Tone Mapping and SSAO: https://www.slideshare.net/ozlael/hable-john-uncharted2-hdr-lighting
 
 BRDF: http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
+BRDF: https://www.trentreed.net/blog/physically-based-shading-and-image-based-lighting/
 
 Billboards: https://archive.fo/SLzw2
 

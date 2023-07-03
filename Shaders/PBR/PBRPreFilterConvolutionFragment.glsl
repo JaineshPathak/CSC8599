@@ -76,7 +76,7 @@ void main(void)
 			totalWeight += NdotL;
 		}
 	}
-	prefilteredColor = prefilteredColor / totalWeight;
+	prefilteredColor = prefilteredColor / max(totalWeight, 0.001);
 
 	fragColour = vec4(prefilteredColor, 1.0);
 }

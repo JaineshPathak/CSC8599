@@ -142,6 +142,7 @@
     <ClCompile Include="LookAtCamera.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="SkyboxRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IImguiItem.h" />
@@ -149,6 +150,7 @@
     <ClInclude Include="LightsManager.h" />
     <ClInclude Include="LookAtCamera.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="SkyboxRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\PBR\PBRBillboardFragment.glsl" />
