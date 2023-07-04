@@ -24,5 +24,5 @@ protected:
 	Vector3 m_lookAtPos;
 
 	int m_CameraMovementType;
-	const char* m_CameraMovementTypeStr[2] { "Focused", "Free" };
+	const char* const m_CameraMovementTypeStr[2] { "Focused", "Free" };
 };

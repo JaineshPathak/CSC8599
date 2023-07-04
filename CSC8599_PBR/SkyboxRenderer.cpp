@@ -11,7 +11,9 @@
 #include <nclgl/FrameBufferHDR.h>
 #include <nclgl/UniformBuffer.h>
 
-SkyboxRenderer::SkyboxRenderer()
+#include <imgui/imgui.h>
+
+SkyboxRenderer::SkyboxRenderer() : m_SkyboxesIndexCurrent(0), m_Exposure(5.0f), m_Gamma(2.2f)
 {
 	if (!InitShaders()) { m_IsInitialized = false; return; }
 	if (!InitBuffers()) { m_IsInitialized = false; return; }
@@ -20,11 +22,8 @@ SkyboxRenderer::SkyboxRenderer()
 	m_SkyboxUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(sizeof(SkyboxData), nullptr, GL_DYNAMIC_DRAW, 4, 0));
 	if(!m_SkyboxUBO->IsInitialized()) { m_IsInitialized = false; return; }
 	
-	m_Exposure = 5.0f;
-	m_Gamma = 2.2f;
-
 	m_SkyboxData = SkyboxData();
-	m_SkyboxData.exposure = Vector4(m_Exposure, m_Gamma, 0.0f, 1.0f);
+	m_SkyboxData.data = Vector4(m_Exposure, m_Gamma, 0.0f, 1.0f);
 	BindSkyboxUBOData();
 
 	m_CaptureProjection = Matrix4::Perspective(0.1f, 100.0f, 1.0f, 90.0f);
@@ -36,10 +35,10 @@ SkyboxRenderer::SkyboxRenderer()
 	m_CaptureViews[4] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::BACK, Vector3::DOWN);
 	m_CaptureViews[5] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::FORWARD, Vector3::DOWN);
 
-	m_AlreadyCapturedCubeMap = false;
+	/*m_AlreadyCapturedCubeMap = false;
 	m_AlreadyCapturedBRDFLUTMap = false;
 	m_AlreadyCapturedIrradianceMap = false;
-	m_AlreadyCapturedPreFilterMipMaps = false;
+	m_AlreadyCapturedPreFilterMipMaps = false;*/
 
 	ImGuiRenderer::Get()->RegisterItem(this);
 	
@@ -82,13 +81,13 @@ bool SkyboxRenderer::InitBuffers()
 
 bool SkyboxRenderer::InitTextures()
 {
-	m_CubeMapTexture = std::shared_ptr<TextureCubeMap>(new TextureCubeMap(
+	/*m_CubeMapTexture = std::shared_ptr<TextureCubeMap>(new TextureCubeMap(
 		TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg",
 		TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg",
 		TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg"));
-	if (!m_CubeMapTexture->IsInitialized()) return false;
+	if (!m_CubeMapTexture->IsInitialized()) return false;*/
 
-	m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR"HDR/clarens_night_02_2k.hdr"));
+	/*m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR"HDR/solitude_night_2k.hdr"));
 	if (!m_CubeMapHDRTexture->IsInitialized()) return false;
 
 	m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(2048, 2048));
@@ -101,22 +100,40 @@ bool SkyboxRenderer::InitTextures()
 	if (!m_CubeMapPreFilterTexture->IsInitialized()) return false;
 
 	m_BRDFLUTTexture = std::shared_ptr<Texture>(new Texture(512, 512, GL_RG16F, GL_RG));
-	if (!m_BRDFLUTTexture->IsInitialized()) return false;
+	if (!m_BRDFLUTTexture->IsInitialized()) return false;*/
+
+	AddSkyboxCubeMap("HDR/clarens_night_02_2k.hdr", "Clarens Night");
+	AddSkyboxCubeMap("HDR/decor_shop_2k.hdr", "Interior Shop");
+	AddSkyboxCubeMap("HDR/snowy_hillside_02_2k.hdr", "Snowy Hills");
+	AddSkyboxCubeMap("HDR/pretville_cinema_2k.hdr", "Cinewall Hall");
+	AddSkyboxCubeMap("HDR/solitude_night_2k.hdr", "Palace Night");
+
+	m_SkyboxesNamesList = new char* [m_SkyBoxesNames.size()];
+	for (size_t i = 0; i < m_SkyBoxesNames.size(); i++)	
+		m_SkyboxesNamesList[i] = (char*)m_SkyBoxesNames[i].c_str();	
 
 	return true;
+}
+
+void SkyboxRenderer::AddSkyboxCubeMap(const std::string& fileName, const std::string& skyboxName)
+{
+	m_SkyboxesList.push_back(SkyboxCubeMap(TEXTUREDIR + fileName, skyboxName));
+	m_SkyBoxesNames.push_back(skyboxName);
 }
 
 void SkyboxRenderer::CaptureHDRCubeMap()
 {
 	m_EquiRect2CubeMapShader->Bind();
 	m_EquiRect2CubeMapShader->SetMat4("proj", m_CaptureProjection);
-	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", m_CubeMapHDRTexture->GetID(), 0);
+	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapHDRTexture->GetID(), 0);
+	//m_EquiRect2CubeMapShader->SetTexture("equiRectTex", m_CubeMapHDRTexture->GetID(), 0);
 
 	m_CaptureHDRFrameBuffer->Bind();
 	for (unsigned int i = 0; i < 6; i++)
 	{
 		m_EquiRect2CubeMapShader->SetMat4("view", m_CaptureViews[i]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapEnvTexture->GetID(), 0);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapEnvTexture->GetID(), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		Renderer::Get()->GetCubeMesh()->Draw();
@@ -129,13 +146,15 @@ void SkyboxRenderer::CaptureIrradianceMap()
 {
 	m_IrradianceCubeMapShader->Bind();
 	m_IrradianceCubeMapShader->SetMat4("proj", m_CaptureProjection);
-	m_IrradianceCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapEnvTexture->GetID(), 0);
+	m_IrradianceCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
+	//m_IrradianceCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapEnvTexture->GetID(), 0);
 
 	m_CaptureIrradianceFrameBuffer->Bind();
 	for (unsigned int i = 0; i < 6; i++)
 	{
 		m_IrradianceCubeMapShader->SetMat4("view", m_CaptureViews[i]);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapIrradianceTexture->GetID(), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapIrradianceTexture->GetID(), 0);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapIrradianceTexture->GetID(), 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		Renderer::Get()->GetCubeMesh()->Draw();
@@ -148,7 +167,8 @@ void SkyboxRenderer::CapturePreFilterMipMaps()
 {
 	m_PreFilterCubeMapShader->Bind();
 	m_PreFilterCubeMapShader->SetMat4("proj", m_CaptureProjection);
-	m_PreFilterCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapEnvTexture->GetID(), 0);
+	m_PreFilterCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
+	//m_PreFilterCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_CubeMapEnvTexture->GetID(), 0);
 
 	m_CapturePreFilterFrameBuffer->Bind();
 	unsigned int maxMipLevels = 5;
@@ -166,7 +186,8 @@ void SkyboxRenderer::CapturePreFilterMipMaps()
 		for (unsigned int i = 0; i < 6; i++)
 		{
 			m_PreFilterCubeMapShader->SetMat4("view", m_CaptureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapPreFilterTexture->GetID(), mip);
+			//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapPreFilterTexture->GetID(), mip);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapPreFilterTexture->GetID(), mip);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			Renderer::Get()->GetCubeMesh()->Draw();
@@ -181,7 +202,8 @@ void SkyboxRenderer::CaptureBRDFLUTMap()
 {
 	m_CapturePreFilterFrameBuffer->Bind();
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BRDFLUTTexture->GetID(), 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BRDFLUTTexture->GetID(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_SkyboxesList[m_SkyboxesIndexCurrent].m_BRDFLUTTexture->GetID(), 0);
 	glViewport(0, 0, 512, 512);
 
 	m_BRDFIntegrateShader->Bind();
@@ -194,26 +216,52 @@ void SkyboxRenderer::CaptureBRDFLUTMap()
 
 void SkyboxRenderer::Render()
 {
-	if (!m_AlreadyCapturedCubeMap)
+#pragma region For Single Maps
+	/*if (!m_AlreadyCapturedCubeMap)
+{
+	m_AlreadyCapturedCubeMap = true;
+	CaptureHDRCubeMap();
+}
+if (!m_AlreadyCapturedIrradianceMap)
+{
+	m_AlreadyCapturedIrradianceMap = true;
+	CaptureIrradianceMap();
+}
+if (!m_AlreadyCapturedPreFilterMipMaps)
+{
+	m_AlreadyCapturedPreFilterMipMaps = true;
+	CapturePreFilterMipMaps();
+}
+if (!m_AlreadyCapturedBRDFLUTMap)
+{
+	m_AlreadyCapturedBRDFLUTMap = true;
+	CaptureBRDFLUTMap();
+}*/
+#pragma endregion
+
+#pragma region For Multiple Maps
+	if (!m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedCubeMap)
 	{
-		m_AlreadyCapturedCubeMap = true;
+		m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedCubeMap = true;
 		CaptureHDRCubeMap();
 	}
-	if (!m_AlreadyCapturedIrradianceMap)
+	if (!m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedIrradianceMap)
 	{
-		m_AlreadyCapturedIrradianceMap = true;
+		m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedIrradianceMap = true;
 		CaptureIrradianceMap();
 	}
-	if (!m_AlreadyCapturedPreFilterMipMaps)
+	if (!m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedPreFilterMipMaps)
 	{
-		m_AlreadyCapturedPreFilterMipMaps = true;
+		m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedPreFilterMipMaps = true;
 		CapturePreFilterMipMaps();
 	}
-	if (!m_AlreadyCapturedBRDFLUTMap)
+	if (!m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedBRDFLUTMap)
 	{
-		m_AlreadyCapturedBRDFLUTMap = true;
+		m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedBRDFLUTMap = true;
 		CaptureBRDFLUTMap();
 	}
+#pragma endregion
+
 	RenderSkybox();
 }
 
@@ -224,7 +272,8 @@ void SkyboxRenderer::RenderSkybox()
 	m_CubeMapShader->Bind();
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapIrradianceTexture->GetID(), 0);
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
-	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
+	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
+	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
 	Renderer::Get()->GetCubeMesh()->Draw();
 	m_CubeMapShader->UnBind();
 
@@ -240,7 +289,7 @@ void SkyboxRenderer::BindSkyboxUBOData()
 
 void SkyboxRenderer::OnSkyboxDataChanged()
 {
-	m_SkyboxData.exposure = Vector4(m_Exposure, m_Gamma, 0.0f, 1.0f);
+	m_SkyboxData.data = Vector4(m_Exposure, m_Gamma, 0.0f, 1.0f);
 	BindSkyboxUBOData();
 }
 
@@ -249,6 +298,9 @@ void SkyboxRenderer::OnImGuiRender()
 	if (ImGui::CollapsingHeader("Skybox"))
 	{
 		ImGui::Indent();
+
+		ImGui::Combo("Skybox Type", &m_SkyboxesIndexCurrent, m_SkyboxesNamesList, 5);
+
 		float exposure = m_Exposure;
 		if (ImGui::SliderFloat("Exposure", &exposure, 0.1f, 8.0f))
 		{
@@ -264,4 +316,27 @@ void SkyboxRenderer::OnImGuiRender()
 		}
 		ImGui::Unindent();
 	}
+}
+
+SkyboxCubeMap::SkyboxCubeMap(const std::string& fileName, const std::string& skyboxName) : m_SkyboxName(skyboxName)
+{
+	m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR + fileName));
+	if (!m_CubeMapHDRTexture->IsInitialized()) return;
+
+	m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(2048, 2048));
+	if (!m_CubeMapEnvTexture->IsInitialized()) return;
+
+	m_CubeMapIrradianceTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(32, 32));
+	if (!m_CubeMapIrradianceTexture->IsInitialized()) return;
+
+	m_CubeMapPreFilterTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(128, 128, true));
+	if (!m_CubeMapPreFilterTexture->IsInitialized()) return;
+
+	m_BRDFLUTTexture = std::shared_ptr<Texture>(new Texture(512, 512, GL_RG16F, GL_RG));
+	if (!m_BRDFLUTTexture->IsInitialized()) return;
+
+	m_AlreadyCapturedCubeMap = false;
+	m_AlreadyCapturedBRDFLUTMap = false;
+	m_AlreadyCapturedIrradianceMap = false;
+	m_AlreadyCapturedPreFilterMipMaps = false;
 }
