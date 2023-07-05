@@ -41,7 +41,7 @@ class SkyboxRenderer : public IImguiItem
 {
 public:
 	SkyboxRenderer();
-	~SkyboxRenderer() {}
+	~SkyboxRenderer();
 
 	const bool IsInitialized() const { return m_IsInitialized; }
 
@@ -64,6 +64,7 @@ protected:
 	void RenderSkybox();
 	
 	void BindSkyboxUBOData();
+	void CheckAllSkyboxCaptures();
 	void OnSkyboxDataChanged();
 
 public:
@@ -102,9 +103,10 @@ protected:
 
 	SkyboxData m_SkyboxData;
 	std::shared_ptr<UniformBuffer> m_SkyboxUBO;
+	bool m_CheckedAllSkyboxes;
 
-	int m_SkyboxesIndexCurrent;
-	std::vector<std::string> m_SkyBoxesNames;
 	char** m_SkyboxesNamesList;
+	std::vector<std::string> m_SkyBoxesNames;
+	int m_SkyboxesIndexCurrent;
 	std::vector<SkyboxCubeMap> m_SkyboxesList;
 };

@@ -45,6 +45,11 @@ SkyboxRenderer::SkyboxRenderer() : m_SkyboxesIndexCurrent(0), m_Exposure(5.0f), 
 	m_IsInitialized = true;
 }
 
+SkyboxRenderer::~SkyboxRenderer()
+{
+	delete[] m_SkyboxesNamesList;
+}
+
 bool SkyboxRenderer::InitShaders()
 {
 	m_CubeMapShader = std::shared_ptr<Shader>(new Shader("PBR/PBRSkyBox2Vertex.glsl", "PBR/PBRSkyBox2Fragment.glsl"));
@@ -240,7 +245,7 @@ if (!m_AlreadyCapturedBRDFLUTMap)
 #pragma endregion
 
 #pragma region For Multiple Maps
-	if (!m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedCubeMap)
+	/*if (!m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedCubeMap)
 	{
 		m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedCubeMap = true;
 		CaptureHDRCubeMap();
@@ -259,9 +264,14 @@ if (!m_AlreadyCapturedBRDFLUTMap)
 	{
 		m_SkyboxesList[m_SkyboxesIndexCurrent].m_AlreadyCapturedBRDFLUTMap = true;
 		CaptureBRDFLUTMap();
-	}
+	}*/
 #pragma endregion
 
+	if (!m_CheckedAllSkyboxes)
+	{
+		m_CheckedAllSkyboxes = true;
+		CheckAllSkyboxCaptures();
+	}
 	RenderSkybox();
 }
 
@@ -287,6 +297,42 @@ void SkyboxRenderer::BindSkyboxUBOData()
 	m_SkyboxUBO->Unbind();
 }
 
+void SkyboxRenderer::CheckAllSkyboxCaptures()
+{
+	if ((int)m_SkyboxesList.size() == 0) return;
+
+	int i = 0;
+	m_SkyboxesIndexCurrent = i;
+	for (auto skybox : m_SkyboxesList)
+	{
+		if (!skybox.m_AlreadyCapturedCubeMap)
+		{
+			skybox.m_AlreadyCapturedCubeMap = true;
+			CaptureHDRCubeMap();
+		}
+		if (!skybox.m_AlreadyCapturedIrradianceMap)
+		{
+			skybox.m_AlreadyCapturedIrradianceMap = true;
+			CaptureIrradianceMap();
+		}
+		if (!skybox.m_AlreadyCapturedPreFilterMipMaps)
+		{
+			skybox.m_AlreadyCapturedPreFilterMipMaps = true;
+			CapturePreFilterMipMaps();
+		}
+		if (!skybox.m_AlreadyCapturedBRDFLUTMap)
+		{
+			skybox.m_AlreadyCapturedBRDFLUTMap = true;
+			CaptureBRDFLUTMap();
+		}
+
+		i++;
+		m_SkyboxesIndexCurrent = i;
+	}
+
+	m_SkyboxesIndexCurrent = 0;
+}
+
 void SkyboxRenderer::OnSkyboxDataChanged()
 {
 	m_SkyboxData.data = Vector4(m_Exposure, m_Gamma, 0.0f, 1.0f);
@@ -299,7 +345,7 @@ void SkyboxRenderer::OnImGuiRender()
 	{
 		ImGui::Indent();
 
-		ImGui::Combo("Skybox Type", &m_SkyboxesIndexCurrent, m_SkyboxesNamesList, 5);
+		ImGui::Combo("Skybox Type", &m_SkyboxesIndexCurrent, m_SkyboxesNamesList, (int)m_SkyBoxesNames.size());
 
 		float exposure = m_Exposure;
 		if (ImGui::SliderFloat("Exposure", &exposure, 0.1f, 8.0f))
