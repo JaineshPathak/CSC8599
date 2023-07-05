@@ -378,7 +378,7 @@ SkyboxCubeMap::SkyboxCubeMap(const std::string& fileName, const std::string& sky
 	m_CubeMapPreFilterTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(128, 128, true));
 	if (!m_CubeMapPreFilterTexture->IsInitialized()) return;
 
-	m_BRDFLUTTexture = std::shared_ptr<Texture>(new Texture(512, 512, GL_RG16F, GL_RG));
+	m_BRDFLUTTexture = std::shared_ptr<Texture>(new Texture(512, 512, GL_RG16F, GL_RG, GL_FLOAT));
 	if (!m_BRDFLUTTexture->IsInitialized()) return;
 
 	m_AlreadyCapturedCubeMap = false;

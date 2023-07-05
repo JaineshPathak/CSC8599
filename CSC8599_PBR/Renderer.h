@@ -9,6 +9,7 @@ class MeshMaterial;
 class ImGuiRenderer;
 class LightsManager;
 class SkyboxRenderer;
+class FrameBuffer;
 class FrameBufferFP;
 class FrameBufferHDR;
 class UniformBuffer;
@@ -28,7 +29,7 @@ public:
 	std::shared_ptr<Mesh> GetQuadMesh() { return m_QuadMesh; }
 	std::shared_ptr<Mesh> GetCubeMesh() { return m_CubeMesh; }
 	std::shared_ptr<LookAtCamera> GetMainCamera() { return m_MainCamera; }
-	std::shared_ptr<FrameBufferFP> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
+	std::shared_ptr<FrameBuffer> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
 
 protected:
 	bool Initialize();
@@ -73,7 +74,7 @@ protected:
 	std::shared_ptr<Texture> m_HelmetTextureRoughness;
 	std::shared_ptr<Texture> m_HelmetTextureEmissive;	
 
-	std::shared_ptr<FrameBufferFP> m_GlobalFrameBuffer;	
+	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;	
 	//std::shared_ptr<FrameBufferHDR> m_CaptureFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;
 

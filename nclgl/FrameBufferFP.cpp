@@ -5,20 +5,18 @@ void FrameBufferFP::Invalidate()
 {
 	if (m_ProgramID)
 	{
-		glDeleteFramebuffers(1, &m_ProgramID);
-		glDeleteTextures(1, &m_ColorAttachmentTex);
-		glDeleteTextures(1, &m_DepthAttachmentTex);
+		Destroy();
 	}
 
 	glCreateFramebuffers(1, &m_ProgramID);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);
 
-	glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachmentTex);
+	/*glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachmentTex);
 	glBindTexture(GL_TEXTURE_2D, m_ColorAttachmentTex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachmentTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachmentTex, 0);*/
 
 	glCreateTextures(GL_TEXTURE_2D, 1, &m_DepthAttachmentTex);
 	glBindTexture(GL_TEXTURE_2D, m_DepthAttachmentTex);

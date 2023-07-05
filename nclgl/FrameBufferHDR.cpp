@@ -3,6 +3,7 @@
 
 FrameBufferHDR::~FrameBufferHDR()
 {
+	glDeleteFramebuffers(1, &m_ProgramID);
 	glDeleteRenderbuffers(1, &m_RenderBufferID);
 }
 
