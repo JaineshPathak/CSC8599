@@ -76,6 +76,7 @@
       <Filter>stb_image</Filter>
     </ClCompile>
     <ClCompile Include="TextureCubeMap.cpp" />
+    <ClCompile Include="FrameBufferBloom.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -167,6 +168,7 @@
       <Filter>stb_image</Filter>
     </ClInclude>
     <ClInclude Include="TextureCubeMap.h" />
+    <ClInclude Include="FrameBufferBloom.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">

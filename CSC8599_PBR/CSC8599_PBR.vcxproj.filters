@@ -33,6 +33,9 @@
     <ClCompile Include="SkyboxRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PostProcessRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SkyboxRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -72,5 +78,8 @@
     <None Include="..\Shaders\PBR\PBRPreFilterConvolutionFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRBRDFConvolutionFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRBRDFConvolutionVertex.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomDownSampleFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomUpSampleFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomVert.glsl" />
   </ItemGroup>
 </Project>

@@ -8,7 +8,7 @@ class Texture;
 class FrameBuffer
 {
 public:
-	FrameBuffer() = delete;
+	FrameBuffer();
 	FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY, const int& numColorAttachments = 1);
 	FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY, const int& colorAttachmentInternalFormat, const int& colorAttachmentNormalFormat, const int& colorAttachmentType, const int& numColorAttachments = 1);
 	virtual ~FrameBuffer();

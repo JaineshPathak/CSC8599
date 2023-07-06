@@ -209,7 +209,7 @@ void main(void)
 {
 	float m_GAMMA = skyboxData.y;
 	vec3 albedoColor = texture(albedoTex, IN.texCoord).rgb;
-	albedoColor = pow(albedoColor, vec3(m_GAMMA));
+	//albedoColor = pow(albedoColor, vec3(m_GAMMA));
 
 	vec3 normalColor = texture(normalTex, IN.texCoord).rgb;
 	normalColor = normalColor * 2.0 - 1.0;
@@ -234,8 +234,8 @@ void main(void)
 	CalcPointLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
 	CalcAmbientLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, R, F0);	
 
-	result = vec3(1.0) - exp(-result * skyboxData.x);
-	result = pow(result, vec3(1.0 / m_GAMMA));
+	//result = vec3(1.0) - exp(-result * skyboxData.x);
+	//result = pow(result, vec3(1.0 / m_GAMMA));
 
 	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;
 	result += emissiveColor;

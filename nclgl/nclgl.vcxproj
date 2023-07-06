@@ -32,6 +32,7 @@
     <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="CubeRobot.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="FrameBufferBloom.cpp" />
     <ClCompile Include="FrameBufferFP.cpp" />
     <ClCompile Include="FrameBufferHDR.cpp" />
     <ClCompile Include="Frustum.cpp" />
@@ -77,6 +78,7 @@
     <ClInclude Include="CubeRobot.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="FrameBufferBloom.h" />
     <ClInclude Include="FrameBufferFP.h" />
     <ClInclude Include="FrameBufferHDR.h" />
     <ClInclude Include="Frustum.h" />

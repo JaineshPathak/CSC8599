@@ -1,5 +1,6 @@
 #include "ImGuiRenderer.h"
 #include "Renderer.h"
+#include "PostProcessRenderer.h"
 #include "LookAtCamera.h"
 
 #include <imgui/imgui_internal.h>
@@ -72,7 +73,18 @@ void ImGuiRenderer::Render()
 		Renderer::Get()->GetMainCamera()->SetAspectRatio(m_ViewportSize.x, m_ViewportSize.y);
 	}
 
-	ImGui::Image((void*)Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex(), viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
+	//void* tex = (Renderer::Get()->GetPostProcessBuffer() != nullptr) ? (void*)Renderer::Get()->GetPostProcessBuffer()->BloomTexture() : (void*)Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex();
+	//ImGui::Image(tex, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
+	
+	unsigned int texID = -1;
+	if (Renderer::Get()->GetPostProcessBuffer() != nullptr && Renderer::Get()->GetPostProcessBuffer()->IsBloomEnabled())
+		texID = Renderer::Get()->GetPostProcessBuffer()->GetBloomTexture();
+	else
+		texID = Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex();
+
+	if(texID != -1)
+		ImGui::Image((void*)texID, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
+
 	ImGui::End();
 	ImGui::PopStyleVar();
 

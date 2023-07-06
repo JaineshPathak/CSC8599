@@ -3,6 +3,8 @@
 #include "ImGuiRenderer.h"
 #include "LightsManager.h"
 #include "SkyboxRenderer.h"
+#include "PostProcessRenderer.h"
+
 #include <nclgl/Texture.h>
 #include <nclgl/TextureHDR.h>
 #include <nclgl/TextureEnvCubeMap.h>
@@ -141,6 +143,9 @@ bool Renderer::InitLights()
 
 	m_SkyboxRenderer = std::shared_ptr<SkyboxRenderer>(new SkyboxRenderer());
 	if (!m_SkyboxRenderer->IsInitialized()) return false;
+
+	m_PostProcessRenderer = std::shared_ptr<PostProcessRenderer>(new PostProcessRenderer(width, height));
+	if (!m_PostProcessRenderer->IsInitialized()) return false;
 
 	return true;
 }
@@ -318,16 +323,17 @@ void Renderer::RenderScene()
 	m_LightsManager->Render();
 	m_GlobalFrameBuffer->Unbind();
 
-	RenderImGui();
+	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1));
+	//RenderImGui();
 	
 	/*
 	//----------------------------------------------------------------------------
 	// TESTING AREA
 	
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	m_CombinedShader->Bind();	
-	m_CombinedShader->SetTexture("diffuseTex", m_CubeMapHDRTexture->GetID(), 0);
+	m_CombinedShader->SetTexture("diffuseTex", m_PostProcessRenderer->BloomTexture(), 0);
 	m_QuadMesh->Draw();
 	m_CombinedShader->UnBind();
 	//----------------------------------------------------------------------------

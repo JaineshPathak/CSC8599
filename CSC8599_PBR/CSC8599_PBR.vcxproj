@@ -141,6 +141,7 @@
     <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="LookAtCamera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PostProcessRenderer.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SkyboxRenderer.cpp" />
   </ItemGroup>
@@ -149,6 +150,7 @@
     <ClInclude Include="ImGuiRenderer.h" />
     <ClInclude Include="LightsManager.h" />
     <ClInclude Include="LookAtCamera.h" />
+    <ClInclude Include="PostProcessRenderer.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SkyboxRenderer.h" />
   </ItemGroup>
@@ -170,6 +172,9 @@
     <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedFragmentBlinnPhong.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedVertex.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomDownSampleFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomUpSampleFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomVert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

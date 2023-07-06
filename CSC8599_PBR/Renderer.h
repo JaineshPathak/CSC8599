@@ -5,10 +5,10 @@
 
 class LookAtCamera;
 class Mesh;
-class MeshMaterial;
 class ImGuiRenderer;
 class LightsManager;
 class SkyboxRenderer;
+class PostProcessRenderer;
 class FrameBuffer;
 class FrameBufferFP;
 class FrameBufferHDR;
@@ -30,6 +30,7 @@ public:
 	std::shared_ptr<Mesh> GetCubeMesh() { return m_CubeMesh; }
 	std::shared_ptr<LookAtCamera> GetMainCamera() { return m_MainCamera; }
 	std::shared_ptr<FrameBuffer> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
+	std::shared_ptr<PostProcessRenderer> GetPostProcessBuffer() { return m_PostProcessRenderer; }
 
 protected:
 	bool Initialize();
@@ -81,6 +82,7 @@ protected:
 	std::shared_ptr<ImGuiRenderer> m_ImGuiRenderer;
 	std::shared_ptr<LightsManager> m_LightsManager;
 	std::shared_ptr<SkyboxRenderer> m_SkyboxRenderer;
+	std::shared_ptr<PostProcessRenderer> m_PostProcessRenderer;
 
 private:
 	Window& m_WindowParent;

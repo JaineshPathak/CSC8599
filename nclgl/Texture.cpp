@@ -111,6 +111,7 @@ Texture::Texture(const std::string& filePath, bool shouldValidate) :
 Texture::~Texture()
 {
 	glDeleteTextures(1, &m_ProgramID);
+	m_ProgramID = 0;
 }
 
 void Texture::Validate()
