@@ -9,13 +9,17 @@ PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsign
 	m_WidthF((float)sizeX), m_HeightF((float)sizeY),
 	m_WidthI(sizeX), m_HeightI(sizeY),
 	m_EnableBloom(true),
-	m_BloomFilterRadius(0.005f)
+	m_BloomFilterRadius(0.005f),
+	m_BloomStrength(1.0f)
 {
 	if (!InitShaders()) { m_IsInitialized = false; return; }
 
 	const unsigned int numBloomMips = 5;
 	m_BloomFBO.~FrameBufferBloom();
-	new(&m_BloomFBO) FrameBufferBloom(sizeX, sizeY, numBloomMips);
+	new(&m_BloomFBO) FrameBufferBloom(m_WidthI, m_HeightI, numBloomMips);
+
+	m_FinalFBO.~FrameBuffer();
+	new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
 
 	m_SrcViewportSize = Vector2(m_WidthF, m_HeightF);
 
@@ -95,7 +99,7 @@ void PostProcessRenderer::RenderUpSamples()
 		m_PostBloomUpSampleShader->SetTexture("srcTexture", mip.texture, 0);
 
 		glViewport(0, 0, nextMip.sizeX, nextMip.sizeY);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, nextMip.texture, 0);		
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, nextMip.texture, 0);
 
 		Renderer::Get()->GetQuadMesh()->Draw();
 	}
@@ -125,23 +129,36 @@ unsigned int PostProcessRenderer::GetBloomTexture(int index)
 
 unsigned int PostProcessRenderer::GetFinalTexture()
 {
-	return m_FinalTex;
+	return m_FinalFBO.GetColorAttachmentTex();
 }
 
 void PostProcessRenderer::Render(unsigned int srcTexture)
 {
 	if (!m_EnableBloom) return;
 
-	RenderBloomTexture(srcTexture);	
+	RenderBloomTexture(srcTexture);
 
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
+	m_FinalFBO.Bind();
 	m_PostFinalShader->Bind();
 	m_PostFinalShader->SetTexture("srcTexture", Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex(0), 0);
-	//m_PostFinalShader->SetTexture("postProcessTexture", GetBloomTexture(), 1);
+	m_PostFinalShader->SetTexture("postProcessTexture", GetBloomTexture(), 1);
+	m_PostFinalShader->SetFloat("bloomStrength", m_BloomStrength);
+	
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FinalFBO.GetColorAttachmentTex(), 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	Renderer::Get()->GetQuadMesh()->Draw();
 	m_PostFinalShader->UnBind();
+	m_FinalFBO.Unbind();
+
+	/*glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	m_PostFinalShader->Bind();
+	m_PostFinalShader->SetTexture("srcTexture", Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex(0), 0);
+	m_PostFinalShader->SetTexture("postProcessTexture", GetBloomTexture(), 1);
+
+	Renderer::Get()->GetQuadMesh()->Draw();
+	m_PostFinalShader->UnBind();*/
 }
 
 void PostProcessRenderer::OnImGuiRender()
@@ -155,6 +172,9 @@ void PostProcessRenderer::OnImGuiRender()
 		
 		float filterRad = m_BloomFilterRadius;
 		if (ImGui::DragFloat("Filter Radius", &filterRad, 0.001f, 0.001f, 1.0f)) m_BloomFilterRadius = filterRad;
+
+		float bloomStrength = m_BloomStrength;
+		if (ImGui::DragFloat("Strength", &bloomStrength, 0.001f, 0.0f, 1.0f)) m_BloomStrength = bloomStrength;
 
 		ImGui::Unindent();
 	}

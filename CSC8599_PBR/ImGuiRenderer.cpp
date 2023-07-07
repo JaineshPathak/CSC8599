@@ -78,7 +78,7 @@ void ImGuiRenderer::Render()
 	
 	unsigned int texID = -1;
 	if (Renderer::Get()->GetPostProcessBuffer() != nullptr && Renderer::Get()->GetPostProcessBuffer()->IsBloomEnabled())
-		texID = Renderer::Get()->GetPostProcessBuffer()->GetBloomTexture();
+		texID = Renderer::Get()->GetPostProcessBuffer()->GetFinalTexture();
 	else
 		texID = Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex();
 

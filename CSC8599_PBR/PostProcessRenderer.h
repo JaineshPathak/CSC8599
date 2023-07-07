@@ -38,13 +38,13 @@ protected:
 
 	bool m_EnableBloom;
 	float m_BloomFilterRadius;
+	float m_BloomStrength;
 
 	std::shared_ptr<Texture> m_FinalTexture;
 	std::shared_ptr<Shader> m_PostBloomDownSampleShader;
 	std::shared_ptr<Shader> m_PostBloomUpSampleShader;
 	std::shared_ptr<Shader> m_PostFinalShader;
 
-	unsigned int m_SourceTex;
-	unsigned int m_FinalTex;
 	FrameBufferBloom m_BloomFBO;
+	FrameBuffer m_FinalFBO;
 };

@@ -116,8 +116,11 @@ bool Renderer::InitShaders()
 	//m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
 	if (!m_PBRShader->LoadSuccess()) return false;	
 
-	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PBR/PBRCombinedVert.glsl", "PBR/PBRCombinedFrag.glsl"));
+	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostFinalFrag.glsl"));
 	if (!m_CombinedShader->LoadSuccess()) return false;
+	
+	//m_CombinedShader = std::shared_ptr<Shader>(new Shader("PBR/PBRCombinedVert.glsl", "PBR/PBRCombinedFrag.glsl"));
+	//if (!m_CombinedShader->LoadSuccess()) return false;
 
 	return true;
 }
@@ -324,7 +327,7 @@ void Renderer::RenderScene()
 	m_GlobalFrameBuffer->Unbind();
 
 	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1));
-	//RenderImGui();
+	RenderImGui();
 	
 	/*
 	//----------------------------------------------------------------------------
@@ -333,7 +336,7 @@ void Renderer::RenderScene()
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	m_CombinedShader->Bind();	
-	m_CombinedShader->SetTexture("diffuseTex", m_PostProcessRenderer->BloomTexture(), 0);
+	m_CombinedShader->SetTexture("diffuseTex", m_GlobalFrameBuffer->GetColorAttachmentTex(), 0);
 	m_QuadMesh->Draw();
 	m_CombinedShader->UnBind();
 	//----------------------------------------------------------------------------
