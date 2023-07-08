@@ -24,7 +24,7 @@ void main(void)
 	vec3 srcTex = texture(srcTexture, IN.texCoord).rgb;
 	vec3 postTex =  texture(postProcessTexture, IN.texCoord).rgb;
 
-	vec3 result = mix(srcTex, postTex, bloomStrength);
+	vec3 result = srcTex + (postTex * bloomStrength);
 	result = pow(result, vec3(m_GAMMA));
 
 	result = vec3(1.0) - exp(-result * m_Exposure);

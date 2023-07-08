@@ -18,6 +18,7 @@ public:
 protected:
 	bool InitShaders();	
 
+	void RenderBrightColors(unsigned int srcTexture);
 	void RenderDownSamples(unsigned int srcTexture);
 	void RenderUpSamples();
 	void RenderBloomTexture(unsigned int srcTexture);
@@ -38,13 +39,15 @@ protected:
 
 	bool m_EnableBloom;
 	float m_BloomFilterRadius;
+	float m_BrightnessThreshold;
 	float m_BloomStrength;
 
-	std::shared_ptr<Texture> m_FinalTexture;
+	std::shared_ptr<Shader> m_PostBloomBrightenShader;
 	std::shared_ptr<Shader> m_PostBloomDownSampleShader;
 	std::shared_ptr<Shader> m_PostBloomUpSampleShader;
 	std::shared_ptr<Shader> m_PostFinalShader;
 
 	FrameBufferBloom m_BloomFBO;
 	FrameBuffer m_FinalFBO;
+	FrameBuffer m_BrightenFBO;
 };

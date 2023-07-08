@@ -81,5 +81,7 @@
     <None Include="..\Shaders\PostProcess\PostBloomDownSampleFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomUpSampleFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomVert.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomBrightenFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostFinalFrag.glsl" />
   </ItemGroup>
 </Project>

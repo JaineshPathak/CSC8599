@@ -238,7 +238,7 @@ void main(void)
 	//result = pow(result, vec3(1.0 / m_GAMMA));
 
 	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;
-	result += emissiveColor;
+	result += emissiveColor * 1.5;
 
 	//vec3 metallicColor = texture(metallicTex, IN.texCoord).rgb;
 	//vec3 roughnessColor = texture(roughnessTex, IN.texCoord).rgb;

@@ -10,6 +10,7 @@ PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsign
 	m_WidthI(sizeX), m_HeightI(sizeY),
 	m_EnableBloom(true),
 	m_BloomFilterRadius(0.005f),
+	m_BrightnessThreshold(0.6f),
 	m_BloomStrength(1.0f)
 {
 	if (!InitShaders()) { m_IsInitialized = false; return; }
@@ -20,6 +21,9 @@ PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsign
 
 	m_FinalFBO.~FrameBuffer();
 	new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+
+	m_BrightenFBO.~FrameBuffer();
+	new(&m_BrightenFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
 
 	m_SrcViewportSize = Vector2(m_WidthF, m_HeightF);
 
@@ -36,6 +40,9 @@ PostProcessRenderer::~PostProcessRenderer()
 
 bool PostProcessRenderer::InitShaders()
 {
+	m_PostBloomBrightenShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostBloomBrightenFrag.glsl"));
+	if (!m_PostBloomBrightenShader->LoadSuccess()) return false;
+
 	m_PostBloomDownSampleShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostBloomDownSampleFrag.glsl"));
 	if (!m_PostBloomDownSampleShader->LoadSuccess()) return false;
 
@@ -54,6 +61,22 @@ bool PostProcessRenderer::InitShaders()
 	m_PostBloomUpSampleShader->UnBind();
 
 	return true;
+}
+
+void PostProcessRenderer::RenderBrightColors(unsigned int srcTexture)
+{
+	m_BrightenFBO.Bind();
+	m_PostBloomBrightenShader->Bind();
+	m_PostBloomBrightenShader->SetTexture("srcTexture", srcTexture, 0);
+	m_PostBloomBrightenShader->SetFloat("brightnessThreshold", m_BrightnessThreshold);
+
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	Renderer::Get()->GetQuadMesh()->Draw();
+
+	m_PostBloomBrightenShader->UnBind();
+	m_BrightenFBO.Unbind();
 }
 
 void PostProcessRenderer::RenderDownSamples(unsigned int srcTexture)
@@ -136,7 +159,8 @@ void PostProcessRenderer::Render(unsigned int srcTexture)
 {
 	if (!m_EnableBloom) return;
 
-	RenderBloomTexture(srcTexture);
+	RenderBrightColors(srcTexture);
+	RenderBloomTexture(m_BrightenFBO.GetColorAttachmentTex());
 
 	m_FinalFBO.Bind();
 	m_PostFinalShader->Bind();
@@ -175,6 +199,9 @@ void PostProcessRenderer::OnImGuiRender()
 
 		float bloomStrength = m_BloomStrength;
 		if (ImGui::DragFloat("Strength", &bloomStrength, 0.001f, 0.0f, 1.0f)) m_BloomStrength = bloomStrength;
+
+		float brightness = m_BrightnessThreshold;
+		if (ImGui::DragFloat("Threshold", &brightness, 0.01f, 0.0f, 1.0f)) m_BrightnessThreshold = brightness;
 
 		ImGui::Unindent();
 	}
