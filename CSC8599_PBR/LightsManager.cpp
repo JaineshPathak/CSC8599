@@ -231,8 +231,7 @@ void LightsManager::OnImGuiRender()
 	if (ImGui::CollapsingHeader("Lights"))
 	{
 		ImGui::Indent();
-		if (m_DirectionalLight == nullptr) return;
-		if (ImGui::CollapsingHeader("Directional Light"))
+		if (ImGui::CollapsingHeader("Directional Light") && m_DirectionalLight != nullptr)
 		{
 			ImGui::Indent();
 			Vector3 m_LightDir = m_DirectionalLight->GetLightDir();
@@ -251,39 +250,41 @@ void LightsManager::OnImGuiRender()
 			ImGui::Unindent();
 		}
 
-		if ((int)m_PointLights.size() <= 0) return;
 		if (ImGui::CollapsingHeader("Point Lights"))
 		{
-			int i = 0;
-			for (auto iter = m_PointLights.begin(); iter != m_PointLights.end(); ++iter)
+			if ((int)m_PointLights.size() > 0)
 			{
-				ImGui::Indent();
-				auto& light = *iter;
-				const std::string lightHeaderStr = "Light - [" + std::to_string(i) + "]";
-				if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
+				int i = 0;
+				for (auto iter = m_PointLights.begin(); iter != m_PointLights.end(); ++iter)
 				{
 					ImGui::Indent();
-					Vector3 m_LightPos = light->GetPosition();
-					if (ImGui::DragFloat3("Position", (float*)&m_LightPos))
+					auto& light = *iter;
+					const std::string lightHeaderStr = "Light - [" + std::to_string(i) + "]";
+					if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
 					{
-						light->SetPosition(m_LightPos);
-						OnPointLightPropertyChanged(i, m_LightPos, light->GetColour());
-					}
+						ImGui::Indent();
+						Vector3 m_LightPos = light->GetPosition();
+						if (ImGui::DragFloat3("Position", (float*)&m_LightPos))
+						{
+							light->SetPosition(m_LightPos);
+							OnPointLightPropertyChanged(i, m_LightPos, light->GetColour());
+						}
 
-					Vector4 m_LightColor = light->GetColour();
-					if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
-					{
-						light->SetColour(m_LightColor);
-						OnPointLightPropertyChanged(i, light->GetPosition(), m_LightColor);
-					}
+						Vector4 m_LightColor = light->GetColour();
+						if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
+						{
+							light->SetColour(m_LightColor);
+							OnPointLightPropertyChanged(i, light->GetPosition(), m_LightColor);
+						}
 
-					float m_LightRadius = light->GetRadius();
-					if (ImGui::DragFloat("Radius", &m_LightRadius, 1.0f, 0.1f, 1000.0f)) light->SetRadius(m_LightRadius);
+						float m_LightRadius = light->GetRadius();
+						if (ImGui::DragFloat("Radius", &m_LightRadius, 1.0f, 0.1f, 1000.0f)) light->SetRadius(m_LightRadius);
+						ImGui::Unindent();
+					}
+					i++;
+
 					ImGui::Unindent();
 				}
-				i++;
-
-				ImGui::Unindent();
 			}
 		
 			ImGui::Separator();
@@ -298,57 +299,59 @@ void LightsManager::OnImGuiRender()
 			}
 		}
 
-		if ((int)m_SpotLights.size() <= 0) return;
 		if (ImGui::CollapsingHeader("Spot Lights"))
 		{
-			int i = 0;
-			for (auto iter = m_SpotLights.begin(); iter != m_SpotLights.end(); ++iter)
+			if ((int)m_SpotLights.size() > 0)
 			{
-				ImGui::Indent();
-				auto& light = *iter;
-				const std::string lightHeaderStr = "Spot Light - [" + std::to_string(i) + "]";
-				if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
+				int i = 0;
+				for (auto iter = m_SpotLights.begin(); iter != m_SpotLights.end(); ++iter)
 				{
 					ImGui::Indent();
-					Vector3 m_LightPos = light->GetPosition();
-					if (ImGui::DragFloat3("Position", (float*)&m_LightPos, 0.25f))
+					auto& light = *iter;
+					const std::string lightHeaderStr = "Spot Light - [" + std::to_string(i) + "]";
+					if (ImGui::CollapsingHeader(lightHeaderStr.c_str()))
 					{
-						light->SetPosition(m_LightPos);
-						OnSpotLightPropertyChanged(i, m_LightPos, light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
-					}
+						ImGui::Indent();
+						Vector3 m_LightPos = light->GetPosition();
+						if (ImGui::DragFloat3("Position", (float*)&m_LightPos, 0.25f))
+						{
+							light->SetPosition(m_LightPos);
+							OnSpotLightPropertyChanged(i, m_LightPos, light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
+						}
 
-					Vector3 m_LightDir = light->GetLightDir();
-					if (ImGui::DragFloat3("Direction", (float*)&m_LightDir, 0.1f, -1.0f, 1.0f))
-					{
-						light->SetLightDir(m_LightDir);
-						OnSpotLightPropertyChanged(i, light->GetPosition(), m_LightDir, light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
-					}
+						Vector3 m_LightDir = light->GetLightDir();
+						if (ImGui::DragFloat3("Direction", (float*)&m_LightDir, 0.1f, -1.0f, 1.0f))
+						{
+							light->SetLightDir(m_LightDir);
+							OnSpotLightPropertyChanged(i, light->GetPosition(), m_LightDir, light->GetColour(), light->GetInnerCutOff(), light->GetOuterCutOff());
+						}
 
-					Vector4 m_LightColor = light->GetColour();
-					if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
-					{
-						light->SetColour(m_LightColor);
-						OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), m_LightColor, light->GetInnerCutOff(), light->GetOuterCutOff());
-					}
+						Vector4 m_LightColor = light->GetColour();
+						if (ImGui::ColorEdit4("Color", (float*)&m_LightColor))
+						{
+							light->SetColour(m_LightColor);
+							OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), m_LightColor, light->GetInnerCutOff(), light->GetOuterCutOff());
+						}
 
-					float m_LightInner = light->GetInnerCutOff();
-					if (ImGui::DragFloat("Inner Radius", &m_LightInner, 0.1f, 1.0f, 180.0f))
-					{
-						light->SetInnerCutOff(m_LightInner);
-						OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), m_LightInner, light->GetOuterCutOff());
-					}
+						float m_LightInner = light->GetInnerCutOff();
+						if (ImGui::DragFloat("Inner Radius", &m_LightInner, 0.1f, 1.0f, 180.0f))
+						{
+							light->SetInnerCutOff(m_LightInner);
+							OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), m_LightInner, light->GetOuterCutOff());
+						}
 
-					float m_LightOuter = light->GetOuterCutOff();
-					if (ImGui::DragFloat("Outer Radius", &m_LightOuter, 0.1f, 1.0f, 100.0f))
-					{
-						light->SetOuterCutOff(m_LightOuter);
-						OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), m_LightOuter);
-					}
+						float m_LightOuter = light->GetOuterCutOff();
+						if (ImGui::DragFloat("Outer Radius", &m_LightOuter, 0.1f, 1.0f, 100.0f))
+						{
+							light->SetOuterCutOff(m_LightOuter);
+							OnSpotLightPropertyChanged(i, light->GetPosition(), light->GetLightDir(), light->GetColour(), light->GetInnerCutOff(), m_LightOuter);
+						}
 				
+						ImGui::Unindent();
+					}
+					i++;
 					ImGui::Unindent();
 				}
-				i++;
-				ImGui::Unindent();
 			}
 
 			ImGui::Separator();

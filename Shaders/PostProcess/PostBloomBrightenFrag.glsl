@@ -2,6 +2,7 @@
 
 uniform sampler2D srcTexture;
 uniform float brightnessThreshold;
+uniform float brightnessSoftThreshold;
 
 in Vertex
 {
@@ -10,12 +11,25 @@ in Vertex
 
 out vec4 fragColour;
 
+vec3 Prefilter(vec3 color)
+{
+	float brightness = max(color.r, max(color.g, color.b));
+
+	//Soft Knee Calculations
+	float k = brightnessThreshold * brightnessSoftThreshold;
+
+	float softK = brightness - brightnessThreshold + k;
+	softK = clamp(softK, 0, 2 * k);
+	softK = softK * softK / (4.0 * k + 0.000001);
+
+	float contribution = max(softK, brightness - brightnessThreshold);
+	contribution /= max(brightness, 0.000001);
+
+	return color * contribution;
+}
+
 void main(void)
 {
-	vec3 result = texture(srcTexture, IN.texCoord).rgb;
-	float brightness = dot(result, vec3(0.2126, 0.7152, 0.0722));
-	if(brightness >= brightnessThreshold)
-		fragColour = vec4(result, 1.0);
-	else
-		fragColour = vec4(0.0, 0.0, 0.0, 0.0);
+	vec3 color = Prefilter(texture(srcTexture, IN.texCoord).rgb);
+	fragColour = vec4(color, 1.0);
 }

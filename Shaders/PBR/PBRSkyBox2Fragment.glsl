@@ -16,13 +16,16 @@ out vec4 fragColour;
 
 void main(void)
 {
+	float m_GAMMA = skyboxData.y;
+	float m_Exposure = skyboxData.x;
+
 	vec3 cubeColor = texture(cubeTex, IN.viewDir).rgb;
-	//cubeColor = pow(cubeColor, vec3(skyboxData.y));
+	cubeColor = pow(cubeColor, vec3(m_GAMMA));
 	//vec3 cubeColor = textureLod(cubeTex, IN.viewDir, 1.0).rgb;
 	
 	//cubeColor = cubeColor / (cubeColor + vec3(1.0));
-	//cubeColor = vec3(1.0) - exp(-cubeColor * skyboxData.x);
-	//cubeColor = pow(cubeColor, vec3(1.0 / skyboxData.y));
+	cubeColor = vec3(1.0) - exp(-cubeColor * m_Exposure);
+	cubeColor = pow(cubeColor, vec3(1.0 / m_GAMMA));
 
 	fragColour = vec4(cubeColor, 1.0);
 }

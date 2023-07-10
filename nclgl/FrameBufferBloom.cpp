@@ -50,6 +50,9 @@ void FrameBufferBloom::Invalidate()
 		mipSizeX /= 2;
 		mipSizeY /= 2;
 
+		if (mipSizeX < 2 || mipSizeY < 2) 
+			break;
+
 		BloomMip mip;
 		mip.size = mipSize;
 		mip.sizeX = mipSizeX;

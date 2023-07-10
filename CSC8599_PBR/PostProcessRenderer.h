@@ -38,10 +38,21 @@ protected:
 	Vector2 m_SrcViewportSize;
 
 	bool m_EnableBloom;
+	bool m_EnableBloomDebug;
 	float m_BloomFilterRadius;
+
 	float m_BrightnessThreshold;
+	float m_BrightnessSoftThreshold;
+
 	float m_BloomStrength;
 
+	Vector4 m_BloomTint;
+	float m_BloomTintStrength;
+
+	bool m_EnableDirtMask;
+	float m_DirtMaskStrength;
+
+	std::shared_ptr<Texture> m_DirtMaskTexture;
 	std::shared_ptr<Shader> m_PostBloomBrightenShader;
 	std::shared_ptr<Shader> m_PostBloomDownSampleShader;
 	std::shared_ptr<Shader> m_PostBloomUpSampleShader;

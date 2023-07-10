@@ -9,9 +9,15 @@ PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsign
 	m_WidthF((float)sizeX), m_HeightF((float)sizeY),
 	m_WidthI(sizeX), m_HeightI(sizeY),
 	m_EnableBloom(true),
+	m_EnableBloomDebug(false),
 	m_BloomFilterRadius(0.005f),
-	m_BrightnessThreshold(0.6f),
-	m_BloomStrength(1.0f)
+	m_BrightnessThreshold(1.0f),
+	m_BrightnessSoftThreshold(0.5f),
+	m_BloomStrength(1.0f),
+	m_BloomTint(Vector4::WHITE),
+	m_BloomTintStrength(1.0f),
+	m_EnableDirtMask(false),
+	m_DirtMaskStrength(1.0f)
 {
 	if (!InitShaders()) { m_IsInitialized = false; return; }
 
@@ -40,6 +46,9 @@ PostProcessRenderer::~PostProcessRenderer()
 
 bool PostProcessRenderer::InitShaders()
 {
+	m_DirtMaskTexture = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"PostProcess/LensDirt02.png"));
+	if (!m_DirtMaskTexture->IsInitialized()) return false;
+
 	m_PostBloomBrightenShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostBloomBrightenFrag.glsl"));
 	if (!m_PostBloomBrightenShader->LoadSuccess()) return false;
 
@@ -63,12 +72,14 @@ bool PostProcessRenderer::InitShaders()
 	return true;
 }
 
+//Prefilter Stage, where only bright colors are filtered based on threshold value are sent for downsampling and later upsampling
 void PostProcessRenderer::RenderBrightColors(unsigned int srcTexture)
 {
 	m_BrightenFBO.Bind();
 	m_PostBloomBrightenShader->Bind();
 	m_PostBloomBrightenShader->SetTexture("srcTexture", srcTexture, 0);
 	m_PostBloomBrightenShader->SetFloat("brightnessThreshold", m_BrightnessThreshold);
+	m_PostBloomBrightenShader->SetFloat("brightnessSoftThreshold", m_BrightnessSoftThreshold);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -79,6 +90,7 @@ void PostProcessRenderer::RenderBrightColors(unsigned int srcTexture)
 	m_BrightenFBO.Unbind();
 }
 
+//Downsampling stage
 void PostProcessRenderer::RenderDownSamples(unsigned int srcTexture)
 {
 	const std::vector<BloomMip>& mipChain = m_BloomFBO.MipChain();
@@ -97,12 +109,13 @@ void PostProcessRenderer::RenderDownSamples(unsigned int srcTexture)
 		Renderer::Get()->GetQuadMesh()->Draw();
 		
 		m_PostBloomDownSampleShader->SetVector2("srcResolution", mip.size);
-		m_PostBloomDownSampleShader->SetTexture("srcTexture", mip.texture, 0);
+		m_PostBloomDownSampleShader->SetTexture("srcTexture", mip.texture, 0);			
 	}
 
 	m_PostBloomDownSampleShader->UnBind();
 }
 
+//Upsampling Stage
 void PostProcessRenderer::RenderUpSamples()
 {
 	const std::vector<BloomMip>& mipChain = m_BloomFBO.MipChain();
@@ -127,7 +140,7 @@ void PostProcessRenderer::RenderUpSamples()
 		Renderer::Get()->GetQuadMesh()->Draw();
 	}
 
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glDisable(GL_BLEND);
 
 	m_PostBloomUpSampleShader->UnBind();
@@ -152,7 +165,7 @@ unsigned int PostProcessRenderer::GetBloomTexture(int index)
 
 unsigned int PostProcessRenderer::GetFinalTexture()
 {
-	return m_FinalFBO.GetColorAttachmentTex();
+	return m_EnableBloomDebug ? m_BrightenFBO.GetColorAttachmentTex() : m_FinalFBO.GetColorAttachmentTex();
 }
 
 void PostProcessRenderer::Render(unsigned int srcTexture)
@@ -166,7 +179,14 @@ void PostProcessRenderer::Render(unsigned int srcTexture)
 	m_PostFinalShader->Bind();
 	m_PostFinalShader->SetTexture("srcTexture", Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex(0), 0);
 	m_PostFinalShader->SetTexture("postProcessTexture", GetBloomTexture(), 1);
+	m_PostFinalShader->SetTexture("dirtMaskTexture", m_DirtMaskTexture->GetID(), 2);
+
 	m_PostFinalShader->SetFloat("bloomStrength", m_BloomStrength);
+	m_PostFinalShader->SetFloat("bloomTintStrength", m_BloomTintStrength);
+	m_PostFinalShader->SetVector4("bloomTint", m_BloomTint);
+
+	m_PostFinalShader->SetInt("enableDirtMask", m_EnableDirtMask);
+	m_PostFinalShader->SetFloat("dirtMaskStrength", m_DirtMaskStrength);
 	
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FinalFBO.GetColorAttachmentTex(), 0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -193,15 +213,41 @@ void PostProcessRenderer::OnImGuiRender()
 
 		bool enableBloom = m_EnableBloom;
 		if(ImGui::Checkbox("Bloom", &enableBloom)) m_EnableBloom = enableBloom;
+
+		bool enableDebug = m_EnableBloomDebug;
+		if (ImGui::Checkbox("Debug", &enableDebug)) m_EnableBloomDebug = enableDebug;
+
+		ImGui::Spacing();
 		
 		float filterRad = m_BloomFilterRadius;
 		if (ImGui::DragFloat("Filter Radius", &filterRad, 0.001f, 0.001f, 1.0f)) m_BloomFilterRadius = filterRad;
 
 		float bloomStrength = m_BloomStrength;
-		if (ImGui::DragFloat("Strength", &bloomStrength, 0.001f, 0.0f, 1.0f)) m_BloomStrength = bloomStrength;
+		if (ImGui::DragFloat("Strength", &bloomStrength, 0.01f, 0.0f, 100.0f)) m_BloomStrength = bloomStrength;
 
-		float brightness = m_BrightnessThreshold;
-		if (ImGui::DragFloat("Threshold", &brightness, 0.01f, 0.0f, 1.0f)) m_BrightnessThreshold = brightness;
+		ImGui::Spacing();
+
+		float brightnessThres = m_BrightnessThreshold;
+		if (ImGui::DragFloat("Threshold", &brightnessThres, 0.01f, 0.0f, 10.0f)) m_BrightnessThreshold = brightnessThres;
+
+		float brightnessSoftThres = m_BrightnessSoftThreshold;
+		if (ImGui::DragFloat("Soft Threshold", &brightnessSoftThres, 0.01f, 0.0f, 1.0f)) m_BrightnessSoftThreshold = brightnessSoftThres;
+
+		ImGui::Spacing();
+
+		Vector4 tint = m_BloomTint;
+		if (ImGui::ColorEdit4("Tint", (float*)&tint)) m_BloomTint = tint;
+
+		float bloomTintStrength = m_BloomTintStrength;
+		if (ImGui::DragFloat("Tint Strength", &bloomTintStrength, 0.01f, 0.0f, 100.0f)) m_BloomTintStrength = bloomTintStrength;
+
+		ImGui::Spacing();
+
+		bool enableDirt = m_EnableDirtMask;
+		if (ImGui::Checkbox("Dirt Mask", &enableDirt)) m_EnableDirtMask = enableDirt;
+
+		float dirtStrength = m_DirtMaskStrength;
+		if (ImGui::DragFloat("Dirt Strength", &dirtStrength, 0.01f, 0.0f, 100.0f)) m_DirtMaskStrength = dirtStrength;
 
 		ImGui::Unindent();
 	}

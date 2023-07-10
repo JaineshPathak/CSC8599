@@ -122,6 +122,12 @@ vec3 FresnelSchlick(float cos, vec3 F0)
 	return F0 + (1.0 - F0) * pow(1.0 - cos, 5.0);
 }
 
+//From Epic Games
+vec3 FresnelSphericalGaussian(float cos, vec3 F0)
+{
+	return F0 + (1.0 - F0) * pow(2.0, (-5.55473 * cos - 6.98316) * cos);
+}
+
 vec3 FresnelSchlickRoughness(float cos, vec3 F0, float roughnessStrength)
 {
 	return F0 + (max(vec3(1.0 - roughnessStrength), F0) - F0) * pow(clamp(1.0 - cos, 0.0, 1.0), 5.0);
@@ -181,6 +187,41 @@ void CalcPointLights(inout vec3 result, vec3 albedoColor, float metallicStrength
 	}
 }
 
+void CalcSpotLights(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 N, vec3 V, vec3 F0)
+{
+	for(int i = 0; i < numSpotLights; i++)
+	{
+		vec3 L = normalize(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
+		vec3 H = normalize(V + L);
+
+		float distance = length(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
+		//float attenuation = 1.0 / (spotLights[i].lightAttenData.x + spotLights[i].lightAttenData.y * distance + spotLights[i].lightAttenData.z * (distance * distance));
+		float attenuation = 1.0 / (distance * distance);
+
+		float theta = dot(L, normalize(-spotLights[i].lightDirection.xyz));
+		float epsilon = spotLights[i].lightCutoffData.x - spotLights[i].lightCutoffData.y;
+		float edgeFactor = clamp((theta - spotLights[i].lightCutoffData.y) / epsilon, 0.0, 1.0);
+		
+		vec3 radiance = spotLights[i].lightColor.xyz * attenuation * edgeFactor;
+
+		float NDF = DistributionGGX(N, H, roughnessStrength);
+		float G = GeometrySmith(N, V, L, roughnessStrength);
+		vec3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
+
+		vec3 kS = F;
+		vec3 kD = vec3(1.0) - kS;
+		kD *= 1.0 - metallicStrength;
+
+		//Cook-Torrance BRDF
+		vec3 numerator = NDF * G * F;
+		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+		vec3 specular = numerator / denominator;
+
+		float NdotL = max(dot(N, L), 0.0);
+		result += (kD * albedoColor / PI + specular) * radiance * NdotL;
+	}
+}
+
 void CalcAmbientLight(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 N, vec3 V, vec3 R, vec3 F0)
 {
 	float NdotV = max(dot(N, V), 0.0);	
@@ -208,8 +249,10 @@ void CalcAmbientLight(inout vec3 result, vec3 albedoColor, float metallicStrengt
 void main(void) 
 {
 	float m_GAMMA = skyboxData.y;
+	float m_Exposure = skyboxData.x;
+
 	vec3 albedoColor = texture(albedoTex, IN.texCoord).rgb;
-	//albedoColor = pow(albedoColor, vec3(m_GAMMA));
+	albedoColor = pow(albedoColor, vec3(m_GAMMA));
 
 	vec3 normalColor = texture(normalTex, IN.texCoord).rgb;
 	normalColor = normalColor * 2.0 - 1.0;
@@ -232,10 +275,11 @@ void main(void)
 	vec3 result = vec3(0.0);
 	CalcDirectionalLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
 	CalcPointLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
+	CalcSpotLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
 	CalcAmbientLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, R, F0);	
 
-	//result = vec3(1.0) - exp(-result * skyboxData.x);
-	//result = pow(result, vec3(1.0 / m_GAMMA));
+	result = vec3(1.0) - exp(-result * m_Exposure);
+	result = pow(result, vec3(1.0 / m_GAMMA));
 
 	vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;
 	result += emissiveColor * 1.5;

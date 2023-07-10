@@ -2,7 +2,15 @@
 
 uniform sampler2D srcTexture;
 uniform sampler2D postProcessTexture;
+uniform sampler2D dirtMaskTexture;
+
 uniform float bloomStrength;
+
+uniform vec4 bloomTint;
+uniform float bloomTintStrength;
+
+uniform bool enableDirtMask;
+uniform float dirtMaskStrength;
 
 layout(std140, binding = 4) uniform u_SkyboxData
 {
@@ -21,14 +29,20 @@ void main(void)
 	float m_GAMMA = skyboxData.y;
 	float m_Exposure = skyboxData.x;
 
-	vec3 srcTex = texture(srcTexture, IN.texCoord).rgb;
-	vec3 postTex =  texture(postProcessTexture, IN.texCoord).rgb;
+	vec3 srcColor = texture(srcTexture, IN.texCoord).rgb;
+	vec3 postColor =  texture(postProcessTexture, IN.texCoord).rgb;
+	vec3 dirtColor = texture(dirtMaskTexture, IN.texCoord).rgb * dirtMaskStrength;
 
-	vec3 result = srcTex + (postTex * bloomStrength);
-	result = pow(result, vec3(m_GAMMA));
+	vec3 result = vec3(0.0);
+	if(enableDirtMask)
+		postColor = postColor + postColor * dirtColor;		
+	
+	result = srcColor + ( (postColor * (bloomTint.rgb * bloomTintStrength) ) * bloomStrength);	
 
-	result = vec3(1.0) - exp(-result * m_Exposure);
-	result = pow(result, vec3(1.0 / m_GAMMA));
+	//result = pow(result, vec3(m_GAMMA));
+
+	//result = vec3(1.0) - exp(-result * m_Exposure);
+	//result = pow(result, vec3(1.0 / m_GAMMA));
 
     fragColour = vec4(result, 1.0);
 }

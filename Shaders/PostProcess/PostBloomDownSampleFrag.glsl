@@ -4,6 +4,7 @@
 
 uniform sampler2D srcTexture;
 uniform vec2 srcResolution;
+uniform int mipLevel = 1;
 
 in Vertex
 {
@@ -59,7 +60,7 @@ void main(void)
     // contribute 0.5 to the final color output. The code below is written
     // to effectively yield this sum. We get:
     // 0.125*5 + 0.03125*4 + 0.0625*4 = 1
-
+    
     downSample = e * 0.125;
     downSample += (a + c + g + i) * 0.03125;
     downSample += (b + d + f + h) * 0.0625;
