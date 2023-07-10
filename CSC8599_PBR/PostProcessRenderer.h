@@ -23,6 +23,8 @@ protected:
 	void RenderUpSamples();
 	void RenderBloomTexture(unsigned int srcTexture);
 
+	void OnIterationsChanged();
+
 public:
 	unsigned int GetBloomTexture(int index = 0);
 	unsigned int GetFinalTexture();
@@ -37,6 +39,7 @@ protected:
 	int m_WidthI, m_HeightI;
 	Vector2 m_SrcViewportSize;
 
+	int m_BloomIterations;
 	bool m_EnableBloom;
 	bool m_EnableBloomDebug;
 	float m_BloomFilterRadius;

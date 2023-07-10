@@ -23,6 +23,8 @@ public:
 	virtual void Destroy() override;
 	virtual void Invalidate() override;
 
+	void Recalculate(const int& numMipsChain);
+
 	const std::vector<BloomMip>& MipChain() const { return m_MipChain; }
 
 private:

@@ -33,7 +33,7 @@ void FrameBufferBloom::Destroy()
 
 void FrameBufferBloom::Invalidate()
 {
-	if (m_ProgramID > 0) 
+	if (m_ProgramID > 0)
 		Destroy();
 
 	glCreateFramebuffers(1, &m_ProgramID);
@@ -89,4 +89,10 @@ void FrameBufferBloom::Invalidate()
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void FrameBufferBloom::Recalculate(const int& numMipsChain)
+{
+	m_NumColorAttachments = numMipsChain;
+	Invalidate();
 }

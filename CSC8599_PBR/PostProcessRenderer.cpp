@@ -8,6 +8,7 @@
 PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsigned int& sizeY) :
 	m_WidthF((float)sizeX), m_HeightF((float)sizeY),
 	m_WidthI(sizeX), m_HeightI(sizeY),
+	m_BloomIterations(5),
 	m_EnableBloom(true),
 	m_EnableBloomDebug(false),
 	m_BloomFilterRadius(0.005f),
@@ -21,9 +22,8 @@ PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsign
 {
 	if (!InitShaders()) { m_IsInitialized = false; return; }
 
-	const unsigned int numBloomMips = 5;
 	m_BloomFBO.~FrameBufferBloom();
-	new(&m_BloomFBO) FrameBufferBloom(m_WidthI, m_HeightI, numBloomMips);
+	new(&m_BloomFBO) FrameBufferBloom(m_WidthI, m_HeightI, m_BloomIterations);
 
 	m_FinalFBO.~FrameBuffer();
 	new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
@@ -158,6 +158,11 @@ void PostProcessRenderer::RenderBloomTexture(unsigned int srcTexture)
 	glViewport(0, 0, m_WidthI, m_HeightI);
 }
 
+void PostProcessRenderer::OnIterationsChanged()
+{
+	m_BloomFBO.Recalculate(m_BloomIterations);
+}
+
 unsigned int PostProcessRenderer::GetBloomTexture(int index)
 {
 	return m_BloomFBO.MipChain()[index].texture;
@@ -216,6 +221,13 @@ void PostProcessRenderer::OnImGuiRender()
 
 		bool enableDebug = m_EnableBloomDebug;
 		if (ImGui::Checkbox("Debug", &enableDebug)) m_EnableBloomDebug = enableDebug;
+
+		int iterations = m_BloomIterations;
+		if (ImGui::SliderInt("Iterations", &iterations, 1, 8))
+		{
+			m_BloomIterations = iterations;
+			OnIterationsChanged();
+		}
 
 		ImGui::Spacing();
 		

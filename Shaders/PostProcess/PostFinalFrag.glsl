@@ -30,14 +30,14 @@ void main(void)
 	float m_Exposure = skyboxData.x;
 
 	vec3 srcColor = texture(srcTexture, IN.texCoord).rgb;
-	vec3 postColor =  texture(postProcessTexture, IN.texCoord).rgb;
+	vec3 postColor = texture(postProcessTexture, IN.texCoord).rgb;
 	vec3 dirtColor = texture(dirtMaskTexture, IN.texCoord).rgb * dirtMaskStrength;
+	vec3 tintColor = postColor + postColor * bloomTint.rgb * bloomTintStrength;
 
-	vec3 result = vec3(0.0);
 	if(enableDirtMask)
-		postColor = postColor + postColor * dirtColor;		
-	
-	result = srcColor + ( (postColor * (bloomTint.rgb * bloomTintStrength) ) * bloomStrength);	
+		postColor = postColor + postColor * dirtColor;
+
+	vec3 result = srcColor + postColor + tintColor * bloomStrength;
 
 	//result = pow(result, vec3(m_GAMMA));
 
