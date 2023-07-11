@@ -24,25 +24,26 @@ Renderer* Renderer::m_Renderer = nullptr;
 
 Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 {	
+	m_Renderer = this;
+
 	init = Initialize();
 	if (!init) return;
 
 #if _DEBUG
 	Log("Main Renderer: Everything is Initialised! Good To Go!");
 #endif
-
-	m_Renderer = this;
 } 
 
 bool Renderer::Initialize()
 {
-	if (!InitImGui())		return false;
-	if (!InitCamera())		return false;
-	if (!InitShaders())		return false;
-	if (!InitBuffers())		return false;
-	if (!InitLights())		return false;
-	if (!InitMesh())		return false;
-	if (!InitTextures())	return false;
+	if (!InitImGui())			return false;
+	if (!InitCamera())			return false;
+	if (!InitShaders())			return false;
+	if (!InitBuffers())			return false;
+	if (!InitLights())			return false;
+	if (!InitMesh())			return false;
+	if (!InitPostProcessor())	return false;
+	if (!InitTextures())		return false;
 
 	SetupGLParameters();
 
@@ -147,9 +148,6 @@ bool Renderer::InitLights()
 	m_SkyboxRenderer = std::shared_ptr<SkyboxRenderer>(new SkyboxRenderer());
 	if (!m_SkyboxRenderer->IsInitialized()) return false;
 
-	m_PostProcessRenderer = std::shared_ptr<PostProcessRenderer>(new PostProcessRenderer(width, height));
-	if (!m_PostProcessRenderer->IsInitialized()) return false;
-
 	return true;
 }
 
@@ -165,11 +163,6 @@ bool Renderer::InitMesh()
 	if (m_CubeMesh == nullptr) return false;
 
 	return true;
-}
-
-void Renderer::LoadTexture(const std::string& filePath)
-{
-	m_HelmetTextureAlbedo = std::shared_ptr<Texture>(new Texture(filePath));
 }
 
 bool Renderer::InitTextures()
@@ -189,6 +182,14 @@ bool Renderer::InitTextures()
 	m_HelmetTextureEmissive = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png"));
 	if (!m_HelmetTextureEmissive->IsInitialized()) return false;	
 	
+	return true;
+}
+
+bool Renderer::InitPostProcessor()
+{
+	m_PostProcessRenderer = std::shared_ptr<PostProcessRenderer>(new PostProcessRenderer(width, height));
+	if (!m_PostProcessRenderer->IsInitialized()) return false;
+
 	return true;
 }
 

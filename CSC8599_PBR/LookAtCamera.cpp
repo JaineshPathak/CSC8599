@@ -7,6 +7,7 @@ LookAtCamera::LookAtCamera() :
 	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_CameraMovementType(0), Camera()
 {
 	SetFOV(60.0f);
+	SetZNear(0.1f);
 	ImGuiRenderer::Get()->RegisterItem(this);
 }
 
@@ -14,6 +15,7 @@ LookAtCamera::LookAtCamera(float _pitch, float _yaw, float _roll, Vector3 _posit
 	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_CameraMovementType(0), Camera(_pitch, _yaw, _roll, _position)
 {
 	SetFOV(60.0f);
+	SetZNear(0.1f);
 	ImGuiRenderer::Get()->RegisterItem(this);
 }
 
@@ -21,6 +23,7 @@ LookAtCamera::LookAtCamera(Vector3 _position, Vector3 _rotation) :
 	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_CameraMovementType(0), Camera(_position, _rotation)
 {
 	SetFOV(60.0f);
+	SetZNear(0.1f);
 	ImGuiRenderer::Get()->RegisterItem(this);
 }
 

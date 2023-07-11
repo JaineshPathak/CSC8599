@@ -141,6 +141,9 @@
     <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="LookAtCamera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PostProcessBloom.cpp" />
+    <ClCompile Include="PostProcessEffect.cpp" />
+    <ClCompile Include="PostProcessInvertColor.cpp" />
     <ClCompile Include="PostProcessRenderer.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SkyboxRenderer.cpp" />
@@ -150,6 +153,9 @@
     <ClInclude Include="ImGuiRenderer.h" />
     <ClInclude Include="LightsManager.h" />
     <ClInclude Include="LookAtCamera.h" />
+    <ClInclude Include="PostProcessBloom.h" />
+    <ClInclude Include="PostProcessEffect.h" />
+    <ClInclude Include="PostProcessInvertColor.h" />
     <ClInclude Include="PostProcessRenderer.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SkyboxRenderer.h" />
@@ -174,6 +180,7 @@
     <None Include="..\Shaders\PBR\PBRTexturedVertex.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomBrightenFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomDownSampleFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomFinalFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomUpSampleFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomVert.glsl" />
     <None Include="..\Shaders\PostProcess\PostFinalFrag.glsl" />

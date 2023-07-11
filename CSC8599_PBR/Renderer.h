@@ -40,7 +40,7 @@ protected:
 	bool InitBuffers();
 	bool InitLights();
 	bool InitMesh();
-	void LoadTexture(const std::string& filePath);
+	bool InitPostProcessor();
 	bool InitTextures();
 	void SetupGLParameters();
 
