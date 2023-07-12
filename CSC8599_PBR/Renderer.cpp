@@ -115,10 +115,13 @@ bool Renderer::InitShaders()
 {
 	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
 	//m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
-	if (!m_PBRShader->LoadSuccess()) return false;	
+	if (!m_PBRShader->LoadSuccess()) return false;
+
+	m_NormalBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRNormalBufferVert.glsl", "PBR/PBRNormalBufferFrag.glsl"));
+	if (!m_NormalBufferShader->LoadSuccess()) return false;
 
 	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostFinalFrag.glsl"));
-	if (!m_CombinedShader->LoadSuccess()) return false;
+	if (!m_CombinedShader->LoadSuccess()) return false;	
 	
 	//m_CombinedShader = std::shared_ptr<Shader>(new Shader("PBR/PBRCombinedVert.glsl", "PBR/PBRCombinedFrag.glsl"));
 	//if (!m_CombinedShader->LoadSuccess()) return false;
@@ -132,7 +135,10 @@ bool Renderer::InitBuffers()
 	float h = m_WindowParent.GetScreenSize().y;
 
 	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA16F, GL_RGBA, GL_FLOAT, 2));
-	if (m_GlobalFrameBuffer == nullptr) return false;	
+	if (m_GlobalFrameBuffer == nullptr) return false;
+
+	m_NormalsFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
+	if (m_NormalsFrameBuffer == nullptr) return false;
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
 	if (!m_MatricesUBO->IsInitialized()) return false;
@@ -315,16 +321,29 @@ void Renderer::RenderHelmet()
 
 void Renderer::RenderScene()
 {
-	m_GlobalFrameBuffer->Bind();
-	//glViewport(0, 0, width, height);
+	m_NormalsFrameBuffer->Bind();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	m_NormalBufferShader->Bind();
+	m_NormalBufferShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 0);
+	m_NormalBufferShader->SetMat4("modelMatrix", modelMatrix);
+
+	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
+		m_HelmetMesh->DrawSubMesh(i);
+
+	m_NormalBufferShader->UnBind();
+	m_NormalsFrameBuffer->Unbind();
+	
+	//----------------------------------------------------------------------------
+
+	m_GlobalFrameBuffer->Bind();	
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	HandleUBOData();
 	RenderHelmet();
 	m_SkyboxRenderer->Render();
-	//RenderCubeMap2();
-
 	m_LightsManager->Render();
+
 	m_GlobalFrameBuffer->Unbind();
 
 	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1));

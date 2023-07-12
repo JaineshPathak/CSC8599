@@ -145,6 +145,7 @@
     <ClCompile Include="PostProcessEffect.cpp" />
     <ClCompile Include="PostProcessInvertColor.cpp" />
     <ClCompile Include="PostProcessRenderer.cpp" />
+    <ClCompile Include="PostProcessSSAO.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SkyboxRenderer.cpp" />
   </ItemGroup>
@@ -157,6 +158,7 @@
     <ClInclude Include="PostProcessEffect.h" />
     <ClInclude Include="PostProcessInvertColor.h" />
     <ClInclude Include="PostProcessRenderer.h" />
+    <ClInclude Include="PostProcessSSAO.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SkyboxRenderer.h" />
   </ItemGroup>

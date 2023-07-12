@@ -22,7 +22,6 @@ out Vertex
 	vec3 fragWorldPos;
 	vec3 tangent;
 	vec3 bitangent;
-	mat3 TBN;
 } OUT;
 
 void main(void) 
@@ -34,13 +33,11 @@ void main(void)
 	vec3 oNormal = normalize(normalMatrix * normalize(normal));
 	vec3 oTangent = normalize(normalMatrix * normalize(tangent.xyz));
 	vec3 oBiTangent = cross(oTangent, oNormal) * tangent.w;
-	mat3 oTBN = mat3(normalize(oNormal), normalize(oBiTangent), normalize(oNormal));
-
+	
 	OUT.position = vec3(modelMatrix * vec4(position, 1.0));
 	OUT.texCoord = vec2(texCoord.x, texCoord.y);
 	OUT.normal = oNormal;
 	OUT.fragWorldPos = vec3(modelMatrix * vec4(position, 1.0));
 	OUT.tangent = oTangent;
 	OUT.bitangent = oBiTangent;
-	OUT.TBN = oTBN;
 }
