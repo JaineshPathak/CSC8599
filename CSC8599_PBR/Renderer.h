@@ -62,7 +62,7 @@ protected:
 
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 
-	std::shared_ptr<Shader> m_PBRShader;	
+	std::shared_ptr<Shader> m_PBRShader;
 	std::shared_ptr<Shader> m_CombinedShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;

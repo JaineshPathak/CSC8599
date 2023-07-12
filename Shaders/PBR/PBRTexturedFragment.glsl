@@ -254,10 +254,11 @@ void main(void)
 	vec3 albedoColor = texture(albedoTex, IN.texCoord).rgb;
 	albedoColor = pow(albedoColor, vec3(m_GAMMA));
 
+	mat3 TBN = mat3(normalize(IN.tangent), normalize(IN.bitangent), normalize(IN.normal));
 	vec3 normalColor = texture(normalTex, IN.texCoord).rgb;
 	normalColor = normalColor * 2.0 - 1.0;
 	normalColor.xy *= 1.0;
-	normalColor = normalize(IN.TBN * normalColor);
+	normalColor = normalize(TBN * normalize(normalColor));
 
 	//float metallicStrength = 1.0;
 	//float roughnessStrength = 0.1;
