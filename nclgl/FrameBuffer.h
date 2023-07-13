@@ -24,6 +24,7 @@ public:
 	virtual void AddNewColorAttachment();
 	virtual void AttachExistingColorAttachment(const unsigned int& texID, const int& attachSlot = 0);
 	virtual void AttachExistingDepthAttachment(const unsigned int& texID, const unsigned int& depthComponentType);
+	virtual void RemoveDepthAttachment();
 
 	const unsigned int GetID() const { return m_ProgramID; }
 	const unsigned int GetColorAttachmentTex(const int& index = 0) const;

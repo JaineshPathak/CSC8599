@@ -14,6 +14,7 @@ private:
 
 protected:
 	virtual bool InitShaders() override;
+	virtual bool InitTextures() override;
 
 public:
 	virtual const unsigned int GetProcessedTexture() const override;
@@ -24,13 +25,19 @@ private:
 	std::uniform_real_distribution<float> randomFloats;
 	std::default_random_engine generator;
 
-	int m_SSAOKernelSize;
-	std::vector<Vector3> m_SSAOKernel;
-	std::vector<Vector3> m_SSAONoise;
+	int m_KernelSize;
+	std::vector<Vector3> m_KernelData;
+	std::vector<Vector3> m_NoiseData;
+
+	float m_SampleRadius;
+	float m_Intensity;
+	Vector2 m_NoiseScale;
 
 	std::shared_ptr<Shader> m_PostSSAOShader;
+	std::shared_ptr<Shader> m_PostSSAOBlurShader;
 	
 	std::shared_ptr<Texture> m_NoiseTexture;
+	unsigned int m_NoiseTextureID;
 	std::shared_ptr<Texture> m_BlurTexture;
 	
 	FrameBuffer m_LastFBO;

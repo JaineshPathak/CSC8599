@@ -73,6 +73,12 @@ bool Renderer::InitShaders()
 	m_DepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
 	if (!m_DepthBufferShader->LoadSuccess()) return false;
 
+	m_PositionBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRPositionBufferVert.glsl", "PBR/PBRPositionBufferFrag.glsl"));
+	if (!m_PositionBufferShader->LoadSuccess()) return false;
+
+	m_NormalsBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRNormalBufferVert.glsl", "PBR/PBRNormalBufferFrag.glsl"));
+	if (!m_NormalsBufferShader->LoadSuccess()) return false;
+
 	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostFinalFrag.glsl"));
 	if (!m_CombinedShader->LoadSuccess()) return false;	
 	
@@ -91,7 +97,15 @@ bool Renderer::InitBuffers()
 	if (m_GlobalFrameBuffer == nullptr) return false;
 
 	m_DepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
-	if (m_DepthFrameBuffer == nullptr) return false;	
+	if (m_DepthFrameBuffer == nullptr) return false;
+
+	m_PositionFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
+	if (m_PositionFrameBuffer == nullptr) return false;
+	m_PositionFrameBuffer->RemoveDepthAttachment();
+
+	m_NormalsFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
+	if (m_NormalsFrameBuffer == nullptr) return false;
+	m_NormalsFrameBuffer->RemoveDepthAttachment();
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
 	if (!m_MatricesUBO->IsInitialized()) return false;
@@ -273,9 +287,10 @@ void Renderer::RenderHelmet()
 }
 
 void Renderer::RenderScene()
-{
+{		
+	//Render the Depths
 	m_DepthFrameBuffer->Bind();
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	m_DepthBufferShader->Bind();
 
@@ -283,9 +298,40 @@ void Renderer::RenderScene()
 		m_HelmetMesh->DrawSubMesh(i);
 
 	m_DepthBufferShader->UnBind();
-	m_DepthFrameBuffer->Unbind();
-	
+	m_DepthFrameBuffer->Unbind();	
+
 	//----------------------------------------------------------------------------
+
+	//Render the Positions
+	m_PositionFrameBuffer->Bind();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	m_PositionBufferShader->Bind();
+	m_PositionBufferShader->SetMat4("modelMatrix", modelMatrix);
+
+	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
+		m_HelmetMesh->DrawSubMesh(i);
+	
+	m_PositionBufferShader->UnBind();
+	m_PositionFrameBuffer->Unbind();
+
+	//----------------------------------------------------------------------------
+
+	//Render the Normals
+	m_NormalsFrameBuffer->Bind();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	m_NormalsBufferShader->Bind();
+	m_NormalsBufferShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 0);
+	m_NormalsBufferShader->SetMat4("modelMatrix", modelMatrix);
+
+	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
+		m_HelmetMesh->DrawSubMesh(i);
+
+	m_NormalsBufferShader->UnBind();
+	m_NormalsFrameBuffer->Unbind();
+
+	//----------------------------------------------------------------------------	
 
 	m_GlobalFrameBuffer->Bind();	
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -297,7 +343,7 @@ void Renderer::RenderScene()
 
 	m_GlobalFrameBuffer->Unbind();
 
-	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1), m_GlobalFrameBuffer->GetDepthAttachmentTex());
+	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1), m_DepthFrameBuffer->GetDepthAttachmentTex());
 	RenderImGui();
 	
 	/*

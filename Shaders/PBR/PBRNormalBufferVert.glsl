@@ -29,7 +29,7 @@ void main(void)
 	mat4 mvp = projMatrix * viewMatrix * modelMatrix;
 	gl_Position = mvp * vec4(position, 1.0);
 
-	mat3 normalMatrix = mat3(transpose(inverse(modelMatrix)));
+	mat3 normalMatrix = mat3(transpose(inverse(viewMatrix * modelMatrix)));
 	vec3 oNormal = normalize(normalMatrix * normalize(normal));
 	vec3 oTangent = normalize(normalMatrix * normalize(tangent.xyz));
 	vec3 oBiTangent = cross(oTangent, oNormal) * tangent.w;

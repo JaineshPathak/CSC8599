@@ -166,6 +166,13 @@ void FrameBuffer::AttachExistingDepthAttachment(const unsigned int& texID, const
 	Unbind();
 }
 
+void FrameBuffer::RemoveDepthAttachment()
+{
+	Bind();
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
+	Unbind();
+}
+
 const unsigned int FrameBuffer::GetColorAttachmentTex(const int& index) const
 {
 	if (index < 0 || index >= (int)m_ColorAttachedTextures.size())
