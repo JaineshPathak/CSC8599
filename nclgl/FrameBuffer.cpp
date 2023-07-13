@@ -120,6 +120,52 @@ void FrameBuffer::AddNewColorAttachment()
 	m_ColorAttachedTextures.emplace_back(newColorTex);
 }
 
+void FrameBuffer::AttachExistingColorAttachment(const unsigned int& texID, const int& attachSlot)
+{
+	if (m_ProgramID <= 0)
+	{
+		std::cerr << "-----------------------------------------------------------------------------" << std::endl;
+		std::cerr << "Frame Buffer ERROR: Object does not exist! Function: " << __FUNCTION__ << std::endl;
+		std::cerr << "-----------------------------------------------------------------------------" << std::endl;
+
+		return;
+	}
+
+	if (attachSlot < 0)
+	{
+		std::cerr << "-----------------------------------------------------------------------------" << std::endl;
+		std::cerr << "Frame Buffer ERROR: Attachment Slot less than zero is invalid! Function: " << __FUNCTION__ << std::endl;
+		std::cerr << "Frame Buffer Object ID: " << m_ProgramID << std::endl;
+		std::cerr << "-----------------------------------------------------------------------------" << std::endl;
+
+		return;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachSlot, GL_TEXTURE_2D, texID, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void FrameBuffer::AttachExistingDepthAttachment(const unsigned int& texID, const unsigned int& depthComponentType)
+{
+	if (m_ProgramID <= 0)
+	{
+		std::cerr << "-----------------------------------------------------------------------------" << std::endl;
+		std::cerr << "Frame Buffer ERROR: Object does not exist! Function: " << __FUNCTION__ << std::endl;
+		std::cerr << "-----------------------------------------------------------------------------" << std::endl;
+
+		return;
+	}
+
+	Bind();
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, depthComponentType, GL_TEXTURE_2D, texID, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	Unbind();
+}
+
 const unsigned int FrameBuffer::GetColorAttachmentTex(const int& index) const
 {
 	if (index < 0 || index >= (int)m_ColorAttachedTextures.size())

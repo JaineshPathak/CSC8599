@@ -17,6 +17,9 @@ public:
 	int GetWidth() const { return m_Width; }
 	int GetHeight() const { return m_Height; }
 
+	virtual void Bind();
+	virtual void Unbind();
+
 	bool IsInitialized() const
 	{ 
 		if (!m_IsInitialized)

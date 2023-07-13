@@ -24,7 +24,7 @@ private:
 
 public:
 	virtual const unsigned int GetProcessedTexture() const override;
-	virtual void Render(const unsigned int& sourceTextureID) override;
+	virtual void Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID) override;
 	virtual void OnImGuiRender() override;
 
 private:

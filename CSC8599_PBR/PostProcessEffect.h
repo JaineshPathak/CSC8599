@@ -17,7 +17,7 @@ public:
 	virtual ~PostProcessEffect() {}
 	
 	virtual const unsigned int GetProcessedTexture() const { return 0; }
-	virtual void Render(const unsigned int& sourceTextureID) {}
+	virtual void Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID) {}
 
 	virtual void OnImGuiRender() override {}
 

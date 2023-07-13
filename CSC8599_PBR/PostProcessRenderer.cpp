@@ -7,6 +7,7 @@ PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsign
 	m_PostFinalShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostFinalFrag.glsl"));
 	if (!m_PostFinalShader->LoadSuccess()) return;
 
+	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessSSAO(sizeX, sizeY)));
 	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessBloom(sizeX, sizeY)));
 	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessInvertColor(sizeX, sizeY)));
 
@@ -23,12 +24,12 @@ const unsigned int PostProcessRenderer::GetFinalTexture() const
 	return m_FinalTextureID;
 }
 
-void PostProcessRenderer::Render(const unsigned int& srcTexture)
+void PostProcessRenderer::Render(const unsigned int& srcTexture, const unsigned int& depthTextureID)
 {
-	if (!m_IsEnabled) return;	
+	if (!m_IsEnabled) return;
 	
 	FillActivePostEffects();
-	RenderActivePostEffects(srcTexture);
+	RenderActivePostEffects(srcTexture, depthTextureID);
 	RenderFinalPostEffect();
 	
 	m_ActivePostEffects.clear();
@@ -45,7 +46,7 @@ void PostProcessRenderer::FillActivePostEffects()
 	}
 }
 
-void PostProcessRenderer::RenderActivePostEffects(const unsigned int& srcTexture)
+void PostProcessRenderer::RenderActivePostEffects(const unsigned int& srcTexture, const unsigned int& depthTextureID)
 {
 	if ((int)m_ActivePostEffects.size() == 0)
 	{
@@ -56,7 +57,7 @@ void PostProcessRenderer::RenderActivePostEffects(const unsigned int& srcTexture
 	for (int i = 0; i < (int)m_ActivePostEffects.size(); i++)
 	{
 		PostProcessEffect& effect = *m_ActivePostEffects[i];
-		effect.Render(i == 0 ? srcTexture : m_ActivePostEffects[i - 1]->GetProcessedTexture());
+		effect.Render(i == 0 ? srcTexture : m_ActivePostEffects[i - 1]->GetProcessedTexture(), depthTextureID);
 	}
 
 	m_FinalTextureID = m_ActivePostEffects[m_ActivePostEffects.size() - 1]->GetProcessedTexture();

@@ -21,7 +21,9 @@ public:
 	virtual void Unbind();
 	virtual void Destroy();
 	void Resize(const unsigned int& new_width, const unsigned int& new_height);
-	void AddNewColorAttachment();
+	virtual void AddNewColorAttachment();
+	virtual void AttachExistingColorAttachment(const unsigned int& texID, const int& attachSlot = 0);
+	virtual void AttachExistingDepthAttachment(const unsigned int& texID, const unsigned int& depthComponentType);
 
 	const unsigned int GetID() const { return m_ProgramID; }
 	const unsigned int GetColorAttachmentTex(const int& index = 0) const;

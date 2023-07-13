@@ -166,7 +166,7 @@ const unsigned int PostProcessBloom::GetProcessedTexture() const
 	return m_EnableBloomDebug ? m_BrightenFBO.GetColorAttachmentTex() : m_LastFBO.GetColorAttachmentTex();
 }
 
-void PostProcessBloom::Render(const unsigned int& sourceTextureID)
+void PostProcessBloom::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
 {
 	RenderBrightColors(sourceTextureID);
 	RenderBloomTexture(m_BrightenFBO.GetColorAttachmentTex());

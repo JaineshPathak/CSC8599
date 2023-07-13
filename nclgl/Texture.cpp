@@ -114,6 +114,16 @@ Texture::~Texture()
 	m_ProgramID = 0;
 }
 
+void Texture::Bind()
+{
+	glBindTexture(GL_TEXTURE_2D, m_ProgramID);
+}
+
+void Texture::Unbind()
+{
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void Texture::Validate()
 {
 	stbi_set_flip_vertically_on_load(true);

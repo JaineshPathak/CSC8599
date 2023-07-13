@@ -31,7 +31,7 @@ const unsigned int PostProcessInvertColor::GetProcessedTexture() const
     return m_LastFBO.GetColorAttachmentTex();
 }
 
-void PostProcessInvertColor::Render(const unsigned int& sourceTextureID)
+void PostProcessInvertColor::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
 {
     m_LastFBO.Bind();
     m_PostInvertShader->Bind();

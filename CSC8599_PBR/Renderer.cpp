@@ -46,53 +46,6 @@ bool Renderer::Initialize()
 	if (!InitTextures())		return false;
 
 	SetupGLParameters();
-
-	/*
-	//----------------------------------------------------------------------------------------------------------------------------
-	// Temporary TESTING AREA
-	
-	glGenTextures(1, &envCubeMap);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, envCubeMap);
-	for (unsigned int i = 0; i < 6; ++i)
-	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_FLOAT, nullptr);
-	}
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-	
-	int width, height, nrComponents;
-	stbi_set_flip_vertically_on_load(true);
-	float* data = stbi_loadf(TEXTUREDIR"HDR/clarens_night_02_2k.hdr", &width, &height, &nrComponents, 0);
-	if (data)
-	{
-		glGenTextures(1, &hdrTexture);
-		glBindTexture(GL_TEXTURE_2D, hdrTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		stbi_image_free(data);
-	}
-	stbi_set_flip_vertically_on_load(false);
-
-	m_CaptureProjection = Matrix4::Perspective(0.1f, 10.0f, 1.0f, 45.0f);
-
-	m_CaptureViews[0] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::RIGHT, Vector3::DOWN);
-	m_CaptureViews[1] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::LEFT, Vector3::DOWN);
-	m_CaptureViews[2] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::UP, Vector3::BACK);
-	m_CaptureViews[3] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::DOWN, Vector3::FORWARD);
-	m_CaptureViews[4] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::BACK, Vector3::DOWN);
-	m_CaptureViews[5] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::FORWARD, Vector3::DOWN);
-	//----------------------------------------------------------------------------------------------------------------------------
-	*/	
 	
 	return true;
 }
@@ -117,8 +70,8 @@ bool Renderer::InitShaders()
 	//m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
 	if (!m_PBRShader->LoadSuccess()) return false;
 
-	m_NormalBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRNormalBufferVert.glsl", "PBR/PBRNormalBufferFrag.glsl"));
-	if (!m_NormalBufferShader->LoadSuccess()) return false;
+	m_DepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
+	if (!m_DepthBufferShader->LoadSuccess()) return false;
 
 	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostFinalFrag.glsl"));
 	if (!m_CombinedShader->LoadSuccess()) return false;	
@@ -137,8 +90,8 @@ bool Renderer::InitBuffers()
 	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA16F, GL_RGBA, GL_FLOAT, 2));
 	if (m_GlobalFrameBuffer == nullptr) return false;
 
-	m_NormalsFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
-	if (m_NormalsFrameBuffer == nullptr) return false;
+	m_DepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
+	if (m_DepthFrameBuffer == nullptr) return false;	
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
 	if (!m_MatricesUBO->IsInitialized()) return false;
@@ -321,18 +274,16 @@ void Renderer::RenderHelmet()
 
 void Renderer::RenderScene()
 {
-	m_NormalsFrameBuffer->Bind();
+	m_DepthFrameBuffer->Bind();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	m_NormalBufferShader->Bind();
-	m_NormalBufferShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 0);
-	m_NormalBufferShader->SetMat4("modelMatrix", modelMatrix);
+	m_DepthBufferShader->Bind();
 
 	for (int i = 0; i < m_HelmetMesh->GetSubMeshCount(); i++)
 		m_HelmetMesh->DrawSubMesh(i);
 
-	m_NormalBufferShader->UnBind();
-	m_NormalsFrameBuffer->Unbind();
+	m_DepthBufferShader->UnBind();
+	m_DepthFrameBuffer->Unbind();
 	
 	//----------------------------------------------------------------------------
 
@@ -346,7 +297,7 @@ void Renderer::RenderScene()
 
 	m_GlobalFrameBuffer->Unbind();
 
-	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1));
+	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1), m_GlobalFrameBuffer->GetDepthAttachmentTex());
 	RenderImGui();
 	
 	/*

@@ -30,7 +30,7 @@ public:
 	std::shared_ptr<Mesh> GetCubeMesh() { return m_CubeMesh; }
 	std::shared_ptr<LookAtCamera> GetMainCamera() { return m_MainCamera; }
 	std::shared_ptr<FrameBuffer> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
-	std::shared_ptr<FrameBuffer> GetNormalsFrameBuffer() { return m_NormalsFrameBuffer; }
+	std::shared_ptr<FrameBuffer> GetDepthFrameBuffer() { return m_DepthFrameBuffer; }
 	std::shared_ptr<PostProcessRenderer> GetPostProcessBuffer() { return m_PostProcessRenderer; }
 
 protected:
@@ -64,13 +64,13 @@ protected:
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 
 	std::shared_ptr<Shader> m_PBRShader;
-	std::shared_ptr<Shader> m_NormalBufferShader;
+	std::shared_ptr<Shader> m_DepthBufferShader;
 	std::shared_ptr<Shader> m_CombinedShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
 	std::shared_ptr<Mesh> m_CubeMesh;
 	std::shared_ptr<Mesh> m_HelmetMesh;
-	
+		
 	std::shared_ptr<Texture> m_HelmetTextureAlbedo;
 	std::shared_ptr<Texture> m_HelmetTextureNormal;
 	std::shared_ptr<Texture> m_HelmetTextureMetallic;
@@ -78,7 +78,7 @@ protected:
 	std::shared_ptr<Texture> m_HelmetTextureEmissive;	
 
 	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
-	std::shared_ptr<FrameBuffer> m_NormalsFrameBuffer;
+	std::shared_ptr<FrameBuffer> m_DepthFrameBuffer;
 	//std::shared_ptr<FrameBufferHDR> m_CaptureFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;
 
