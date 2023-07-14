@@ -9,7 +9,7 @@ in Vertex
 	vec2 texCoord;
 } IN;
 
-out float fragColour;
+out vec4 fragColour;
 
 void main(void)
 {
@@ -25,5 +25,5 @@ void main(void)
 		}
 	}
 
-	fragColour = blurredVisibilityFactor * INV_TOTAL_SAMPLES_FACTOR;
+	fragColour = vec4(blurredVisibilityFactor * INV_TOTAL_SAMPLES_FACTOR);
 }

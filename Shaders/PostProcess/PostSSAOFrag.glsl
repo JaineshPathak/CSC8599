@@ -10,7 +10,7 @@ layout(std140, binding = 0) uniform Matrices
 	mat4 viewMatrix;
 };
 
-//uniform sampler2D depthTex;
+uniform sampler2D depthTex;
 uniform sampler2D positionTex;
 uniform sampler2D normalTex;
 uniform sampler2D noiseTex;
@@ -27,7 +27,7 @@ in Vertex
 
 out vec4 fragColour;
 
-/*vec3 CalcViewPosition(vec2 coords)
+vec3 CalcViewPosition(vec2 coords)
 {
 	float fragmentDepth = texture(depthTex, coords).r;
 
@@ -39,22 +39,23 @@ out vec4 fragColour;
 	vs_pos.xyz = vs_pos.xyz / vs_pos.w;
 
 	return vs_pos.xyz;
-}*/
+}
 
 void main(void)
 {
-	vec3 viewPos = texture(positionTex, IN.texCoord).rgb;
-	vec3 normal = normalize(texture(normalTex, IN.texCoord).rgb);
+	//vec3 viewPos = texture(positionTex, IN.texCoord).rgb;
+	//vec3 normal = normalize(texture(normalTex, IN.texCoord).rgb);
 
-	//vec3 viewNormal = cross(dFdy(viewPos.xyz), dFdx(viewPos.xyz));
-	//viewNormal = normalize(viewNormal * -1.0);
+	vec3 viewPos = CalcViewPosition(IN.texCoord);
+	vec3 viewNormal = cross(dFdy(viewPos.xyz), dFdx(viewPos.xyz));
+	viewNormal = normalize(viewNormal * -1.0);
 
 	vec3 randomVec = texture(noiseTex, IN.texCoord * noiseScale).xyz;
 	randomVec = normalize(randomVec);
-	vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
-	vec3 bitangent = cross(normal, tangent);
+	vec3 tangent = normalize(randomVec - viewNormal * dot(randomVec, viewNormal));
+	vec3 bitangent = cross(viewNormal, tangent);
 
-	mat3 TBN = mat3(tangent, bitangent, normal);
+	mat3 TBN = mat3(tangent, bitangent, viewNormal);
 
 	float occlusionFactor = 0.0;
 	for(int i = 0; i < MAX_KERNEL_SIZE; i++)
@@ -67,7 +68,8 @@ void main(void)
 		offset.xyz /= offset.w;
 		offset.xyz = offset.xyz * 0.5 + 0.5;
 
-		float geometryDepth = texture(positionTex, offset.xy).z;
+		//float geometryDepth = texture(positionTex, offset.xy).z;
+		float geometryDepth = CalcViewPosition(offset.xy).z;
 		float rangeCheck = smoothstep(0.0, 1.0, sampleRadius / abs(viewPos.z - geometryDepth));
 
 		occlusionFactor += (geometryDepth >= samplePos.z + 0.025 ? 1.0 : 0.0) * rangeCheck;

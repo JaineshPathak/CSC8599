@@ -20,10 +20,9 @@ void main(void)
 	float m_Exposure = skyboxData.x;
 
 	vec3 cubeColor = texture(cubeTex, IN.viewDir).rgb;
-	cubeColor = pow(cubeColor, vec3(m_GAMMA));
-	//vec3 cubeColor = textureLod(cubeTex, IN.viewDir, 1.0).rgb;
 	
-	//cubeColor = cubeColor / (cubeColor + vec3(1.0));
+	cubeColor = cubeColor / (cubeColor + vec3(1.0));
+	cubeColor = pow(cubeColor, vec3(m_GAMMA));
 	cubeColor = vec3(1.0) - exp(-cubeColor * m_Exposure);
 	cubeColor = pow(cubeColor, vec3(1.0 / m_GAMMA));
 

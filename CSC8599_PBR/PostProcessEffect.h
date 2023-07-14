@@ -24,6 +24,8 @@ public:
 	const bool IsEnabled() const { return m_IsEnabled; }
 	void SetActive(const bool& status) { m_IsEnabled = status; }
 
+	virtual void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY) {}
+
 protected:
 	virtual bool InitShaders() { return false; }
 	virtual bool InitTextures() { return false; }

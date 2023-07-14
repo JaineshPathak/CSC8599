@@ -19,11 +19,11 @@ PostProcessBloom::PostProcessBloom(const unsigned int& sizeX, const unsigned int
 	m_BloomFBO.~FrameBufferBloom();
 	new(&m_BloomFBO) FrameBufferBloom(m_WidthI, m_HeightI, m_BloomIterations);
 
-	m_LastFBO.~FrameBuffer();
-	new(&m_LastFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
-
 	m_BrightenFBO.~FrameBuffer();
 	new(&m_BrightenFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+
+	m_FinalFBO.~FrameBuffer();
+	new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
 
 	ImGuiRenderer::Get()->RegisterPostProcessItem(this);
 
@@ -33,6 +33,19 @@ PostProcessBloom::PostProcessBloom(const unsigned int& sizeX, const unsigned int
 PostProcessBloom::~PostProcessBloom()
 {
 	m_BloomFBO.Destroy();
+}
+
+void PostProcessBloom::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
+{
+	m_WidthI = newSizeX;
+	m_HeightI = newSizeY;
+
+	m_WidthF = (float)newSizeX;
+	m_HeightF = (float)newSizeY;
+
+	m_BloomFBO.Resize(m_WidthI, m_HeightI);
+	m_BrightenFBO.Resize(m_WidthI, m_HeightI);
+	m_FinalFBO.Resize(m_WidthI, m_HeightI);	
 }
 
 bool PostProcessBloom::InitShaders()
@@ -163,7 +176,7 @@ unsigned int PostProcessBloom::GetBloomTexture(int index)
 
 const unsigned int PostProcessBloom::GetProcessedTexture() const
 {
-	return m_EnableBloomDebug ? m_BrightenFBO.GetColorAttachmentTex() : m_LastFBO.GetColorAttachmentTex();
+	return m_EnableBloomDebug ? m_BrightenFBO.GetColorAttachmentTex() : m_FinalFBO.GetColorAttachmentTex();
 }
 
 void PostProcessBloom::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
@@ -171,11 +184,11 @@ void PostProcessBloom::Render(const unsigned int& sourceTextureID, const unsigne
 	RenderBrightColors(sourceTextureID);
 	RenderBloomTexture(m_BrightenFBO.GetColorAttachmentTex());
 
-	m_LastFBO.Bind();
+	m_FinalFBO.Bind();
 	m_PostBloomFinalShader->Bind();
-	m_PostBloomFinalShader->SetTexture("srcTexture", sourceTextureID, 0);
-	m_PostBloomFinalShader->SetTexture("postProcessTexture", GetBloomTexture(), 1);
-	m_PostBloomFinalShader->SetTexture("dirtMaskTexture", m_DirtMaskTexture->GetID(), 2);
+	//m_PostBloomFinalShader->SetTexture("srcTexture", sourceTextureID, 0);
+	m_PostBloomFinalShader->SetTexture("postProcessTexture", GetBloomTexture(), 0);
+	m_PostBloomFinalShader->SetTexture("dirtMaskTexture", m_DirtMaskTexture->GetID(), 1);
 
 	m_PostBloomFinalShader->SetFloat("bloomStrength", m_BloomStrength);
 	m_PostBloomFinalShader->SetFloat("bloomTintStrength", m_BloomTintStrength);
@@ -190,7 +203,7 @@ void PostProcessBloom::Render(const unsigned int& sourceTextureID, const unsigne
 	m_QuadMesh->Draw();
 
 	m_PostBloomFinalShader->UnBind();
-	m_LastFBO.Unbind();
+	m_FinalFBO.Unbind();
 }
 
 void PostProcessBloom::OnImGuiRender()

@@ -22,6 +22,7 @@ public:
 	void SetActive(const bool& status) { m_IsEnabled = status; }
 
 	void Render(const unsigned int& srcTexture, const unsigned int& depthTextureID);
+	void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY);
 
 private:
 	void FillActivePostEffects();
@@ -40,4 +41,6 @@ private:
 	unsigned int m_FinalTextureID;
 	std::vector<std::shared_ptr<PostProcessEffect>> m_PostEffects;
 	std::vector<std::shared_ptr<PostProcessEffect>> m_ActivePostEffects;
+
+	unsigned int m_Width, m_Height;
 };

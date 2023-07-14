@@ -8,6 +8,8 @@ public:
 	PostProcessBloom(const unsigned int& sizeX, const unsigned int& sizeY);
 	~PostProcessBloom();
 
+	virtual void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY) override;
+
 protected:
 	virtual bool InitShaders() override;
 	virtual bool InitTextures() override;
@@ -50,6 +52,6 @@ private:
 	std::shared_ptr<Shader> m_PostBloomFinalShader;
 
 	FrameBufferBloom m_BloomFBO;
-	FrameBuffer m_LastFBO;
+	FrameBuffer m_FinalFBO;
 	FrameBuffer m_BrightenFBO;
 };

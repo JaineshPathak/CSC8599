@@ -18,6 +18,10 @@ PostProcessSSAO::PostProcessSSAO(const unsigned int& sizeX, const unsigned int& 
     new(&m_LastFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
     m_LastFBO.RemoveDepthAttachment();
 
+    m_BlurFBO.~FrameBuffer();
+    new(&m_BlurFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+    m_BlurFBO.RemoveDepthAttachment();
+
     ImGuiRenderer::Get()->RegisterPostProcessItem(this);
 
     m_IsEnabled = false;
@@ -61,6 +65,9 @@ bool PostProcessSSAO::InitShaders()
     m_PostSSAOShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostSSAOVert.glsl", "PostProcess/PostSSAOFrag.glsl"));
     if (!m_PostSSAOShader->LoadSuccess()) return false;
 
+    m_PostSSAOBlurShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostSSAOBlurVert.glsl", "PostProcess/PostSSAOBlurFrag.glsl"));
+    if (!m_PostSSAOBlurShader->LoadSuccess()) return false;
+
     return true;
 }
 
@@ -86,20 +93,17 @@ bool PostProcessSSAO::InitTextures()
 
 const unsigned int PostProcessSSAO::GetProcessedTexture() const
 {
-    return m_LastFBO.GetColorAttachmentTex();
+    return m_BlurFBO.GetColorAttachmentTex();
 }
 
 void PostProcessSSAO::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
 {
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-
     m_LastFBO.Bind();
     m_PostSSAOShader->Bind();
-    //m_PostSSAOShader->SetTexture("depthTex", depthTextureID, 0);
-    m_PostSSAOShader->SetTexture("positionTex", Renderer::Get()->GetPositionFrameBuffer()->GetColorAttachmentTex(), 0);
-    m_PostSSAOShader->SetTexture("normalTex", Renderer::Get()->GetNormalsFrameBuffer()->GetColorAttachmentTex(), 1);
-    m_PostSSAOShader->SetTexture("noiseTex", m_NoiseTexture->GetID(), 2);
+    m_PostSSAOShader->SetTexture("depthTex", depthTextureID, 0);
+    //m_PostSSAOShader->SetTexture("positionTex", Renderer::Get()->GetPositionFrameBuffer()->GetColorAttachmentTex(), 1);
+    //m_PostSSAOShader->SetTexture("normalTex", Renderer::Get()->GetNormalsFrameBuffer()->GetColorAttachmentTex(), 2);
+    m_PostSSAOShader->SetTexture("noiseTex", m_NoiseTexture->GetID(), 3);
     
     m_PostSSAOShader->SetFloat("sampleRadius", m_SampleRadius);
     m_PostSSAOShader->SetVector2("noiseScale", m_NoiseScale);
@@ -113,6 +117,16 @@ void PostProcessSSAO::Render(const unsigned int& sourceTextureID, const unsigned
 
     m_PostSSAOShader->UnBind();
     m_LastFBO.Unbind();
+
+    m_BlurFBO.Bind();
+    m_PostSSAOBlurShader->Bind();
+    m_PostSSAOBlurShader->SetTexture("ssaoTexture", m_LastFBO.GetColorAttachmentTex(), 0);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    m_QuadMesh->Draw();
+
+    m_PostSSAOBlurShader->UnBind();
+    m_BlurFBO.Unbind();
 }
 
 void PostProcessSSAO::OnImGuiRender()

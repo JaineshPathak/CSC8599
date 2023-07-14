@@ -287,7 +287,8 @@ void Renderer::RenderHelmet()
 }
 
 void Renderer::RenderScene()
-{		
+{
+	/*
 	//Render the Depths
 	m_DepthFrameBuffer->Bind();
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -332,7 +333,7 @@ void Renderer::RenderScene()
 	m_NormalsFrameBuffer->Unbind();
 
 	//----------------------------------------------------------------------------	
-
+	*/
 	m_GlobalFrameBuffer->Bind();	
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 

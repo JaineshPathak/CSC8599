@@ -41,4 +41,5 @@ private:
 	std::shared_ptr<Texture> m_BlurTexture;
 	
 	FrameBuffer m_LastFBO;
+	FrameBuffer m_BlurFBO;
 };

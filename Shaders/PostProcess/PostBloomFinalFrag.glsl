@@ -1,6 +1,6 @@
 #version 420 core
 
-uniform sampler2D srcTexture;
+//uniform sampler2D srcTexture;
 uniform sampler2D postProcessTexture;
 uniform sampler2D dirtMaskTexture;
 
@@ -29,7 +29,7 @@ void main(void)
 	float m_GAMMA = skyboxData.y;
 	float m_Exposure = skyboxData.x;
 
-	vec3 srcColor = texture(srcTexture, IN.texCoord).rgb;
+	//vec3 srcColor = texture(srcTexture, IN.texCoord).rgb;
 	vec3 postColor = texture(postProcessTexture, IN.texCoord).rgb;
 	vec3 dirtColor = texture(dirtMaskTexture, IN.texCoord).rgb * dirtMaskStrength;
 	vec3 tintColor = postColor + postColor * bloomTint.rgb * bloomTintStrength;
@@ -37,7 +37,7 @@ void main(void)
 	if(enableDirtMask)
 		postColor = postColor + postColor * dirtColor;
 
-	vec3 result = srcColor + postColor + tintColor * bloomStrength;
+	vec3 result = (postColor + tintColor) * bloomStrength;
 
 	//result = pow(result, vec3(m_GAMMA));
 
