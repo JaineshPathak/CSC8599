@@ -13,6 +13,8 @@ private:
 	void GenerateNoise();
 
 protected:
+	virtual void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY) override;
+
 	virtual bool InitShaders() override;
 	virtual bool InitTextures() override;
 
@@ -40,6 +42,6 @@ private:
 	unsigned int m_NoiseTextureID;
 	std::shared_ptr<Texture> m_BlurTexture;
 	
-	FrameBuffer m_LastFBO;
+	FrameBuffer m_FinalFBO;
 	FrameBuffer m_BlurFBO;
 };

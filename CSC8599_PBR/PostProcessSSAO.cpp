@@ -14,9 +14,9 @@ PostProcessSSAO::PostProcessSSAO(const unsigned int& sizeX, const unsigned int& 
     if (!InitShaders()) return;
     if (!InitTextures()) return;
 
-    m_LastFBO.~FrameBuffer();
-    new(&m_LastFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
-    m_LastFBO.RemoveDepthAttachment();
+    m_FinalFBO.~FrameBuffer();
+    new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1);
+    m_FinalFBO.RemoveDepthAttachment();
 
     m_BlurFBO.~FrameBuffer();
     new(&m_BlurFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
@@ -29,7 +29,7 @@ PostProcessSSAO::PostProcessSSAO(const unsigned int& sizeX, const unsigned int& 
 
 PostProcessSSAO::~PostProcessSSAO()
 {
-    m_LastFBO.Destroy();
+    m_FinalFBO.Destroy();
 }
 
 void PostProcessSSAO::GenerateKernel()
@@ -38,7 +38,12 @@ void PostProcessSSAO::GenerateKernel()
     for (int i = 0; i < m_KernelSize; i++)
     {
         Vector3 sample(randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator));
-        sample.Normalise();        
+        sample.Normalise();
+
+        float rnd = randomFloats(generator);
+        sample.x *= rnd;
+        sample.y *= rnd;
+        sample.z *= rnd;
 
         float scale = (float)i / (float)m_KernelSize;
         scale = naive_lerp(0.1f, 1.0f, scale * scale);
@@ -58,6 +63,21 @@ void PostProcessSSAO::GenerateNoise()
         Vector3 noise(randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, 0.0f);
         m_NoiseData.emplace_back(noise);
     }    
+}
+
+void PostProcessSSAO::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
+{
+    m_WidthI = newSizeX;
+    m_HeightI = newSizeY;
+
+    m_WidthF = (float)newSizeX;
+    m_HeightF = (float)newSizeY;
+
+    m_FinalFBO.Resize(m_WidthI, m_HeightI);
+    m_FinalFBO.RemoveDepthAttachment();
+
+    m_BlurFBO.Resize(m_WidthI, m_HeightI);
+    m_BlurFBO.RemoveDepthAttachment();
 }
 
 bool PostProcessSSAO::InitShaders()
@@ -98,12 +118,12 @@ const unsigned int PostProcessSSAO::GetProcessedTexture() const
 
 void PostProcessSSAO::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
 {
-    m_LastFBO.Bind();
+    m_FinalFBO.Bind();
     m_PostSSAOShader->Bind();
     m_PostSSAOShader->SetTexture("depthTex", depthTextureID, 0);
     //m_PostSSAOShader->SetTexture("positionTex", Renderer::Get()->GetPositionFrameBuffer()->GetColorAttachmentTex(), 1);
     //m_PostSSAOShader->SetTexture("normalTex", Renderer::Get()->GetNormalsFrameBuffer()->GetColorAttachmentTex(), 2);
-    m_PostSSAOShader->SetTexture("noiseTex", m_NoiseTexture->GetID(), 3);
+    m_PostSSAOShader->SetTexture("noiseTex", m_NoiseTexture->GetID(), 1);
     
     m_PostSSAOShader->SetFloat("sampleRadius", m_SampleRadius);
     m_PostSSAOShader->SetVector2("noiseScale", m_NoiseScale);
@@ -112,17 +132,20 @@ void PostProcessSSAO::Render(const unsigned int& sourceTextureID, const unsigned
     for (int i = 0; i < m_KernelSize; i++)
         m_PostSSAOShader->SetVector3("kernel[" + std::to_string(i) + "]", m_KernelData[i]);
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
     m_QuadMesh->Draw();
 
     m_PostSSAOShader->UnBind();
-    m_LastFBO.Unbind();
+    m_FinalFBO.Unbind();
 
+    
     m_BlurFBO.Bind();
     m_PostSSAOBlurShader->Bind();
-    m_PostSSAOBlurShader->SetTexture("ssaoTexture", m_LastFBO.GetColorAttachmentTex(), 0);
+    m_PostSSAOBlurShader->SetTexture("ssaoTexture", m_FinalFBO.GetColorAttachmentTex(), 0);
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
     m_QuadMesh->Draw();
 
     m_PostSSAOBlurShader->UnBind();

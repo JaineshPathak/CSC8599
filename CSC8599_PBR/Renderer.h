@@ -31,8 +31,8 @@ public:
 	std::shared_ptr<LookAtCamera> GetMainCamera() { return m_MainCamera; }
 	std::shared_ptr<FrameBuffer> GetGlobalFrameBuffer() { return m_GlobalFrameBuffer; }
 	std::shared_ptr<FrameBuffer> GetDepthFrameBuffer() { return m_DepthFrameBuffer; }
-	std::shared_ptr<FrameBuffer> GetPositionFrameBuffer() { return m_PositionFrameBuffer; }
-	std::shared_ptr<FrameBuffer> GetNormalsFrameBuffer() { return m_NormalsFrameBuffer; }
+	//std::shared_ptr<FrameBuffer> GetPositionFrameBuffer() { return m_PositionFrameBuffer; }
+	//std::shared_ptr<FrameBuffer> GetNormalsFrameBuffer() { return m_NormalsFrameBuffer; }
 	std::shared_ptr<PostProcessRenderer> GetPostProcessBuffer() { return m_PostProcessRenderer; }
 
 protected:
@@ -67,8 +67,8 @@ protected:
 
 	std::shared_ptr<Shader> m_PBRShader;
 	std::shared_ptr<Shader> m_DepthBufferShader;
-	std::shared_ptr<Shader> m_PositionBufferShader;
-	std::shared_ptr<Shader> m_NormalsBufferShader;
+	//std::shared_ptr<Shader> m_PositionBufferShader;
+	//std::shared_ptr<Shader> m_NormalsBufferShader;
 	std::shared_ptr<Shader> m_CombinedShader;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
@@ -83,8 +83,8 @@ protected:
 
 	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
 	std::shared_ptr<FrameBuffer> m_DepthFrameBuffer;
-	std::shared_ptr<FrameBuffer> m_PositionFrameBuffer;
-	std::shared_ptr<FrameBuffer> m_NormalsFrameBuffer;
+	//std::shared_ptr<FrameBuffer> m_PositionFrameBuffer;
+	//std::shared_ptr<FrameBuffer> m_NormalsFrameBuffer;
 	//std::shared_ptr<FrameBufferHDR> m_CaptureFrameBuffer;
 	std::shared_ptr<UniformBuffer> m_MatricesUBO;
 

@@ -11,9 +11,9 @@ layout(std140, binding = 0) uniform Matrices
 };
 
 uniform sampler2D depthTex;
-uniform sampler2D positionTex;
-uniform sampler2D normalTex;
 uniform sampler2D noiseTex;
+//uniform sampler2D positionTex;
+//uniform sampler2D normalTex;
 
 uniform float sampleRadius;
 uniform float intensity;
@@ -25,6 +25,7 @@ in Vertex
 	vec2 texCoord;
 } IN;
 
+//out float fragColour;
 out vec4 fragColour;
 
 vec3 CalcViewPosition(vec2 coords)
@@ -35,7 +36,7 @@ vec3 CalcViewPosition(vec2 coords)
 	vec4 ndc = vec4(coords.x * 2.0 - 1.0, coords.y * 2.0 - 1.0, fragmentDepth * 2.0 - 1.0, 1.0);
 
 	//Convert to View Space
-	vec4 vs_pos = inverse(viewMatrix) * ndc;
+	vec4 vs_pos = inverse(projMatrix) * ndc;
 	vs_pos.xyz = vs_pos.xyz / vs_pos.w;
 
 	return vs_pos.xyz;
@@ -77,6 +78,7 @@ void main(void)
 
 	occlusionFactor = 1.0 - (occlusionFactor / MAX_KERNEL_SIZE);
 	occlusionFactor = pow(occlusionFactor, intensity);
-
+	
+	//fragColour = occlusionFactor;
 	fragColour = vec4(occlusionFactor, occlusionFactor, occlusionFactor, 1.0);
 }

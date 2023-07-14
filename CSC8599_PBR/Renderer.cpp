@@ -73,11 +73,13 @@ bool Renderer::InitShaders()
 	m_DepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
 	if (!m_DepthBufferShader->LoadSuccess()) return false;
 
+	/*
 	m_PositionBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRPositionBufferVert.glsl", "PBR/PBRPositionBufferFrag.glsl"));
 	if (!m_PositionBufferShader->LoadSuccess()) return false;
 
 	m_NormalsBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRNormalBufferVert.glsl", "PBR/PBRNormalBufferFrag.glsl"));
 	if (!m_NormalsBufferShader->LoadSuccess()) return false;
+	*/
 
 	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostFinalFrag.glsl"));
 	if (!m_CombinedShader->LoadSuccess()) return false;	
@@ -99,6 +101,7 @@ bool Renderer::InitBuffers()
 	m_DepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
 	if (m_DepthFrameBuffer == nullptr) return false;
 
+	/*
 	m_PositionFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
 	if (m_PositionFrameBuffer == nullptr) return false;
 	m_PositionFrameBuffer->RemoveDepthAttachment();
@@ -106,6 +109,7 @@ bool Renderer::InitBuffers()
 	m_NormalsFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
 	if (m_NormalsFrameBuffer == nullptr) return false;
 	m_NormalsFrameBuffer->RemoveDepthAttachment();
+	*/
 
 	m_MatricesUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(2 * sizeof(Matrix4), NULL, GL_STATIC_DRAW, 0, 0));
 	if (!m_MatricesUBO->IsInitialized()) return false;
@@ -287,11 +291,10 @@ void Renderer::RenderHelmet()
 }
 
 void Renderer::RenderScene()
-{
-	/*
+{	
 	//Render the Depths
 	m_DepthFrameBuffer->Bind();
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	m_DepthBufferShader->Bind();
 
@@ -301,6 +304,7 @@ void Renderer::RenderScene()
 	m_DepthBufferShader->UnBind();
 	m_DepthFrameBuffer->Unbind();	
 
+	/*
 	//----------------------------------------------------------------------------
 
 	//Render the Positions

@@ -7,6 +7,8 @@ public:
 	PostProcessInvertColor(const unsigned int& sizeX, const unsigned int& sizeY);
 	~PostProcessInvertColor();
 
+	virtual void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY) override;
+
 protected:
 	virtual bool InitShaders() override;
 
@@ -18,5 +20,5 @@ public:
 private:
 	std::shared_ptr<Shader> m_PostInvertShader;
 
-	FrameBuffer m_LastFBO;
+	FrameBuffer m_FinalFBO;
 };

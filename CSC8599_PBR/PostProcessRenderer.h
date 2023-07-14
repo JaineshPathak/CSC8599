@@ -17,6 +17,7 @@ public:
 
 	const unsigned int GetFinalTexture() const;
 	const bool IsInitialized() const { return m_IsInitialized; }
+	const bool IsSSAOEnabled() const { return m_PostEffects[0]->IsEnabled(); }
 
 	const bool IsEnabled() const { return m_IsEnabled; }
 	void SetActive(const bool& status) { m_IsEnabled = status; }

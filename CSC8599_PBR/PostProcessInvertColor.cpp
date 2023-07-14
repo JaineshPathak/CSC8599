@@ -5,8 +5,8 @@ PostProcessInvertColor::PostProcessInvertColor(const unsigned int& sizeX, const 
 {
     if (!InitShaders()) return;
 
-    m_LastFBO.~FrameBuffer();
-    new(&m_LastFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+    m_FinalFBO.~FrameBuffer();
+    new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
 
     ImGuiRenderer::Get()->RegisterPostProcessItem(this);
 
@@ -15,7 +15,18 @@ PostProcessInvertColor::PostProcessInvertColor(const unsigned int& sizeX, const 
 
 PostProcessInvertColor::~PostProcessInvertColor()
 {
-    m_LastFBO.Destroy();
+    m_FinalFBO.Destroy();
+}
+
+void PostProcessInvertColor::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
+{
+    m_WidthI = newSizeX;
+    m_HeightI = newSizeY;
+
+    m_WidthF = (float)newSizeX;
+    m_HeightF = (float)newSizeY;
+
+    m_FinalFBO.Resize(m_WidthI, m_HeightI);
 }
 
 bool PostProcessInvertColor::InitShaders()
@@ -28,12 +39,12 @@ bool PostProcessInvertColor::InitShaders()
 
 const unsigned int PostProcessInvertColor::GetProcessedTexture() const
 {
-    return m_LastFBO.GetColorAttachmentTex();
+    return m_FinalFBO.GetColorAttachmentTex();
 }
 
 void PostProcessInvertColor::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
 {
-    m_LastFBO.Bind();
+    m_FinalFBO.Bind();
     m_PostInvertShader->Bind();
     m_PostInvertShader->SetTexture("srcTexture", sourceTextureID, 0);
 
@@ -42,7 +53,7 @@ void PostProcessInvertColor::Render(const unsigned int& sourceTextureID, const u
     m_QuadMesh->Draw();
 
     m_PostInvertShader->UnBind();
-    m_LastFBO.Unbind();
+    m_FinalFBO.Unbind();
 }
 
 void PostProcessInvertColor::OnImGuiRender()

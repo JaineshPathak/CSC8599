@@ -186,6 +186,9 @@
     <None Include="..\Shaders\PostProcess\PostBloomUpSampleFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomVert.glsl" />
     <None Include="..\Shaders\PostProcess\PostFinalFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostInvertFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostSSAOBlurFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostSSAOBlurVert.glsl" />
     <None Include="..\Shaders\PostProcess\PostSSAOFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostSSAOVert.glsl" />
   </ItemGroup>

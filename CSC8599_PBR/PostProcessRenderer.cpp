@@ -26,6 +26,7 @@ PostProcessRenderer::~PostProcessRenderer()
 
 const unsigned int PostProcessRenderer::GetFinalTexture() const
 {
+	//return m_FinalTextureID;
 	return m_FinalFBO.GetColorAttachmentTex();
 }
 
@@ -61,7 +62,7 @@ void PostProcessRenderer::FillActivePostEffects()
 {
 	if ((int)m_PostEffects.size() == 0) return;
 
-	for (int i = 0; i < (int)m_PostEffects.size(); i++)
+	for (int i = 1; i < (int)m_PostEffects.size(); i++)
 	{
 		if (m_PostEffects[i]->IsEnabled())
 			m_ActivePostEffects.emplace_back(m_PostEffects[i]);
