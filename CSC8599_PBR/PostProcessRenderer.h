@@ -17,7 +17,11 @@ public:
 
 	const unsigned int GetFinalTexture() const;
 	const bool IsInitialized() const { return m_IsInitialized; }
+
+	//SSAO Flags
 	const bool IsSSAOEnabled() const { return m_PostEffects[0]->IsEnabled(); }
+	void RenderSSAOPass(const unsigned int& depthTextureID);
+	const unsigned int GetSSAOProcessedTexture() const { return m_PostEffects[0]->GetProcessedTexture(); }
 
 	const bool IsEnabled() const { return m_IsEnabled; }
 	void SetActive(const bool& status) { m_IsEnabled = status; }

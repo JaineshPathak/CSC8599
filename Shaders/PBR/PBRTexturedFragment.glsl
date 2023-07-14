@@ -10,8 +10,10 @@ uniform sampler2D emissiveTex;
 uniform samplerCube irradianceTex;
 uniform samplerCube prefilterTex;
 uniform sampler2D brdfLUTTex;
+uniform sampler2D ssaoTex;
 
 //Flags
+uniform bool ssaoEnabled;
 
 //Lightings
 uniform vec3 cameraPos;
@@ -71,6 +73,7 @@ in Vertex
 	vec2 texCoord;
 	vec3 normal;
 	vec3 fragWorldPos;
+	vec4 fragClipSpacePos;
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 TBN;
@@ -240,8 +243,17 @@ void CalcAmbientLight(inout vec3 result, vec3 albedoColor, float metallicStrengt
 	vec2 envBRDF = texture(brdfLUTTex, vec2(NdotV, roughnessStrength)).rg;
 	vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
+	//SSAO
+	float aoStrength = 1.0;
+	if(ssaoEnabled)
+	{
+		vec2 NDCSpaceFragPos = IN.fragClipSpacePos.xy / IN.fragClipSpacePos.w;
+		vec2 texLoopUps = NDCSpaceFragPos * 0.5 + 0.5;
+		aoStrength = texture(ssaoTex, texLoopUps).r;
+	}
+
 	//vec3 ambient = vec3(0.03) * albedoColor;
-	vec3 ambient = (kD * diffuse + specular);
+	vec3 ambient = (kD * diffuse + specular) * aoStrength;
 
 	result += ambient;
 }

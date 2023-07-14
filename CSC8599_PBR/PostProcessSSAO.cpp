@@ -15,11 +15,13 @@ PostProcessSSAO::PostProcessSSAO(const unsigned int& sizeX, const unsigned int& 
     if (!InitTextures()) return;
 
     m_FinalFBO.~FrameBuffer();
-    new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1);
+    //new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
+    new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
     m_FinalFBO.RemoveDepthAttachment();
 
     m_BlurFBO.~FrameBuffer();
-    new(&m_BlurFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+    //new(&m_BlurFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
+    new(&m_BlurFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
     m_BlurFBO.RemoveDepthAttachment();
 
     ImGuiRenderer::Get()->RegisterPostProcessItem(this);

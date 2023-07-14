@@ -62,23 +62,24 @@ void main(void)
 	for(int i = 0; i < MAX_KERNEL_SIZE; i++)
 	{
 		vec3 samplePos = TBN * kernel[i];
-		samplePos = viewPos + samplePos * sampleRadius;
+
+		samplePos = viewPos + samplePos * sampleRadius;		
 
 		vec4 offset = vec4(samplePos, 1.0);
 		offset = projMatrix * offset;
-		offset.xyz /= offset.w;
+		offset.xy /= offset.w;
 		offset.xyz = offset.xyz * 0.5 + 0.5;
 
 		//float geometryDepth = texture(positionTex, offset.xy).z;
 		float geometryDepth = CalcViewPosition(offset.xy).z;
 		float rangeCheck = smoothstep(0.0, 1.0, sampleRadius / abs(viewPos.z - geometryDepth));
 
-		occlusionFactor += (geometryDepth >= samplePos.z + 0.025 ? 1.0 : 0.0) * rangeCheck;
+		occlusionFactor += (geometryDepth >= samplePos.z + 0.0001 ? 1.0 : 0.0) * rangeCheck;
 	}
 
 	occlusionFactor = 1.0 - (occlusionFactor / MAX_KERNEL_SIZE);
 	occlusionFactor = pow(occlusionFactor, intensity);
 	
 	//fragColour = occlusionFactor;
-	fragColour = vec4(occlusionFactor, occlusionFactor, occlusionFactor, 1.0);
+	fragColour = vec4(occlusionFactor, 0.0, 0.0, 1.0);
 }

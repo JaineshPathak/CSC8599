@@ -150,14 +150,14 @@ bool Renderer::InitTextures()
 	m_HelmetTextureNormal = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Normal_Raw.png"));
 	if (!m_HelmetTextureNormal->IsInitialized()) return false;
 
-	m_HelmetTextureMetallic = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Metallic_Raw.png"));
+	m_HelmetTextureMetallic = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Metallic_Raw.png", GL_RED, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, true));
 	if (!m_HelmetTextureMetallic->IsInitialized()) return false;
 
-	m_HelmetTextureRoughness = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Roughness_Raw.png"));
+	m_HelmetTextureRoughness = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Roughness_Raw.png", GL_RED, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, true));
 	if (!m_HelmetTextureRoughness->IsInitialized()) return false;
 
 	m_HelmetTextureEmissive = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Emissive_sRGB.png"));
-	if (!m_HelmetTextureEmissive->IsInitialized()) return false;	
+	if (!m_HelmetTextureEmissive->IsInitialized()) return false;
 	
 	return true;
 }
@@ -268,9 +268,13 @@ void Renderer::RenderHelmet()
 	m_PBRShader->SetTexture("metallicTex", m_HelmetTextureMetallic->GetID(), 2);
 	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness->GetID(), 3);
 	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 4);
+	
 	m_PBRShader->SetTextureCubeMap("irradianceTex", m_SkyboxRenderer->GetIrradianceTexture()->GetID(), 5);
 	m_PBRShader->SetTextureCubeMap("prefilterTex", m_SkyboxRenderer->GetPreFilterTexture()->GetID(), 6);
 	m_PBRShader->SetTexture("brdfLUTTex", m_SkyboxRenderer->GetBRDFLUTTexture()->GetID(), 7);
+	
+	m_PBRShader->SetTexture("ssaoTex", m_PostProcessRenderer->GetSSAOProcessedTexture(), 8);
+	m_PBRShader->SetInt("ssaoEnabled", m_PostProcessRenderer->IsSSAOEnabled() && m_PostProcessRenderer->IsEnabled());
 
 	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
 	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
@@ -302,11 +306,17 @@ void Renderer::RenderScene()
 		m_HelmetMesh->DrawSubMesh(i);
 
 	m_DepthBufferShader->UnBind();
-	m_DepthFrameBuffer->Unbind();	
+	m_DepthFrameBuffer->Unbind();
 
-	/*
 	//----------------------------------------------------------------------------
 
+	//SSAO Pass
+	if (m_PostProcessRenderer != nullptr && m_PostProcessRenderer->IsEnabled() && m_PostProcessRenderer->IsSSAOEnabled())
+		m_PostProcessRenderer->RenderSSAOPass(m_DepthFrameBuffer->GetDepthAttachmentTex());
+
+	//----------------------------------------------------------------------------
+
+	/*
 	//Render the Positions
 	m_PositionFrameBuffer->Bind();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);

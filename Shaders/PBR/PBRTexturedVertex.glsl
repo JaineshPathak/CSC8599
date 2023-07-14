@@ -20,6 +20,7 @@ out Vertex
 	vec2 texCoord;
 	vec3 normal;
 	vec3 fragWorldPos;
+	vec4 fragClipSpacePos;
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 TBN;
@@ -40,6 +41,7 @@ void main(void)
 	OUT.texCoord = vec2(texCoord.x, texCoord.y);
 	OUT.normal = oNormal;
 	OUT.fragWorldPos = vec3(modelMatrix * vec4(position, 1.0));
+	OUT.fragClipSpacePos = gl_Position;
 	OUT.tangent = oTangent;
 	OUT.bitangent = oBiTangent;
 	OUT.TBN = oTBN;

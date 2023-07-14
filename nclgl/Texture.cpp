@@ -113,6 +113,48 @@ Texture::Texture(const unsigned int& width, const unsigned int& height, const in
 	m_IsInitialized = true;
 }
 
+Texture::Texture(const std::string& filePath, const int& internalFormat, const int& normalFormat, const int& type, const int& minFilter, const int& magFilter, const int& wrapMode, bool generateMipMaps) :
+	m_ProgramID(0),
+	m_FilePath(filePath),
+	m_Channel(0),
+	m_InternalFormat(internalFormat),
+	m_Format(normalFormat),
+	m_Type(type),
+	m_IsMipMapped(generateMipMaps),
+	m_Data(nullptr)
+{
+	stbi_set_flip_vertically_on_load(true);
+	m_Data = (unsigned char*)stbi_load(m_FilePath.c_str(), &m_Width, &m_Height, &m_Channel, 0);
+	if (!m_Data)
+	{
+		m_IsInitialized = false;
+		return;
+	}
+
+	glCreateTextures(GL_TEXTURE_2D, 1, &m_ProgramID);
+	glBindTexture(GL_TEXTURE_2D, m_ProgramID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+
+	if (m_IsMipMapped)
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, m_Type, m_Data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	std::cout << "File: " << m_FilePath << ", Channels: " << m_Channel << ", Format: " << std::to_string(m_Format) << ", Program ID: " << m_ProgramID << std::endl;
+
+	if (m_Data)
+		stbi_image_free(m_Data);
+
+	stbi_set_flip_vertically_on_load(false);
+
+	m_IsInitialized = true;
+}
+
 Texture::Texture(const std::string& filePath, const unsigned int& width, const unsigned int& height, bool generateMipMaps) :
 	m_ProgramID(0),
 	m_FilePath(filePath),

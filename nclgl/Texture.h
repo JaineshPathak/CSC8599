@@ -11,6 +11,7 @@ public:
 	Texture(const unsigned int& width, const unsigned int& height, const int& internalFormat, const int& normalFormat, const int& type, bool generateMipMaps = true);
 	Texture(const unsigned int& width, const unsigned int& height, const int& internalFormat, const int& normalFormat, const int& type, const int& minFilter, const int& magFilter, const int& wrapMode, bool generateMipMaps = true);
 	Texture(const std::string& filePath, const unsigned int& width, const unsigned int& height, bool generateMipMaps = true);
+	Texture(const std::string& filePath, const int& internalFormat, const int& normalFormat, const int& type, const int& minFilter, const int& magFilter, const int& wrapMode, bool generateMipMaps = true);
 	Texture(const std::string& filePath, bool shouldValidate = true);	
 	virtual ~Texture();
 

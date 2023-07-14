@@ -30,6 +30,20 @@ const unsigned int PostProcessRenderer::GetFinalTexture() const
 	return m_FinalFBO.GetColorAttachmentTex();
 }
 
+void PostProcessRenderer::RenderSSAOPass(const unsigned int& depthTextureID)
+{
+	if (!m_IsEnabled) return;
+
+	if (Renderer::Get()->GetGlobalFrameBuffer()->GetWidth() != m_Width || Renderer::Get()->GetGlobalFrameBuffer()->GetHeight() != m_Height)
+	{
+		m_Width = Renderer::Get()->GetGlobalFrameBuffer()->GetWidth();
+		m_Height = Renderer::Get()->GetGlobalFrameBuffer()->GetHeight();
+		m_PostEffects[0]->OnResize(m_Width, m_Height);
+	}
+
+	m_PostEffects[0]->Render(0, depthTextureID);
+}
+
 void PostProcessRenderer::Render(const unsigned int& srcTexture, const unsigned int& depthTextureID)
 {
 	if (!m_IsEnabled) return;
