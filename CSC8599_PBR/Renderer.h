@@ -1,10 +1,13 @@
 #pragma once
 #include <nclgl/OGLRenderer.h>
 #include <vector>
+#include <unordered_map>
 #include <memory>
 
 class LookAtCamera;
 class Mesh;
+class MeshMaterial;
+class MeshMaterialEntry;
 class ImGuiRenderer;
 class LightsManager;
 class SkyboxRenderer;
@@ -33,7 +36,7 @@ public:
 	std::shared_ptr<FrameBuffer> GetDepthFrameBuffer() { return m_DepthFrameBuffer; }
 	//std::shared_ptr<FrameBuffer> GetPositionFrameBuffer() { return m_PositionFrameBuffer; }
 	//std::shared_ptr<FrameBuffer> GetNormalsFrameBuffer() { return m_NormalsFrameBuffer; }
-	std::shared_ptr<PostProcessRenderer> GetPostProcessBuffer() { return m_PostProcessRenderer; }
+	std::shared_ptr<PostProcessRenderer> GetPostProcessBuffer() { return m_PostProcessRenderer; }	
 
 protected:
 	bool Initialize();
@@ -45,15 +48,18 @@ protected:
 	bool InitMesh();
 	bool InitPostProcessor();
 	bool InitTextures();
+	bool InitMaterialTextures();
 	void SetupGLParameters();
+
+	std::shared_ptr<Texture> AddMaterialTexture(const std::string& fileName);
+	void LoadMaterialTextures(const int& index, const std::string& entryName, const MeshMaterialEntry* materialEntry, std::vector<int>& textureSetContainer);
 
 	void HandleInputs(float dt);	
 
 	void HandleUBOData();
 	//void RenderCubeMap();
 	//void RenderCubeMap2();
-	void RenderHelmet();
-
+	void RenderHelmet();	
 
 public:
 	void RenderScene() override;
@@ -73,13 +79,23 @@ protected:
 
 	std::shared_ptr<Mesh> m_QuadMesh;
 	std::shared_ptr<Mesh> m_CubeMesh;
-	std::shared_ptr<Mesh> m_HelmetMesh;
+
+	std::shared_ptr<Mesh> m_CarMesh;
+	std::shared_ptr<MeshMaterial> m_CarMaterial;
+	std::unordered_map<std::string, std::shared_ptr<Texture>> m_CarTexturesSet;
+	std::vector<int> m_CarDiffuseSet;
+	std::vector<int> m_CarMetallicSet;
+	std::vector<int> m_CarRoughnessSet;
+	std::vector<int> m_CarNormalSet;
+	std::vector<int> m_CarOcclusionSet;
+	std::vector<int> m_CarEmissionSet;
 		
+	/*std::shared_ptr<Mesh> m_HelmetMesh;
 	std::shared_ptr<Texture> m_HelmetTextureAlbedo;
 	std::shared_ptr<Texture> m_HelmetTextureNormal;
 	std::shared_ptr<Texture> m_HelmetTextureMetallic;
 	std::shared_ptr<Texture> m_HelmetTextureRoughness;
-	std::shared_ptr<Texture> m_HelmetTextureEmissive;	
+	std::shared_ptr<Texture> m_HelmetTextureEmissive;*/	
 
 	std::shared_ptr<FrameBuffer> m_GlobalFrameBuffer;
 	std::shared_ptr<FrameBuffer> m_DepthFrameBuffer;

@@ -43,6 +43,7 @@ public:
 	int GetUniformLocation(const std::string& name);
 
 	void SetInt(const std::string& name, const int& val);
+	void SetBool(const std::string& name, const bool& val);
 	void SetFloat(const std::string& name, const float& val);
 	void SetMat4(const std::string& name, const Matrix4& val, bool transposed = false);
 	void SetVector2(const std::string& name, const Vector2& val);
