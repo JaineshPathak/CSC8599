@@ -46,6 +46,7 @@
     <ClCompile Include="MeshAnimation.cpp" />
     <ClCompile Include="MeshMaterial.cpp" />
     <ClCompile Include="Mouse.cpp" />
+    <ClCompile Include="Object3D.cpp" />
     <ClCompile Include="OGLRenderer.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Quaternion.cpp" />
@@ -94,6 +95,7 @@
     <ClInclude Include="MeshAnimation.h" />
     <ClInclude Include="MeshMaterial.h" />
     <ClInclude Include="Mouse.h" />
+    <ClInclude Include="Object3D.h" />
     <ClInclude Include="OGLRenderer.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Quaternion.h" />

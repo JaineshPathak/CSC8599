@@ -4,6 +4,7 @@
 #include "LightsManager.h"
 #include "SkyboxRenderer.h"
 #include "PostProcessRenderer.h"
+#include "Object3DRenderer.h"
 
 #include <nclgl/Texture.h>
 #include <nclgl/TextureHDR.h>
@@ -24,7 +25,7 @@
 Renderer* Renderer::m_Renderer = nullptr;
 
 Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
-{	
+{
 	m_Renderer = this;
 
 	init = Initialize();
@@ -33,7 +34,7 @@ Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 #if _DEBUG
 	Log("Main Renderer: Everything is Initialised! Good To Go!");
 #endif
-} 
+}
 
 bool Renderer::Initialize()
 {
@@ -44,8 +45,6 @@ bool Renderer::Initialize()
 	if (!InitLights())				return false;
 	if (!InitMesh())				return false;
 	if (!InitPostProcessor())		return false;
-	if (!InitTextures())			return false;
-	if (!InitMaterialTextures())	return false;
 
 	SetupGLParameters();
 	
@@ -62,19 +61,12 @@ bool Renderer::InitCamera()
 {
 	m_MainCamera = std::shared_ptr<LookAtCamera>(new LookAtCamera(Vector3(0, 1.0f, 3.0f), Vector3(0, 0, 0)));
 	m_MainCamera->SetLookAtDistance(m_MainCamera->GetPosition().z - 0.0f + 1.0f);
-	m_MainCamera->SetLookAtPosition(Vector3(0, 0.5f, 0));
+	m_MainCamera->SetLookAtPosition(Vector3(0, 1.0f, 0));
 	return m_MainCamera != nullptr;
 }
 
 bool Renderer::InitShaders()
 {
-	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
-	//m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
-	if (!m_PBRShader->LoadSuccess()) return false;
-
-	m_DepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
-	if (!m_DepthBufferShader->LoadSuccess()) return false;
-
 	/*
 	m_PositionBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRPositionBufferVert.glsl", "PBR/PBRPositionBufferFrag.glsl"));
 	if (!m_PositionBufferShader->LoadSuccess()) return false;
@@ -95,10 +87,7 @@ bool Renderer::InitBuffers()
 	float h = m_WindowParent.GetScreenSize().y;
 
 	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA16F, GL_RGBA, GL_FLOAT, 2));
-	if (m_GlobalFrameBuffer == nullptr) return false;
-
-	m_DepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
-	if (m_DepthFrameBuffer == nullptr) return false;
+	if (m_GlobalFrameBuffer == nullptr) return false;	
 
 	/*
 	m_PositionFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
@@ -124,17 +113,14 @@ bool Renderer::InitLights()
 	m_SkyboxRenderer = std::shared_ptr<SkyboxRenderer>(new SkyboxRenderer());
 	if (!m_SkyboxRenderer->IsInitialized()) return false;
 
+	m_Object3DRenderer = std::shared_ptr<Object3DRenderer>(new Object3DRenderer((float)width, (float)height));
+	if (!m_Object3DRenderer->IsInitialized()) return false;
+
 	return true;
 }
 
 bool Renderer::InitMesh()
 {
-	m_CarMesh = std::shared_ptr<Mesh>(Mesh::LoadFromMeshFile("Mesh_Car_MiniCooper.msh"));
-	if(m_CarMesh == nullptr) return false;
-
-	//m_HelmetMesh = std::shared_ptr<Mesh>(Mesh::LoadFromMeshFile("Mesh_SciFi_Helmet.msh"));
-	//if(m_HelmetMesh == nullptr) return false;
-
 	m_QuadMesh = std::shared_ptr<Mesh>(Mesh::GenerateQuad());
 	if (m_QuadMesh == nullptr) return false;
 
@@ -144,10 +130,8 @@ bool Renderer::InitMesh()
 	return true;
 }
 
-bool Renderer::InitTextures()
-{
 #pragma region Helmet Stuffs
-	/*m_HelmetTextureAlbedo = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png"));
+/*m_HelmetTextureAlbedo = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_BaseColor_sRGB.png"));
 if (!m_HelmetTextureAlbedo->IsInitialized()) return false;
 
 m_HelmetTextureNormal = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet/Helmet_Normal_Raw.png"));
@@ -163,41 +147,9 @@ m_HelmetTextureEmissive = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Helmet
 if (!m_HelmetTextureEmissive->IsInitialized()) return false;*/
 #pragma endregion
 
-	m_CarMaterial = std::shared_ptr<MeshMaterial>(new MeshMaterial("Mesh_Car_MiniCooper.mat"));
-	if (m_CarMaterial == nullptr) return false;
-	
-	return true;
-}
-
-bool Renderer::InitMaterialTextures()
-{
-	if (m_CarMesh == nullptr)
-		return false;
-
-	m_CarDiffuseSet.assign(m_CarMesh->GetSubMeshCount(), -1);
-	m_CarMetallicSet.assign(m_CarMesh->GetSubMeshCount(), -1);
-	m_CarRoughnessSet.assign(m_CarMesh->GetSubMeshCount(), -1);
-	m_CarNormalSet.assign(m_CarMesh->GetSubMeshCount(), -1);
-	m_CarOcclusionSet.assign(m_CarMesh->GetSubMeshCount(), -1);
-	m_CarEmissionSet.assign(m_CarMesh->GetSubMeshCount(), -1);
-
-	for (int i = 0; i < m_CarMesh->GetSubMeshCount(); i++)
-	{
-		const MeshMaterialEntry* matEntry = m_CarMaterial->GetMaterialForLayer(i);
-		LoadMaterialTextures(i, "Diffuse", matEntry, m_CarDiffuseSet);
-		LoadMaterialTextures(i, "Metallic", matEntry, m_CarMetallicSet);
-		LoadMaterialTextures(i, "Roughness", matEntry, m_CarRoughnessSet);
-		LoadMaterialTextures(i, "Bump", matEntry, m_CarNormalSet);
-		LoadMaterialTextures(i, "Occlusion", matEntry, m_CarOcclusionSet);
-		LoadMaterialTextures(i, "Emission", matEntry, m_CarEmissionSet);
-	}
-
-	return true;
-}
-
 bool Renderer::InitPostProcessor()
 {
-	m_PostProcessRenderer = std::shared_ptr<PostProcessRenderer>(new PostProcessRenderer(width, height));
+	m_PostProcessRenderer = std::shared_ptr<PostProcessRenderer>(new PostProcessRenderer((unsigned int)width, (unsigned int)height));
 	if (!m_PostProcessRenderer->IsInitialized()) return false;
 
 	return true;
@@ -217,32 +169,6 @@ void Renderer::SetupGLParameters()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-}
-
-std::shared_ptr<Texture> Renderer::AddMaterialTexture(const std::string& fileName)
-{
-	std::unordered_map<std::string, std::shared_ptr<Texture>>::iterator i = m_CarTexturesSet.find(fileName);
-	if (i != m_CarTexturesSet.end())
-		return i->second;
-
-	std::shared_ptr<Texture> tex = std::shared_ptr<Texture>(new Texture(fileName));
-	m_CarTexturesSet.emplace(fileName, tex);
-
-	return tex;
-}
-
-void Renderer::LoadMaterialTextures(const int& index, const std::string& entryName, const MeshMaterialEntry* materialEntry, std::vector<int>& textureSetContainer)
-{
-	const std::string* textureFileName = nullptr;
-	materialEntry->GetEntry(entryName, &textureFileName);
-	if (textureFileName != nullptr)
-	{
-		std::string filePath = TEXTUREDIR + *textureFileName;
-		std::shared_ptr<Texture> tex = AddMaterialTexture(filePath);
-		
-		if (tex != nullptr)
-			textureSetContainer[index] = tex->GetID();		
-	}
 }
 
 void Renderer::HandleInputs(float dt)
@@ -282,87 +208,16 @@ void Renderer::HandleUBOData()
 	//m_LightsManager->BindLightUBOData();
 }
 
-void Renderer::RenderHelmet()
-{
-	m_PBRShader->Bind();
-
-	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo, 0);
-	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal, 1);
-	m_PBRShader->SetTexture("metallicTex", m_HelmetTextureMetallic, 2);
-	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness, 3);
-	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive, 4);*/
-
-	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
-	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
-	m_PBRShader->SetTexture("metallicTex", m_HelmetTextureMetallic->GetID(), 2);
-	m_PBRShader->SetTexture("roughnessTex", m_HelmetTextureRoughness->GetID(), 3);
-	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 4);*/
-	
-	m_PBRShader->SetTextureCubeMap("irradianceTex", m_SkyboxRenderer->GetIrradianceTexture()->GetID(), 6);
-	m_PBRShader->SetTextureCubeMap("prefilterTex", m_SkyboxRenderer->GetPreFilterTexture()->GetID(), 7);
-	m_PBRShader->SetTexture("brdfLUTTex", m_SkyboxRenderer->GetBRDFLUTTexture()->GetID(), 8);
-	
-	m_PBRShader->SetTexture("ssaoTex", m_PostProcessRenderer->GetSSAOProcessedTexture(), 9);
-	m_PBRShader->SetInt("ssaoEnabled", m_PostProcessRenderer->IsSSAOEnabled() && m_PostProcessRenderer->IsEnabled());
-
-	/*m_PBRShader->SetTexture("albedoTex", m_HelmetTextureAlbedo->GetID(), 0);
-	m_PBRShader->SetTexture("normalTex", m_HelmetTextureNormal->GetID(), 1);
-	m_PBRShader->SetTexture("emissiveTex", m_HelmetTextureEmissive->GetID(), 2);
-	m_PBRShader->SetTextureCubeMap("cubeTex", m_CubeMapTexture, 3);*/
-
-	m_PBRShader->SetVector3("cameraPos", m_MainCamera->GetPosition());
-	m_PBRShader->SetMat4("modelMatrix", modelMatrix);
-
-	for (int i = 0; i < m_CarMesh->GetSubMeshCount(); i++)
-	{
-		m_PBRShader->SetBool("hasAlbedoTex", m_CarDiffuseSet[i] != -1);
-		if(m_CarDiffuseSet[i] != -1) m_PBRShader->SetTexture("albedoTex", m_CarDiffuseSet[i], 0);
-
-		m_PBRShader->SetBool("hasNormalTex", m_CarNormalSet[i] != -1);
-		if (m_CarNormalSet[i] != -1) m_PBRShader->SetTexture("normalTex", m_CarNormalSet[i], 1);
-
-		m_PBRShader->SetBool("hasMetallicTex", m_CarMetallicSet[i] != -1);
-		if (m_CarMetallicSet[i] != -1) m_PBRShader->SetTexture("metallicTex", m_CarMetallicSet[i], 2);
-
-		m_PBRShader->SetBool("hasRoughnessTex", m_CarRoughnessSet[i] != -1);
-		if (m_CarRoughnessSet[i] != -1) m_PBRShader->SetTexture("roughnessTex", m_CarRoughnessSet[i], 3);
-
-		m_PBRShader->SetBool("hasOcclusionTex", m_CarOcclusionSet[i] != -1);
-		if (m_CarOcclusionSet[i] != -1) m_PBRShader->SetTexture("occlusionTex", m_CarOcclusionSet[i], 5);
-
-		m_PBRShader->SetBool("hasEmissiveTex", m_CarEmissionSet[i] != -1);
-		if (m_CarEmissionSet[i] != -1) m_PBRShader->SetTexture("emissiveTex", m_CarEmissionSet[i], 4);
-
-
-		m_CarMesh->DrawSubMesh(i);
-	}
-
-	/*Matrix4 floorModelMat = Matrix4::Translation(Vector3::DOWN) * Matrix4::Rotation(-90.0f, Vector3::RIGHT) * Matrix4::Scale(5.0f);
-	m_PBRShader->SetMat4("modelMatrix", floorModelMat);
-	m_QuadMesh->Draw();*/
-
-	m_PBRShader->UnBind();
-}
-
 void Renderer::RenderScene()
 {	
 	//Render the Depths
-	m_DepthFrameBuffer->Bind();
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-	m_DepthBufferShader->Bind();
-
-	for (int i = 0; i < m_CarMesh->GetSubMeshCount(); i++)
-		m_CarMesh->DrawSubMesh(i);
-
-	m_DepthBufferShader->UnBind();
-	m_DepthFrameBuffer->Unbind();
+	m_Object3DRenderer->RenderDepths();
 
 	//----------------------------------------------------------------------------
 
 	//SSAO Pass
 	if (m_PostProcessRenderer != nullptr && m_PostProcessRenderer->IsEnabled() && m_PostProcessRenderer->IsSSAOEnabled())
-		m_PostProcessRenderer->RenderSSAOPass(m_DepthFrameBuffer->GetDepthAttachmentTex());
+		m_PostProcessRenderer->RenderSSAOPass(m_Object3DRenderer->GetDepthTexture());
 
 	//----------------------------------------------------------------------------
 
@@ -402,13 +257,13 @@ void Renderer::RenderScene()
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	HandleUBOData();
-	RenderHelmet();
+	m_Object3DRenderer->Render();
 	m_SkyboxRenderer->Render();
 	m_LightsManager->Render();
 
 	m_GlobalFrameBuffer->Unbind();
 
-	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1), m_DepthFrameBuffer->GetDepthAttachmentTex());
+	m_PostProcessRenderer->Render(m_GlobalFrameBuffer->GetColorAttachmentTex(1), m_Object3DRenderer->GetDepthTexture());
 	RenderImGui();
 	
 	/*

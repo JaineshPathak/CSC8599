@@ -141,6 +141,8 @@
     <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="LookAtCamera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Object3DEntity.cpp" />
+    <ClCompile Include="Object3DRenderer.cpp" />
     <ClCompile Include="PostProcessBloom.cpp" />
     <ClCompile Include="PostProcessEffect.cpp" />
     <ClCompile Include="PostProcessInvertColor.cpp" />
@@ -154,6 +156,8 @@
     <ClInclude Include="ImGuiRenderer.h" />
     <ClInclude Include="LightsManager.h" />
     <ClInclude Include="LookAtCamera.h" />
+    <ClInclude Include="Object3DEntity.h" />
+    <ClInclude Include="Object3DRenderer.h" />
     <ClInclude Include="PostProcessBloom.h" />
     <ClInclude Include="PostProcessEffect.h" />
     <ClInclude Include="PostProcessInvertColor.h" />
@@ -169,6 +173,8 @@
     <None Include="..\Shaders\PBR\PBRBRDFConvolutionVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRCombinedFrag.glsl" />
     <None Include="..\Shaders\PBR\PBRCombinedVert.glsl" />
+    <None Include="..\Shaders\PBR\PBRDepthBufferFrag.glsl" />
+    <None Include="..\Shaders\PBR\PBRDepthBufferVert.glsl" />
     <None Include="..\Shaders\PBR\PBREquiRect2CubeMapFragment.glsl" />
     <None Include="..\Shaders\PBR\PBREquiRect2CubeMapVertex.glsl" />
     <None Include="..\Shaders\PBR\PBRIrradianceCubeMapFragment.glsl" />

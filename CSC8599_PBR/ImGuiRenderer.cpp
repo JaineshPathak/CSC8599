@@ -63,9 +63,9 @@ void ImGuiRenderer::Render()
 
 	ImGui::Begin("Post Processing");
 
-	bool postEnabled = Renderer::Get()->GetPostProcessBuffer()->IsEnabled();
+	bool postEnabled = Renderer::Get()->GetPostProcessRenderer()->IsEnabled();
 	if (ImGui::Checkbox("Enable Post Process", &postEnabled))
-		Renderer::Get()->GetPostProcessBuffer()->SetActive(postEnabled);
+		Renderer::Get()->GetPostProcessRenderer()->SetActive(postEnabled);
 
 	if (postEnabled)
 	{
@@ -90,8 +90,8 @@ void ImGuiRenderer::Render()
 	//ImGui::Image(tex, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
 	
 	unsigned int texID = -1;
-	if (Renderer::Get()->GetPostProcessBuffer() != nullptr && Renderer::Get()->GetPostProcessBuffer()->IsEnabled())
-		texID = Renderer::Get()->GetPostProcessBuffer()->GetFinalTexture();
+	if (Renderer::Get()->GetPostProcessRenderer() != nullptr && Renderer::Get()->GetPostProcessRenderer()->IsEnabled())
+		texID = Renderer::Get()->GetPostProcessRenderer()->GetFinalTexture();
 	else
 		texID = Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex();
 

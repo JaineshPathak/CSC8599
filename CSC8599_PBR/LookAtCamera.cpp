@@ -30,7 +30,6 @@ LookAtCamera::LookAtCamera(Vector3 _position, Vector3 _rotation) :
 void LookAtCamera::UpdateCamera(float dt)
 {
 	if (ImGui::GetCurrentContext() == nullptr) return;
-	if (!ImGuiRenderer::Get()->IsMouseOverScene()) return;
 	//if (ImGui::GetIO().MouseDrawCursor) return;
 	//if (ImGui::GetCurrentContext()->HoveredWindow != nullptr && ImGui::GetCurrentContext()->HoveredWindow->Name == "Scene") return;
 	//if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered() || ImGui::IsAnyItemFocused()) return;
@@ -43,7 +42,7 @@ void LookAtCamera::UpdateCamera(float dt)
 		return;
 	}
 
-	if (Window::GetMouse()->ButtonHeld(MouseButtons::MOUSE_LEFT))
+	if (Window::GetMouse()->ButtonHeld(MouseButtons::MOUSE_LEFT) && ImGuiRenderer::Get()->IsMouseOverScene())
 	{
 		m_CamRotation.x -= (Window::GetMouse()->GetRelativePosition().y) * m_Sensitivity;
 		m_CamRotation.y -= (Window::GetMouse()->GetRelativePosition().x) * m_Sensitivity;
@@ -53,19 +52,19 @@ void LookAtCamera::UpdateCamera(float dt)
 
 		if (m_CamRotation.y < 0)		m_CamRotation.y += 360.0f;
 		if (m_CamRotation.y > 360.0f)	m_CamRotation.y -= 360.0f;
-
-		Matrix4 yawMat = Matrix4::Rotation(m_CamRotation.y, Vector3::UP);
-		Matrix4 pitchMat = Matrix4::Rotation(m_CamRotation.x, yawMat * Vector3::RIGHT);
-		Matrix4 finalRotMat = pitchMat * yawMat;
-
-		m_CamFront = finalRotMat * Vector3::FORWARD;
-		m_CamUp = finalRotMat * Vector3::UP;
-		m_CamRight = finalRotMat * Vector3::RIGHT;
-	
-		Vector3 lookDirection = finalRotMat * Vector3::FORWARD;
-
-		m_CamPosition = m_lookAtPos - lookDirection * m_lookAtDistance;
 	}
+
+	Matrix4 yawMat = Matrix4::Rotation(m_CamRotation.y, Vector3::UP);
+	Matrix4 pitchMat = Matrix4::Rotation(m_CamRotation.x, yawMat * Vector3::RIGHT);
+	Matrix4 finalRotMat = pitchMat * yawMat;
+
+	m_CamFront = finalRotMat * Vector3::FORWARD;
+	m_CamUp = finalRotMat * Vector3::UP;
+	m_CamRight = finalRotMat * Vector3::RIGHT;
+	
+	Vector3 lookDirection = finalRotMat * Vector3::FORWARD;
+
+	m_CamPosition = m_lookAtPos - lookDirection * m_lookAtDistance;
 }
 
 Matrix4 LookAtCamera::CalcViewMatrix()

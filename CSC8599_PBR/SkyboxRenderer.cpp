@@ -115,7 +115,7 @@ bool SkyboxRenderer::InitTextures()
 
 	m_SkyboxesNamesList = new char* [m_SkyBoxesNames.size()];
 	for (size_t i = 0; i < m_SkyBoxesNames.size(); i++)	
-		m_SkyboxesNamesList[i] = (char*)m_SkyBoxesNames[i].c_str();	
+		m_SkyboxesNamesList[i] = (char*)m_SkyBoxesNames[i].c_str();
 
 	return true;
 }

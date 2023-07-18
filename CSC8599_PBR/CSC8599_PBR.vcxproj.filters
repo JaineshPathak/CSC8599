@@ -48,6 +48,12 @@
     <ClCompile Include="PostProcessSSAO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Object3DEntity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Object3DRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -83,6 +89,12 @@
     <ClInclude Include="PostProcessSSAO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Object3DEntity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Object3DRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl" />
@@ -113,5 +125,7 @@
     <None Include="..\Shaders\PostProcess\PostInvertFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostSSAOBlurFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostSSAOBlurVert.glsl" />
+    <None Include="..\Shaders\PBR\PBRDepthBufferFrag.glsl" />
+    <None Include="..\Shaders\PBR\PBRDepthBufferVert.glsl" />
   </ItemGroup>
 </Project>
