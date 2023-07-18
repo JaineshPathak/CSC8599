@@ -4,7 +4,7 @@
 #include <imgui/imgui.h>
 
 LookAtCamera::LookAtCamera() :
-	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_CameraMovementType(0), Camera()
+	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_RotationSpeed(10.0f), m_CameraMovementType(0), Camera()
 {
 	SetFOV(60.0f);
 	SetZNear(0.1f);
@@ -12,7 +12,7 @@ LookAtCamera::LookAtCamera() :
 }
 
 LookAtCamera::LookAtCamera(float _pitch, float _yaw, float _roll, Vector3 _position) :
-	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_CameraMovementType(0), Camera(_pitch, _yaw, _roll, _position)
+	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_RotationSpeed(10.0f), m_CameraMovementType(0), Camera(_pitch, _yaw, _roll, _position)
 {
 	SetFOV(60.0f);
 	SetZNear(0.1f);
@@ -20,7 +20,7 @@ LookAtCamera::LookAtCamera(float _pitch, float _yaw, float _roll, Vector3 _posit
 }
 
 LookAtCamera::LookAtCamera(Vector3 _position, Vector3 _rotation) :
-	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_CameraMovementType(0), Camera(_position, _rotation)
+	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_RotationSpeed(10.0f), m_CameraMovementType(0), Camera(_position, _rotation)
 {
 	SetFOV(60.0f);
 	SetZNear(0.1f);
@@ -50,9 +50,12 @@ void LookAtCamera::UpdateCamera(float dt)
 		m_CamRotation.x = std::min(m_CamRotation.x, 89.0f);
 		m_CamRotation.x = std::max(m_CamRotation.x, -89.0f);
 
-		if (m_CamRotation.y < 0)		m_CamRotation.y += 360.0f;
-		if (m_CamRotation.y > 360.0f)	m_CamRotation.y -= 360.0f;
 	}
+	else
+		m_CamRotation.y += m_RotationSpeed * dt;
+
+	if (m_CamRotation.y < 0)		m_CamRotation.y += 360.0f;
+	if (m_CamRotation.y > 360.0f)	m_CamRotation.y -= 360.0f;
 
 	Matrix4 yawMat = Matrix4::Rotation(m_CamRotation.y, Vector3::UP);
 	Matrix4 pitchMat = Matrix4::Rotation(m_CamRotation.x, yawMat * Vector3::RIGHT);
@@ -98,6 +101,9 @@ void LookAtCamera::OnImGuiRender()
 
 		float m_lookDist = m_lookAtDistance;
 		if (ImGui::SliderFloat("Look At Distance", &m_lookDist, 2.0f, 10.0f)) SetLookAtDistance(m_lookDist);
+
+		float m_speed = m_RotationSpeed;
+		if (ImGui::SliderFloat("Speed", &m_speed, 1.0f, 30.0f)) m_RotationSpeed = m_speed;
 		
 		ImGui::Separator();
 		

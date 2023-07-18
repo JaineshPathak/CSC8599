@@ -21,6 +21,7 @@ public:
 protected:
 	float m_lookAtDistance;
 	float m_Sensitivity;
+	float m_RotationSpeed;
 	Vector3 m_lookAtPos;
 
 	int m_CameraMovementType;
