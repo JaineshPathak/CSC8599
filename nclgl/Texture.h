@@ -3,6 +3,23 @@
 #include <string>
 #include <glad/glad.h>
 
+struct TextureData
+{
+	std::string path;
+	unsigned char* data;
+	int texWidth;
+	int texHeight;
+	int texChannels;
+
+	TextureData(const std::string& fPath) : path(fPath)
+	{
+		data = nullptr;
+		texWidth = 0;
+		texHeight = 0;
+		texChannels = 0;
+	}
+};
+
 class Texture
 {
 public:
@@ -12,7 +29,8 @@ public:
 	Texture(const unsigned int& width, const unsigned int& height, const int& internalFormat, const int& normalFormat, const int& type, const int& minFilter, const int& magFilter, const int& wrapMode, bool generateMipMaps = true);
 	Texture(const std::string& filePath, const unsigned int& width, const unsigned int& height, bool generateMipMaps = true);
 	Texture(const std::string& filePath, const int& internalFormat, const int& normalFormat, const int& type, const int& minFilter, const int& magFilter, const int& wrapMode, bool generateMipMaps = true);
-	Texture(const std::string& filePath, bool shouldValidate = true);	
+	Texture(const std::string& filePath, bool shouldValidate = true);
+	Texture(const TextureData& texData);
 	virtual ~Texture();
 
 	unsigned int GetID() const { return m_ProgramID; }
@@ -21,7 +39,7 @@ public:
 
 	inline virtual void Bind();
 	inline virtual void Unbind();
-	virtual void UploadData(const void* data);
+	virtual void UploadData(void* data);
 
 	bool IsInitialized() const
 	{ 
