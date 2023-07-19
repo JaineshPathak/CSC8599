@@ -17,7 +17,7 @@ Object3DRenderer::Object3DRenderer(const float& width, const float& height) :
 	if (!InitShaders()) return;
 	if (!InitBuffers()) return;
 
-	Add3DObject("Mini Cooper", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f);
+	Add3DObject("Car", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f);
 	Add3DObject("Helmet", "Mesh_SciFi_Helmet.msh", "Mesh_SciFi_Helmet.mat", 3.0f);
 	Add3DObject("Character", "Mesh_SciFi_Character.msh", "Mesh_SciFi_Character.mat", 1.65f);
 
