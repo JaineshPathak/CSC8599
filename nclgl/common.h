@@ -39,7 +39,7 @@ static inline float DegToRad(const float rad)	{
 
 static inline float naive_lerp(float a, float b, float t)
 {
-	return a + t * (b - a);
+	return a + (b - a) * t;
 }
 
 static inline float Clamp(const float& val, const float& min, const float& max)

@@ -87,6 +87,21 @@ public:
 		return finalV;
 	}
 
+	static Vector3 Slerp(const Vector3& _start, const Vector3& _end, float t)
+	{
+		float dot = Dot(_start, _end);
+		dot = Clamp(dot, -1.0f, 1.0f);
+
+		float angle = std::acos(dot) * t;
+		Vector3 relativeVec = _end - _start * dot;
+		relativeVec.Normalise();
+
+		Vector3 startFactor = _start * std::cos(angle);
+		Vector3 endFactor = relativeVec * std::sin(angle);
+
+		return startFactor + endFactor;
+	}
+
 	static float Distance(const Vector3& p1, const Vector3& p2)
 	{
 		float diffY = p1.y - p2.y;

@@ -3,6 +3,9 @@
 #include <nclgl/Window.h>
 #include <imgui/imgui.h>
 
+const float lerpTime = 2.0f;
+float lerpCounter = 0.0f;
+
 LookAtCamera::LookAtCamera() :
 	m_lookAtDistance(0.0f), m_Sensitivity(6.0f), m_RotationSpeed(10.0f), m_CameraMovementType(0), Camera()
 {
@@ -52,7 +55,10 @@ void LookAtCamera::UpdateCamera(float dt)
 
 	}
 	else
-		m_CamRotation.y += m_RotationSpeed * dt;
+	{
+		if(m_RotationSpeed > 0.001f)
+			m_CamRotation.y += m_RotationSpeed * dt;
+	}
 
 	if (m_CamRotation.y < 0)		m_CamRotation.y += 360.0f;
 	if (m_CamRotation.y > 360.0f)	m_CamRotation.y -= 360.0f;
@@ -66,8 +72,9 @@ void LookAtCamera::UpdateCamera(float dt)
 	m_CamRight = finalRotMat * Vector3::RIGHT;
 	
 	Vector3 lookDirection = finalRotMat * Vector3::FORWARD;
+	Vector3 finalPosition = m_lookAtPos - lookDirection * m_lookAtDistance;	
 
-	m_CamPosition = m_lookAtPos - lookDirection * m_lookAtDistance;
+	m_CamPosition = finalPosition;
 }
 
 Matrix4 LookAtCamera::CalcViewMatrix()
@@ -85,7 +92,12 @@ void LookAtCamera::OnImGuiRender()
 	{
 		ImGui::Combo("Movement Type", &m_CameraMovementType, m_CameraMovementTypeStr, 2);
 
-		if (m_CameraMovementType == 1)
+		if (m_CameraMovementType == 0)
+		{
+			float m_speed = m_RotationSpeed;
+			if (ImGui::SliderFloat("Rotation Speed", &m_speed, 0.0f, 30.0f)) m_RotationSpeed = m_speed;
+		}
+		else if (m_CameraMovementType == 1)
 		{
 			float m_Speed = m_DefaultSpeed;
 			if (ImGui::SliderFloat("Speed", &m_Speed, 1.0f, 20.0f)) m_DefaultSpeed = m_Speed;
@@ -100,10 +112,7 @@ void LookAtCamera::OnImGuiRender()
 		if (ImGui::SliderFloat("FOV", &m_fov, 10.0f, 80.0f)) SetFOV(m_fov);
 
 		float m_lookDist = m_lookAtDistance;
-		if (ImGui::SliderFloat("Look At Distance", &m_lookDist, 2.0f, 10.0f)) SetLookAtDistance(m_lookDist);
-
-		float m_speed = m_RotationSpeed;
-		if (ImGui::SliderFloat("Speed", &m_speed, 1.0f, 30.0f)) m_RotationSpeed = m_speed;
+		if (ImGui::SliderFloat("Look At Distance", &m_lookDist, 2.0f, 10.0f)) SetLookAtDistance(m_lookDist);		
 		
 		ImGui::Separator();
 		

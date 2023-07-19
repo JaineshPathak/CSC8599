@@ -22,6 +22,8 @@ uniform bool hasRoughnessTex = false;
 uniform bool hasEmissiveTex = false;
 uniform bool hasOcclusionTex = false;
 
+uniform vec3 diffuseColor = vec3(1.0);
+
 //Lightings
 uniform vec3 cameraPos;
 
@@ -274,7 +276,7 @@ void main(void)
 	float m_GAMMA = skyboxData.y;
 	float m_Exposure = skyboxData.x;
 
-	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb : vec3(1.0, 1.0, 1.0);
+	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * diffuseColor : diffuseColor;
 	albedoColor = pow(albedoColor, vec3(m_GAMMA));
 
 	mat3 TBN = mat3(normalize(IN.tangent), normalize(IN.bitangent), normalize(IN.normal));

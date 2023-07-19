@@ -19,6 +19,7 @@ Object3DRenderer::Object3DRenderer(const float& width, const float& height) :
 
 	Add3DObject("Mini Cooper", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f);
 	Add3DObject("Helmet", "Mesh_SciFi_Helmet.msh", "Mesh_SciFi_Helmet.mat", 3.0f);
+	Add3DObject("Character", "Mesh_SciFi_Character.msh", "Mesh_SciFi_Character.mat", 1.65f);
 
 	m_3DEntities[0]->SetPosition(Vector3(0.0f, 0.5f, 0.0f));
 
