@@ -91,4 +91,6 @@ protected:
 private:
 	Window& m_WindowParent;
 	bool m_showCursor;
+
+	bool doSimpleShader = false;
 };

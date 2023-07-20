@@ -11,9 +11,11 @@ PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsign
 
 	m_FinalFBO.~FrameBuffer();
 	new(&m_FinalFBO) FrameBuffer(m_Width, m_Height, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+	m_FinalFBO.RemoveDepthAttachment();
 
 	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessSSAO(m_Width, m_Height)));
 	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessBloom(m_Width, m_Height)));
+	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessVignette(m_Width, m_Height)));
 	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessInvertColor(m_Width, m_Height)));
 
 	m_IsInitialized = true;
@@ -24,7 +26,7 @@ PostProcessRenderer::~PostProcessRenderer()
 	m_IsInitialized = false;
 }
 
-const unsigned int PostProcessRenderer::GetFinalTexture() const
+const unsigned int PostProcessRenderer::GetMidFinalTexture() const
 {
 	//return m_FinalTextureID;
 	return m_FinalFBO.GetColorAttachmentTex();
@@ -34,89 +36,190 @@ void PostProcessRenderer::RenderSSAOPass(const unsigned int& depthTextureID)
 {
 	if (!m_IsEnabled) return;
 
-	if (Renderer::Get()->GetGlobalFrameBuffer()->GetWidth() != m_Width || Renderer::Get()->GetGlobalFrameBuffer()->GetHeight() != m_Height)
-	{
-		m_Width = Renderer::Get()->GetGlobalFrameBuffer()->GetWidth();
-		m_Height = Renderer::Get()->GetGlobalFrameBuffer()->GetHeight();
-		m_PostEffects[0]->OnResize(m_Width, m_Height);
-	}
+	CheckWindowSize();
+	m_MidPostEffects[0]->Render(0, depthTextureID);
+}
 
-	m_PostEffects[0]->Render(0, depthTextureID);
+void PostProcessRenderer::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
+{
+	m_FinalFBO.Resize(newSizeX, newSizeY);
+	m_FinalFBO.RemoveDepthAttachment();
+
+	if ((int)m_AllPostEffects.size() == 0) return;
+
+	for (int i = 0; i < (int)m_AllPostEffects.size(); i++)
+		m_AllPostEffects[i]->OnResize(newSizeX, newSizeY);
+}
+
+void PostProcessRenderer::RenderPrePass(const unsigned int& srcTexture, const unsigned int& depthTextureID)
+{
+	if (!m_IsEnabled) return;
+
+	CheckWindowSize();
+	FillPreActivePostEffects();
+	RenderPreActivePostEffects(srcTexture, depthTextureID);
+
+	m_ActivePrePassPostEffects.clear();
 }
 
 void PostProcessRenderer::Render(const unsigned int& srcTexture, const unsigned int& depthTextureID)
 {
 	if (!m_IsEnabled) return;
 
+	CheckWindowSize();
+	FillMidActivePostEffects();
+	RenderMidActivePostEffects(srcTexture, depthTextureID);
+	RenderMidFinalPostEffect();
+
+	m_ActiveMidPostEffects.clear();
+
+	RenderLastPass(GetMidFinalTexture(), depthTextureID);
+}
+
+void PostProcessRenderer::RenderLastPass(const unsigned int& srcTexture, const unsigned int& depthTextureID)
+{
+	if (!m_IsEnabled) return;
+
+	CheckWindowSize();
+	FillLastActivePostEffects();
+	RenderLastActivePostEffects(srcTexture, depthTextureID);
+
+	m_ActiveLastPassPostEffects.clear();
+}
+
+bool PostProcessRenderer::GetEnableStatus()
+{
+	return m_IsEnabled && ((int)m_ActiveMidPostEffects.size() > 0 || (int)m_ActiveLastPassPostEffects.size() > 0);
+}
+
+void PostProcessRenderer::CheckWindowSize()
+{
 	if (Renderer::Get()->GetGlobalFrameBuffer()->GetWidth() != m_Width || Renderer::Get()->GetGlobalFrameBuffer()->GetHeight() != m_Height)
 	{
 		m_Width = Renderer::Get()->GetGlobalFrameBuffer()->GetWidth();
 		m_Height = Renderer::Get()->GetGlobalFrameBuffer()->GetHeight();
 		OnResize(m_Width, m_Height);
 	}
-	
-	FillActivePostEffects();
-	RenderActivePostEffects(srcTexture, depthTextureID);
-	RenderFinalPostEffect();
-	
-	m_ActivePostEffects.clear();
 }
 
-void PostProcessRenderer::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
+#pragma region Pre Pass Post Effects
+void PostProcessRenderer::FillPreActivePostEffects()
 {
-	m_FinalFBO.Resize(newSizeX, newSizeY);
+	if ((int)m_PrePassPostEffects.size() == 0) return;
 
-	if ((int)m_PostEffects.size() == 0) return;
-
-	for (int i = 0; i < (int)m_PostEffects.size(); i++)	
-		m_PostEffects[i]->OnResize(newSizeX, newSizeY);
-}
-
-void PostProcessRenderer::FillActivePostEffects()
-{
-	if ((int)m_PostEffects.size() == 0) return;
-
-	for (int i = 1; i < (int)m_PostEffects.size(); i++)
+	for (int i = 0; i < (int)m_PrePassPostEffects.size(); i++)
 	{
-		if (m_PostEffects[i]->IsEnabled())
-			m_ActivePostEffects.emplace_back(m_PostEffects[i]);
+		if (m_PrePassPostEffects[i]->IsEnabled())
+			m_ActivePrePassPostEffects.emplace_back(m_PrePassPostEffects[i]);
 	}
 }
 
-void PostProcessRenderer::RenderActivePostEffects(const unsigned int& srcTexture, const unsigned int& depthTextureID)
+void PostProcessRenderer::RenderPreActivePostEffects(const unsigned int& srcTexture, const unsigned int& depthTextureID)
 {
-	if ((int)m_ActivePostEffects.size() == 0)
+	if ((int)m_ActivePrePassPostEffects.size() == 0)
+	{
+		m_PreFinalTextureID = srcTexture;
+		return;
+	}
+
+	for (int i = 0; i < (int)m_ActivePrePassPostEffects.size(); i++)
+	{
+		PostProcessEffect& effect = *m_ActivePrePassPostEffects[i];
+		effect.Render(i == 0 ? srcTexture : m_ActivePrePassPostEffects[i - 1]->GetProcessedTexture(), depthTextureID);
+	}
+
+	m_PreFinalTextureID = m_ActivePrePassPostEffects[m_ActivePrePassPostEffects.size() - 1]->GetProcessedTexture();
+}
+#pragma endregion
+
+
+#pragma region Mid Pass Post Effects
+void PostProcessRenderer::FillMidActivePostEffects()
+{
+	if ((int)m_MidPostEffects.size() == 0) return;
+
+	for (int i = 0; i < (int)m_MidPostEffects.size(); i++)
+	{
+		if (m_MidPostEffects[i]->IsEnabled())
+			m_ActiveMidPostEffects.emplace_back(m_MidPostEffects[i]);
+	}
+}
+
+void PostProcessRenderer::RenderMidActivePostEffects(const unsigned int& srcTexture, const unsigned int& depthTextureID)
+{
+	if ((int)m_ActiveMidPostEffects.size() == 0)
 	{
 		m_FinalTextureID = srcTexture;
 		return;
 	}
 
-	for (int i = 0; i < (int)m_ActivePostEffects.size(); i++)
+	for (int i = 0; i < (int)m_ActiveMidPostEffects.size(); i++)
 	{
-		PostProcessEffect& effect = *m_ActivePostEffects[i];
-		effect.Render(i == 0 ? srcTexture : m_ActivePostEffects[i - 1]->GetProcessedTexture(), depthTextureID);
+		PostProcessEffect& effect = *m_ActiveMidPostEffects[i];
+		effect.Render(i == 0 ? srcTexture : m_ActiveMidPostEffects[i - 1]->GetProcessedTexture(), depthTextureID);
 	}
 
-	m_FinalTextureID = m_ActivePostEffects[m_ActivePostEffects.size() - 1]->GetProcessedTexture();
+	m_FinalTextureID = m_ActiveMidPostEffects[m_ActiveMidPostEffects.size() - 1]->GetProcessedTexture();
 }
 
-void PostProcessRenderer::RenderFinalPostEffect()
+void PostProcessRenderer::RenderMidFinalPostEffect()
 {
 	m_FinalFBO.Bind();
 	m_PostFinalShader->Bind();
-	m_PostFinalShader->SetInt("isPostProcessEnabled", (int)m_ActivePostEffects.size() > 0 && m_IsEnabled);
+	
+	m_PostFinalShader->SetInt("isPostProcessEnabled", GetEnableStatus());
 	m_PostFinalShader->SetTexture("srcTexture", Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex(0), 0);
 	m_PostFinalShader->SetTexture("postProcessTexture", m_FinalTextureID, 1);
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 	Renderer::Get()->GetQuadMesh()->Draw();
 
 	m_PostFinalShader->UnBind();
 	m_FinalFBO.Unbind();
 }
+#pragma endregion
+
+
+#pragma region Last Pass Post Effects
+void PostProcessRenderer::FillLastActivePostEffects()
+{
+	if ((int)m_LastPassPostEffects.size() == 0) return;
+
+	for (int i = 0; i < (int)m_LastPassPostEffects.size(); i++)
+	{
+		if (m_LastPassPostEffects[i]->IsEnabled())
+			m_ActiveLastPassPostEffects.emplace_back(m_LastPassPostEffects[i]);
+	}
+}
+
+void PostProcessRenderer::RenderLastActivePostEffects(const unsigned int& srcTexture, const unsigned int& depthTextureID)
+{
+	if ((int)m_ActiveLastPassPostEffects.size() == 0)
+	{
+		m_LastFinalTextureID = srcTexture;
+		return;
+	}
+
+	for (int i = 0; i < (int)m_ActiveLastPassPostEffects.size(); i++)
+	{
+		PostProcessEffect& effect = *m_ActiveLastPassPostEffects[i];
+		effect.Render(i == 0 ? srcTexture : m_ActiveLastPassPostEffects[i - 1]->GetProcessedTexture(), depthTextureID);
+	}
+
+	m_LastFinalTextureID = m_ActiveLastPassPostEffects[m_ActiveLastPassPostEffects.size() - 1]->GetProcessedTexture();
+}
+#pragma endregion
+
 
 void PostProcessRenderer::AddPostProcessEffect(std::shared_ptr<PostProcessEffect> effect)
 {
-	m_PostEffects.emplace_back(effect);
+	switch (effect->GetPostEffectType())
+	{
+		case EPostEffectType::Type_None: break;
+		case EPostEffectType::Type_PrePass: m_PrePassPostEffects.emplace_back(effect); break;
+		case EPostEffectType::Type_MidPass: m_MidPostEffects.emplace_back(effect); break;
+		case EPostEffectType::Type_LastPass: m_LastPassPostEffects.emplace_back(effect); break;
+	}
+
+	m_AllPostEffects.emplace_back(effect);
 }

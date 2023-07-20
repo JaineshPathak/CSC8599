@@ -148,6 +148,7 @@
     <ClCompile Include="PostProcessInvertColor.cpp" />
     <ClCompile Include="PostProcessRenderer.cpp" />
     <ClCompile Include="PostProcessSSAO.cpp" />
+    <ClCompile Include="PostProcessVignette.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SkyboxRenderer.cpp" />
   </ItemGroup>
@@ -163,6 +164,7 @@
     <ClInclude Include="PostProcessInvertColor.h" />
     <ClInclude Include="PostProcessRenderer.h" />
     <ClInclude Include="PostProcessSSAO.h" />
+    <ClInclude Include="PostProcessVignette.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SkyboxRenderer.h" />
   </ItemGroup>

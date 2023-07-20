@@ -10,6 +10,14 @@
 
 #include <memory>
 
+enum EPostEffectType
+{
+	Type_None,
+	Type_PrePass,
+	Type_MidPass,
+	Type_LastPass
+};
+
 class PostProcessEffect : public IImguiItem
 {
 public:
@@ -24,6 +32,8 @@ public:
 	const bool IsEnabled() const { return m_IsEnabled; }
 	void SetActive(const bool& status) { m_IsEnabled = status; }
 
+	EPostEffectType GetPostEffectType() const { return m_PostEffectType; }
+
 	virtual void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY) {}
 
 protected:
@@ -32,9 +42,12 @@ protected:
 
 protected:
 	bool m_IsEnabled;
+
 	float m_WidthF, m_HeightF;
 	int m_WidthI, m_HeightI;
 	Vector2 m_SrcViewportSize;
+
+	EPostEffectType m_PostEffectType;
 
 	std::shared_ptr<Mesh> m_QuadMesh;
 };

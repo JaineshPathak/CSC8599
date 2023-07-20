@@ -216,8 +216,10 @@ void Renderer::RenderScene()
 	//----------------------------------------------------------------------------
 
 	//SSAO Pass
-	if (m_PostProcessRenderer != nullptr && m_PostProcessRenderer->IsEnabled() && m_PostProcessRenderer->IsSSAOEnabled())
-		m_PostProcessRenderer->RenderSSAOPass(m_Object3DRenderer->GetDepthTexture());
+	//if (m_PostProcessRenderer != nullptr && m_PostProcessRenderer->IsEnabled() && m_PostProcessRenderer->IsSSAOEnabled())
+		//m_PostProcessRenderer->RenderSSAOPass(m_Object3DRenderer->GetDepthTexture());
+	if (m_PostProcessRenderer != nullptr && m_PostProcessRenderer->IsEnabled())
+		m_PostProcessRenderer->RenderPrePass(0, m_Object3DRenderer->GetDepthTexture());
 
 	//----------------------------------------------------------------------------
 

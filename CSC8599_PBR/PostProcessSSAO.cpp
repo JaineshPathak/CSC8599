@@ -7,6 +7,8 @@ PostProcessSSAO::PostProcessSSAO(const unsigned int& sizeX, const unsigned int& 
     m_NoiseScale(Vector2((float)sizeX / 4.0f, (float)sizeY / 4.0f)),
     PostProcessEffect(sizeX, sizeY)
 {
+    m_PostEffectType = EPostEffectType::Type_PrePass;
+
     randomFloats = std::uniform_real_distribution<float>(0.0f, 1.0f);
     GenerateKernel();
     GenerateNoise();

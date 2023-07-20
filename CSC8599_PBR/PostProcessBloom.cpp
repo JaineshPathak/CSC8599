@@ -13,17 +13,25 @@ PostProcessBloom::PostProcessBloom(const unsigned int& sizeX, const unsigned int
 	m_EnableDirtMask(false),
 	m_DirtMaskStrength(1.0f)
 {
+	m_PostEffectType = EPostEffectType::Type_MidPass;
+
 	if (!InitShaders()) return;
 	if (!InitTextures()) return;
 
 	m_BloomFBO.~FrameBufferBloom();
-	new(&m_BloomFBO) FrameBufferBloom(m_WidthI, m_HeightI, m_BloomIterations);
+	new(&m_BloomFBO) FrameBufferBloom(m_WidthI, m_HeightI, m_BloomIterations);	
 
 	m_BrightenFBO.~FrameBuffer();
 	new(&m_BrightenFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+	m_BrightenFBO.RemoveDepthAttachment();
 
 	m_FinalFBO.~FrameBuffer();
 	new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+	m_FinalFBO.RemoveDepthAttachment();
+
+	m_CombinedFBO.~FrameBuffer();
+	new(&m_CombinedFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
+	m_CombinedFBO.RemoveDepthAttachment();
 
 	ImGuiRenderer::Get()->RegisterPostProcessItem(this);
 
@@ -33,6 +41,9 @@ PostProcessBloom::PostProcessBloom(const unsigned int& sizeX, const unsigned int
 PostProcessBloom::~PostProcessBloom()
 {
 	m_BloomFBO.Destroy();
+	m_BrightenFBO.Destroy();
+	m_FinalFBO.Destroy();
+	m_CombinedFBO.Destroy();
 }
 
 void PostProcessBloom::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
@@ -44,8 +55,15 @@ void PostProcessBloom::OnResize(const unsigned int& newSizeX, const unsigned int
 	m_HeightF = (float)newSizeY;
 
 	m_BloomFBO.Resize(m_WidthI, m_HeightI);
+	
 	m_BrightenFBO.Resize(m_WidthI, m_HeightI);
+	m_BrightenFBO.RemoveDepthAttachment();
+
 	m_FinalFBO.Resize(m_WidthI, m_HeightI);	
+	m_FinalFBO.RemoveDepthAttachment();
+
+	m_CombinedFBO.Resize(m_WidthI, m_HeightI);
+	m_CombinedFBO.RemoveDepthAttachment();
 }
 
 bool PostProcessBloom::InitShaders()
@@ -61,6 +79,9 @@ bool PostProcessBloom::InitShaders()
 
 	m_PostBloomFinalShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostBloomFinalFrag.glsl"));
 	if (!m_PostBloomFinalShader->LoadSuccess()) return false;
+
+	m_PostBloomCombinedShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostCombinedFinalFrag.glsl"));
+	if (!m_PostBloomCombinedShader->LoadSuccess()) return false;
 
 	m_PostBloomDownSampleShader->Bind();
 	m_PostBloomDownSampleShader->SetInt("srcTexture", 0);
@@ -164,6 +185,45 @@ void PostProcessBloom::RenderBloomTexture(unsigned int srcTexture)
 	glViewport(0, 0, m_WidthI, m_HeightI);
 }
 
+void PostProcessBloom::RenderBloomFinal()
+{
+	m_FinalFBO.Bind();
+	m_PostBloomFinalShader->Bind();
+	//m_PostBloomFinalShader->SetTexture("srcTexture", sourceTextureID, 0);
+	m_PostBloomFinalShader->SetTexture("postProcessTexture", GetBloomTexture(), 0);
+	m_PostBloomFinalShader->SetTexture("dirtMaskTexture", m_DirtMaskTexture->GetID(), 1);
+
+	m_PostBloomFinalShader->SetFloat("bloomStrength", m_BloomStrength);
+	m_PostBloomFinalShader->SetFloat("bloomTintStrength", m_BloomTintStrength);
+	m_PostBloomFinalShader->SetVector4("bloomTint", m_BloomTint);
+
+	m_PostBloomFinalShader->SetInt("enableDirtMask", m_EnableDirtMask);
+	m_PostBloomFinalShader->SetFloat("dirtMaskStrength", m_DirtMaskStrength);
+
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FinalFBO.GetColorAttachmentTex(), 0);
+	//glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	m_QuadMesh->Draw();
+
+	m_PostBloomFinalShader->UnBind();
+	m_FinalFBO.Unbind();
+}
+
+void PostProcessBloom::RenderBloomCombined()
+{
+	m_CombinedFBO.Bind();
+	m_PostBloomCombinedShader->Bind();
+
+	m_PostBloomCombinedShader->SetTexture("srcTexture", m_SourceTextureID, 0);
+	m_PostBloomCombinedShader->SetTexture("postTexture", m_FinalFBO.GetColorAttachmentTex(), 1);
+	m_PostBloomCombinedShader->SetInt("combineType", 0);
+
+	//glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	m_QuadMesh->Draw();
+
+	m_PostBloomCombinedShader->UnBind();
+	m_CombinedFBO.Unbind();
+}
+
 void PostProcessBloom::OnIterationsChanged()
 {
 	m_BloomFBO.Recalculate(m_BloomIterations);
@@ -181,29 +241,12 @@ const unsigned int PostProcessBloom::GetProcessedTexture() const
 
 void PostProcessBloom::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
 {
+	m_SourceTextureID = sourceTextureID;
+
 	RenderBrightColors(sourceTextureID);
 	RenderBloomTexture(m_BrightenFBO.GetColorAttachmentTex());
-
-	m_FinalFBO.Bind();
-	m_PostBloomFinalShader->Bind();
-	//m_PostBloomFinalShader->SetTexture("srcTexture", sourceTextureID, 0);
-	m_PostBloomFinalShader->SetTexture("postProcessTexture", GetBloomTexture(), 0);
-	m_PostBloomFinalShader->SetTexture("dirtMaskTexture", m_DirtMaskTexture->GetID(), 1);
-
-	m_PostBloomFinalShader->SetFloat("bloomStrength", m_BloomStrength);
-	m_PostBloomFinalShader->SetFloat("bloomTintStrength", m_BloomTintStrength);
-	m_PostBloomFinalShader->SetVector4("bloomTint", m_BloomTint);
-
-	m_PostBloomFinalShader->SetInt("enableDirtMask", m_EnableDirtMask);
-	m_PostBloomFinalShader->SetFloat("dirtMaskStrength", m_DirtMaskStrength);
-
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FinalFBO.GetColorAttachmentTex(), 0);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-	m_QuadMesh->Draw();
-
-	m_PostBloomFinalShader->UnBind();
-	m_FinalFBO.Unbind();
+	RenderBloomFinal();
+	//RenderBloomCombined();
 }
 
 void PostProcessBloom::OnImGuiRender()

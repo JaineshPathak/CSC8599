@@ -3,6 +3,8 @@
 PostProcessInvertColor::PostProcessInvertColor(const unsigned int& sizeX, const unsigned int& sizeY) : 
     PostProcessEffect(sizeX, sizeY)
 {
+    m_PostEffectType = EPostEffectType::Type_LastPass;
+
     if (!InitShaders()) return;
 
     m_FinalFBO.~FrameBuffer();

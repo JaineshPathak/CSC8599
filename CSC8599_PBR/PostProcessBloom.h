@@ -19,6 +19,8 @@ private:
 	void RenderDownSamples(unsigned int srcTexture);
 	void RenderUpSamples();
 	void RenderBloomTexture(unsigned int srcTexture);
+	void RenderBloomFinal();
+	void RenderBloomCombined();
 
 	void OnIterationsChanged();
 
@@ -45,13 +47,17 @@ private:
 	bool m_EnableDirtMask;
 	float m_DirtMaskStrength;
 
+	unsigned int m_SourceTextureID;
+
 	std::shared_ptr<Texture> m_DirtMaskTexture;
 	std::shared_ptr<Shader> m_PostBloomBrightenShader;
 	std::shared_ptr<Shader> m_PostBloomDownSampleShader;
 	std::shared_ptr<Shader> m_PostBloomUpSampleShader;
 	std::shared_ptr<Shader> m_PostBloomFinalShader;
+	std::shared_ptr<Shader> m_PostBloomCombinedShader;
 
 	FrameBufferBloom m_BloomFBO;
-	FrameBuffer m_FinalFBO;
 	FrameBuffer m_BrightenFBO;
+	FrameBuffer m_CombinedFBO;
+	FrameBuffer m_FinalFBO;
 };

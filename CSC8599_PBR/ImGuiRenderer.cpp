@@ -91,7 +91,7 @@ void ImGuiRenderer::Render()
 	
 	unsigned int texID = -1;
 	if (Renderer::Get()->GetPostProcessRenderer() != nullptr && Renderer::Get()->GetPostProcessRenderer()->IsEnabled())
-		texID = Renderer::Get()->GetPostProcessRenderer()->GetFinalTexture();
+		texID = Renderer::Get()->GetPostProcessRenderer()->GetLastFinalTextureID();
 	else
 		texID = Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex();
 
