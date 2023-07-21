@@ -99,10 +99,10 @@ void PostProcessVignette::OnImGuiRender()
 		if (ImGui::Checkbox("Enable", &enable)) m_IsEnabled = enable;
 
 		float amt = m_Amount;
-		if (ImGui::DragFloat("Amount", &amt, 0.01f, 0.1f, 10.0f)) m_Amount = amt;
+		if (ImGui::DragFloat("Amount", &amt, 0.01f, 0.01f, 100.0f)) m_Amount = amt;
 
 		float falloff = m_FallOff;
-		if (ImGui::DragFloat("Power", &falloff, 0.01f, 1.0f, 10.0f)) m_FallOff = falloff;
+		if (ImGui::DragFloat("Power", &falloff, 0.01f, 0.01f, 200.0f)) m_FallOff = falloff;
 
 		ImGui::Unindent();
 	}

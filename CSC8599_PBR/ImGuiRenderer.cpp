@@ -57,8 +57,10 @@ void ImGuiRenderer::Render()
 	ImGui::DockSpaceOverViewport();
 	
 	ImGui::Begin("Settings");	
-	for (const auto& elem : m_ImGuiItems) 
-		elem->OnImGuiRender();
+	
+	for (auto it = m_ImGuiItems.cbegin(); it != m_ImGuiItems.cend(); ++it)
+		(*it)->OnImGuiRender();
+
 	ImGui::End();
 
 	ImGui::Begin("Post Processing");
@@ -69,9 +71,9 @@ void ImGuiRenderer::Render()
 
 	if (postEnabled)
 	{
-		for (const auto& elem : m_PostProcessImGuiItems)
-			elem->OnImGuiRender();
-	}	
+		for (auto it = m_PostProcessImGuiItems.cbegin(); it != m_PostProcessImGuiItems.cend(); ++it)
+			(*it)->OnImGuiRender();
+	}
 	ImGui::End();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -107,6 +109,7 @@ void ImGuiRenderer::Render()
 
 void ImGuiRenderer::RegisterItem(IImguiItem* _newItem)
 {
+	std::cout << "Added Settings Item: " << typeid(*_newItem).name() << std::endl;
 	m_ImGuiItems.insert(_newItem);
 }
 
