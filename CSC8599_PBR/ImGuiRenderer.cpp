@@ -109,7 +109,6 @@ void ImGuiRenderer::Render()
 
 void ImGuiRenderer::RegisterItem(IImguiItem* _newItem)
 {
-	std::cout << "Added Settings Item: " << typeid(*_newItem).name() << std::endl;
 	m_ImGuiItems.insert(_newItem);
 }
 

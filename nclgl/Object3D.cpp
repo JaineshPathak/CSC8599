@@ -1,7 +1,12 @@
 #include "Object3D.h"
 
+#include <thread>
+#include <stb_image/stb_image.h>
+
 Object3D::Object3D(const std::string& objectName, const std::string& meshFileName, const std::string& meshMaterialName, const std::string& meshShaderVertexFile, const std::string& meshShaderFragmentFile, const float& lookAtDistance)
 {
+	m_UseThreads = true;
+
 	m_ObjectName = objectName;
 	m_MeshFilename = meshFileName;
 	m_MeshMaterialFilename = meshMaterialName;
@@ -63,17 +68,58 @@ bool Object3D::LoadTextures()
 	for (int i = 0; i < meshSubCount; i++)
 	{
 		const MeshMaterialEntry* matEntry = m_MeshMaterialObject->GetMaterialForLayer(i);
-		LoadMaterialTextures(i, "Diffuse", matEntry, m_TexDiffuseSet);
-		LoadMaterialTextures(i, "Metallic", matEntry, m_TexMetallicSet);
-		LoadMaterialTextures(i, "Roughness", matEntry, m_TexRoughnessSet);
-		LoadMaterialTextures(i, "Bump", matEntry, m_TexNormalSet);
-		LoadMaterialTextures(i, "Occlusion", matEntry, m_TexOcclusionSet);
-		LoadMaterialTextures(i, "Emission", matEntry, m_TexEmissionSet);
+		if (matEntry != nullptr)
+		{
+			if (m_UseThreads)
+			{
+				LoadMaterialTexturesThreaded("Diffuse", matEntry);
+				LoadMaterialTexturesThreaded("Metallic", matEntry);
+				LoadMaterialTexturesThreaded("Roughness", matEntry);
+				LoadMaterialTexturesThreaded("Bump", matEntry);
+				LoadMaterialTexturesThreaded("Occlusion", matEntry);
+				LoadMaterialTexturesThreaded("Emission", matEntry);
+			}
+			else
+			{
+				LoadMaterialTextures(i, "Diffuse", matEntry, m_TexDiffuseSet);
+				LoadMaterialTextures(i, "Metallic", matEntry, m_TexMetallicSet);
+				LoadMaterialTextures(i, "Roughness", matEntry, m_TexRoughnessSet);
+				LoadMaterialTextures(i, "Bump", matEntry, m_TexNormalSet);
+				LoadMaterialTextures(i, "Occlusion", matEntry, m_TexOcclusionSet);
+				LoadMaterialTextures(i, "Emission", matEntry, m_TexEmissionSet);
+			}
+		}
+	}
+
+	if (m_UseThreads)
+	{
+		/*for (auto it = m_TexturesDataMap.begin(); it != m_TexturesDataMap.end(); ++it)
+		{
+			std::cout << (*it).first << "\t - \t" << (*it).second->path << std::endl;
+		}*/
+		stbi_set_flip_vertically_on_load(true);
+		AddMaterialTextureThreaded();
+		stbi_set_flip_vertically_on_load(false);
+
+		for (int i = 0; i < meshSubCount; i++)
+		{
+			const MeshMaterialEntry* matEntry = m_MeshMaterialObject->GetMaterialForLayer(i);
+			if (matEntry != nullptr)
+			{
+				FillTextureIDsThreaded(i, "Diffuse", matEntry, m_TexDiffuseSet);
+				FillTextureIDsThreaded(i, "Metallic", matEntry, m_TexMetallicSet);
+				FillTextureIDsThreaded(i, "Roughness", matEntry, m_TexRoughnessSet);
+				FillTextureIDsThreaded(i, "Bump", matEntry, m_TexNormalSet);
+				FillTextureIDsThreaded(i, "Occlusion", matEntry, m_TexOcclusionSet);
+				FillTextureIDsThreaded(i, "Emission", matEntry, m_TexEmissionSet);
+			}
+		}
 	}
 
 	return true;
 }
 
+#pragma region Non-Multithreading Loading
 std::shared_ptr<Texture> Object3D::AddMaterialTexture(const std::string& fileName)
 {
 	std::unordered_map<std::string, std::shared_ptr<Texture>>::iterator i = m_TexturesSet.find(fileName);
@@ -105,6 +151,68 @@ bool Object3D::LoadMaterialTextures(const int& index, const std::string& entryNa
 
 	return true;
 }
+#pragma endregion
+
+
+#pragma region Multithreading Loading
+void Object3D::LoadTextureData(TextureData* texData)
+{
+	texData->data = stbi_load(texData->path.c_str(), &texData->texWidth, &texData->texHeight, &texData->texChannels, 0);
+}
+
+void Object3D::AddMaterialTextureThreaded()
+{
+	std::vector<std::thread> m_TextureThreads(m_TexturesDataMap.size());
+	int i = 0;
+	for (auto it = m_TexturesDataMap.begin(); it != m_TexturesDataMap.end(); ++it)
+	{
+		m_TextureThreads[i] = std::thread(&Object3D::LoadTextureData, this, it->second);
+		i++;
+	}
+
+	for (auto& t : m_TextureThreads)
+		t.join();
+
+	m_TextureThreads.clear();
+	for (auto it = m_TexturesDataMap.begin(); it != m_TexturesDataMap.end(); ++it)
+	{
+		const TextureData& texData = *it->second;
+		std::shared_ptr<Texture> tex = std::shared_ptr<Texture>(new Texture(texData));
+		m_TexturesSet.emplace((*it).first, tex);
+
+		delete it->second;
+	}
+
+	m_TexturesDataMap.clear();
+}
+
+bool Object3D::LoadMaterialTexturesThreaded(const std::string& entryName, const MeshMaterialEntry* const materialEntry)
+{
+	const std::string* textureFileName = nullptr;
+	materialEntry->GetEntry(entryName, &textureFileName);
+	if (textureFileName != nullptr)
+	{
+		std::string filePath = TEXTUREDIR + *textureFileName;
+		m_TexturesDataMap[*textureFileName] = new TextureData(filePath);
+	}
+	else
+		return false;
+
+	return true;
+}
+
+void Object3D::FillTextureIDsThreaded(const int& index, const std::string& entryName, const MeshMaterialEntry* const materialEntry, std::vector<int>& textureSetContainer)
+{
+	const std::string* textureFileName = nullptr;
+	materialEntry->GetEntry(entryName, &textureFileName);
+	if (textureFileName != nullptr)
+	{
+		std::string filePath = TEXTUREDIR + *textureFileName;
+		textureSetContainer[index] = m_TexturesSet[*textureFileName]->GetID();
+	}
+}
+#pragma endregion
+
 
 void Object3D::CalcModelMatrix()
 {

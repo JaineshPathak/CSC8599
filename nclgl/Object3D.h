@@ -24,6 +24,12 @@ protected:
 	virtual std::shared_ptr<Texture> AddMaterialTexture(const std::string& fileName) final;
 	virtual bool LoadMaterialTextures(const int& index, const std::string& entryName, const MeshMaterialEntry* const materialEntry, std::vector<int>& textureSetContainer) final;
 
+	//Threads Part
+	virtual void LoadTextureData(TextureData* texData) final;
+	virtual void AddMaterialTextureThreaded() final;
+	virtual bool LoadMaterialTexturesThreaded(const std::string& entryName, const MeshMaterialEntry* const materialEntry) final;
+	virtual void FillTextureIDsThreaded(const int& index, const std::string& entryName, const MeshMaterialEntry* const materialEntry, std::vector<int>& textureSetContainer);
+
 public:
 	const std::string GetObjectName() const { return m_ObjectName; }
 	std::shared_ptr<Mesh> GetObjectMesh() const { return m_MeshObject; }
@@ -68,4 +74,8 @@ protected:
 	Matrix4 m_ModelMatrix;
 
 	float m_LookAtDistance;
+
+	//Threads Part
+	bool m_UseThreads;
+	std::unordered_map<std::string, TextureData*> m_TexturesDataMap;
 };

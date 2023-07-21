@@ -11,6 +11,15 @@ struct TextureData
 	int texHeight;
 	int texChannels;
 
+	TextureData()
+	{
+		path = "";
+		data = nullptr;
+		texWidth = 0;
+		texHeight = 0;
+		texChannels = 0;
+	}
+
 	TextureData(const std::string& fPath) : path(fPath)
 	{
 		data = nullptr;
