@@ -65,38 +65,12 @@ bool Object3D::LoadTextures()
 	m_TexOcclusionSet.assign(meshSubCount, -1);
 	m_TexEmissionSet.assign(meshSubCount, -1);
 
-	for (int i = 0; i < meshSubCount; i++)
-	{
-		const MeshMaterialEntry* matEntry = m_MeshMaterialObject->GetMaterialForLayer(i);
-		if (matEntry != nullptr)
-		{
-			if (m_UseThreads)
-			{
-				LoadMaterialTexturesThreaded("Diffuse", matEntry);
-				LoadMaterialTexturesThreaded("Metallic", matEntry);
-				LoadMaterialTexturesThreaded("Roughness", matEntry);
-				LoadMaterialTexturesThreaded("Bump", matEntry);
-				LoadMaterialTexturesThreaded("Occlusion", matEntry);
-				LoadMaterialTexturesThreaded("Emission", matEntry);
-			}
-			else
-			{
-				LoadMaterialTextures(i, "Diffuse", matEntry, m_TexDiffuseSet);
-				LoadMaterialTextures(i, "Metallic", matEntry, m_TexMetallicSet);
-				LoadMaterialTextures(i, "Roughness", matEntry, m_TexRoughnessSet);
-				LoadMaterialTextures(i, "Bump", matEntry, m_TexNormalSet);
-				LoadMaterialTextures(i, "Occlusion", matEntry, m_TexOcclusionSet);
-				LoadMaterialTextures(i, "Emission", matEntry, m_TexEmissionSet);
-			}
-		}
-	}
-
 	if (m_UseThreads)
 	{
-		/*for (auto it = m_TexturesDataMap.begin(); it != m_TexturesDataMap.end(); ++it)
-		{
-			std::cout << (*it).first << "\t - \t" << (*it).second->path << std::endl;
-		}*/
+		const std::unordered_set<std::string>& texturesList = m_MeshMaterialObject->GetTexturesList();
+		for (auto it = texturesList.cbegin(); it != texturesList.cend(); ++it)		
+			m_TexturesDataMap[*it] = new TextureData(TEXTUREDIR + *it);
+
 		stbi_set_flip_vertically_on_load(true);
 		AddMaterialTextureThreaded();
 		stbi_set_flip_vertically_on_load(false);
@@ -115,6 +89,22 @@ bool Object3D::LoadTextures()
 			}
 		}
 	}
+	else
+	{
+		for (int i = 0; i < meshSubCount; i++)
+		{
+			const MeshMaterialEntry* matEntry = m_MeshMaterialObject->GetMaterialForLayer(i);
+			if (matEntry != nullptr)
+			{
+				LoadMaterialTextures(i, "Diffuse", matEntry, m_TexDiffuseSet);
+				LoadMaterialTextures(i, "Metallic", matEntry, m_TexMetallicSet);
+				LoadMaterialTextures(i, "Roughness", matEntry, m_TexRoughnessSet);
+				LoadMaterialTextures(i, "Bump", matEntry, m_TexNormalSet);
+				LoadMaterialTextures(i, "Occlusion", matEntry, m_TexOcclusionSet);
+				LoadMaterialTextures(i, "Emission", matEntry, m_TexEmissionSet);
+			}
+		}
+	}	
 
 	return true;
 }
@@ -174,6 +164,7 @@ void Object3D::AddMaterialTextureThreaded()
 		t.join();
 
 	m_TextureThreads.clear();
+
 	for (auto it = m_TexturesDataMap.begin(); it != m_TexturesDataMap.end(); ++it)
 	{
 		const TextureData& texData = *it->second;
