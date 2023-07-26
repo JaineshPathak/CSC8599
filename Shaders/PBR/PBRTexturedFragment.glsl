@@ -292,7 +292,7 @@ void main(void)
 	//float metallicStrength = 1.0;
 	//float roughnessStrength = 0.1;
 
-	float metallicStrength = hasMetallicTex ? texture(metallicTex, IN.texCoord).r : 0.0;
+	float metallicStrength = hasMetallicTex ? texture(metallicTex, IN.texCoord).r : 0.01;
 	float roughnessStrength = hasRoughnessTex ? texture(roughnessTex, IN.texCoord).r : 1.0;
 
 	vec3 F0 = vec3(0.04);

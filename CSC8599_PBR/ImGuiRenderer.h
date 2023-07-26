@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <memory>
 
+class ProfilingManager;
 class ImGuiRenderer
 {
 public:
@@ -26,6 +27,12 @@ public:
 	void RegisterPostProcessItem(IImguiItem* _newItem);
 
 	const bool IsMouseOverScene() const { return m_MouseOverScene; }
+
+private:
+	void RenderSettingsWindow();
+	void RenderSceneWindow();
+	void RenderPostProcessWindow();
+	void RenderProfilingWindow();
 
 protected:
 	static ImGuiRenderer* m_ImGuiRenderer;

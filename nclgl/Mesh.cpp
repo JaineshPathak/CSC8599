@@ -1,5 +1,6 @@
 #include "Mesh.h"
 #include "Matrix2.h"
+#include "ProfilingManager.h"
 
 using std::string;
 
@@ -41,9 +42,15 @@ Mesh::~Mesh(void)	{
 void Mesh::Draw()	{
 	glBindVertexArray(arrayObject);
 	if(bufferObject[INDEX_BUFFER]) {
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
 	}
 	else{
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawArrays(type, 0, numVertices);
 	}
 	glBindVertexArray(0);	
@@ -54,10 +61,16 @@ void Mesh::Draw(int instanceAmount)
 	glBindVertexArray(arrayObject);
 	if (bufferObject[INDEX_BUFFER]) 
 	{
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCount += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawElementsInstanced(type, numIndices, GL_UNSIGNED_INT, 0, instanceAmount);
 	}
 	else 
 	{
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawArraysInstanced(type, 0, numVertices, instanceAmount);
 	}
 	glBindVertexArray(0);
@@ -71,10 +84,16 @@ void Mesh::DrawSubMesh(int i) {
 
 	glBindVertexArray(arrayObject);
 	if (bufferObject[INDEX_BUFFER]) {
-		const GLvoid* offset = (const GLvoid * )(m.start * sizeof(unsigned int)); 
+		const GLvoid* offset = (const GLvoid * )(m.start * sizeof(unsigned int));
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawElements(type, m.count, GL_UNSIGNED_INT, offset);
 	}
 	else {
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawArrays(type, m.start, m.count);	//Draw the triangle!
 	}
 	glBindVertexArray(0);
@@ -92,11 +111,17 @@ void Mesh::DrawSubMesh(int i, int instanceAmount)
 	{
 		const GLvoid* offset = (const GLvoid*)(m.start * sizeof(unsigned int));
 		//glDrawElements(type, m.count, GL_UNSIGNED_INT, offset);
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawElementsInstanced(type, m.count, GL_UNSIGNED_INT, offset, instanceAmount);
 	}
 	else 
 	{
 		//glDrawArrays(type, m.start, m.count);	//Draw the triangle!
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawArraysInstanced(type, m.start, m.count, instanceAmount);
 	}
 	glBindVertexArray(0);
@@ -106,6 +131,9 @@ Mesh* Mesh::GenerateTriangle()
 {
 	Mesh* m = new Mesh();
 	m->numVertices = 3;
+
+	ProfilingManager::VerticesCount += m->numVertices;
+	ProfilingManager::TrianglesCount++;
 	
 	m->vertices		=	new Vector3[m->numVertices];
 	m->vertices[0]	=	Vector3(-0.5f, -0.5f, 0.0f);
@@ -133,6 +161,9 @@ Mesh* Mesh::GenerateQuad()
 	Mesh* m = new Mesh();
 	m->type = GL_TRIANGLE_STRIP;
 	m->numVertices = 4;
+
+	ProfilingManager::VerticesCount += m->numVertices;
+	ProfilingManager::TrianglesCount += 2;
 
 	m->vertices = new Vector3[m->numVertices];
 	m->normals = new Vector3[m->numVertices];
@@ -203,6 +234,9 @@ Mesh* Mesh::GenerateCube()
 	Mesh* m = new Mesh();
 	m->type = GL_TRIANGLES;
 	m->numVertices = 36;
+
+	ProfilingManager::VerticesCount += m->numVertices;
+	ProfilingManager::TrianglesCount += 12;
 
 	m->vertices = new Vector3[m->numVertices];
 	m->colours = new Vector4[m->numVertices];
@@ -615,6 +649,9 @@ Mesh* Mesh::LoadFromMeshFile(const string& name) {
 
 	mesh->numVertices	= numVertices;
 	mesh->numIndices	= numIndices;
+
+	ProfilingManager::VerticesCount += mesh->numVertices;
+	ProfilingManager::TrianglesCount += mesh->numIndices / 3;
 
 	if (!readPositions.empty()) {
 		mesh->vertices = new Vector3[numVertices];

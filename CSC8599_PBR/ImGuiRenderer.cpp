@@ -3,6 +3,7 @@
 #include "PostProcessRenderer.h"
 #include "LookAtCamera.h"
 
+#include <nclgl/ProfilingManager.h>
 #include <imgui/imgui_internal.h>
 
 ImGuiRenderer* ImGuiRenderer::m_ImGuiRenderer = nullptr;
@@ -56,26 +57,37 @@ void ImGuiRenderer::Render()
 
 	ImGui::DockSpaceOverViewport();
 	
-	ImGui::Begin("Settings");	
-	
+	RenderSettingsWindow();
+	RenderPostProcessWindow();
+	RenderSceneWindow();
+	RenderProfilingWindow();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void ImGuiRenderer::RegisterItem(IImguiItem* _newItem)
+{
+	m_ImGuiItems.insert(_newItem);
+}
+
+void ImGuiRenderer::RegisterPostProcessItem(IImguiItem* _newItem)
+{
+	m_PostProcessImGuiItems.insert(_newItem);
+}
+
+void ImGuiRenderer::RenderSettingsWindow()
+{
+	ImGui::Begin("Settings");
+
 	for (auto it = m_ImGuiItems.cbegin(); it != m_ImGuiItems.cend(); ++it)
 		(*it)->OnImGuiRender();
 
 	ImGui::End();
+}
 
-	ImGui::Begin("Post Processing");
-
-	bool postEnabled = Renderer::Get()->GetPostProcessRenderer()->IsEnabled();
-	if (ImGui::Checkbox("Enable Post Process", &postEnabled))
-		Renderer::Get()->GetPostProcessRenderer()->SetActive(postEnabled);
-
-	if (postEnabled)
-	{
-		for (auto it = m_PostProcessImGuiItems.cbegin(); it != m_PostProcessImGuiItems.cend(); ++it)
-			(*it)->OnImGuiRender();
-	}
-	ImGui::End();
-
+void ImGuiRenderer::RenderSceneWindow()
+{
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	ImGui::Begin("Scene");
 
@@ -90,29 +102,65 @@ void ImGuiRenderer::Render()
 
 	//void* tex = (Renderer::Get()->GetPostProcessBuffer() != nullptr) ? (void*)Renderer::Get()->GetPostProcessBuffer()->BloomTexture() : (void*)Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex();
 	//ImGui::Image(tex, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
-	
+
 	unsigned int texID = -1;
 	if (Renderer::Get()->GetPostProcessRenderer() != nullptr && Renderer::Get()->GetPostProcessRenderer()->IsEnabled())
 		texID = Renderer::Get()->GetPostProcessRenderer()->GetLastFinalTextureID();
 	else
 		texID = Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex();
 
-	if(texID != -1)
+	if (texID != -1)
 		ImGui::Image((void*)texID, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
 
 	ImGui::End();
 	ImGui::PopStyleVar();
-
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void ImGuiRenderer::RegisterItem(IImguiItem* _newItem)
+void ImGuiRenderer::RenderPostProcessWindow()
 {
-	m_ImGuiItems.insert(_newItem);
+	ImGui::Begin("Post Processing");
+
+	bool postEnabled = Renderer::Get()->GetPostProcessRenderer()->IsEnabled();
+	if (ImGui::Checkbox("Enable Post Processing", &postEnabled))
+		Renderer::Get()->GetPostProcessRenderer()->SetActive(postEnabled);
+
+	if (postEnabled)
+	{
+		for (auto it = m_PostProcessImGuiItems.cbegin(); it != m_PostProcessImGuiItems.cend(); ++it)
+			(*it)->OnImGuiRender();
+	}
+	ImGui::End();
 }
 
-void ImGuiRenderer::RegisterPostProcessItem(IImguiItem* _newItem)
+void ImGuiRenderer::RenderProfilingWindow()
 {
-	m_PostProcessImGuiItems.insert(_newItem);
+	ImGui::Begin("Profiling");
+
+	ImGui::Text(std::string("FPS: " + std::to_string(ProfilingManager::GetFramerate())).c_str());
+	ImGui::Text(std::string("Draw calls: " + std::to_string(ProfilingManager::DrawCalls)).c_str());
+	ImGui::Text(std::string("Screen: " + std::to_string((int)std::ceilf(m_ViewportSize.x)) + " x " + std::to_string((int)std::ceilf(m_ViewportSize.y))).c_str());
+
+	ImGui::Separator();
+
+	ImGui::Text(std::string("Total Vertices: " + std::to_string(ProfilingManager::TrianglesCount)).c_str());
+	ImGui::Text(std::string("Total Triangles: " + std::to_string(ProfilingManager::VerticesCount)).c_str());
+
+	ImGui::Spacing();
+
+	ImGui::Text(std::string("Current Vertices: " + std::to_string(ProfilingManager::TrianglesCountCurrent)).c_str());
+	ImGui::Text(std::string("Current Triangles: " + std::to_string(ProfilingManager::VerticesCountCurrent)).c_str());
+
+	ImGui::Separator();
+
+	ImGui::Text(std::string("Total Load Time: " + std::to_string(ProfilingManager::GetStartupTime()) + " ms").c_str());
+	ImGui::Text(std::string("Texture Load Time: " + std::to_string(ProfilingManager::GetTextureLoadTime()) + " ms").c_str());
+	ImGui::Text(std::string("Frame Time: " + std::to_string(ProfilingManager::GetFrameTime()) + " ms").c_str());
+
+	ImGui::Separator();
+
+	ProfilingManager::DrawCalls = 0;
+	ProfilingManager::VerticesCountCurrent = 0;
+	ProfilingManager::TrianglesCountCurrent = 0;
+
+	ImGui::End();
 }

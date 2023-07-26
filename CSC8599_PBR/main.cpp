@@ -1,5 +1,7 @@
 #include "Renderer.h"
-#include "../NCLGL/window.h"
+
+#include <nclgl/Window.h>
+#include <nclgl/ProfilingManager.h>
 
 int main()
 {
@@ -23,6 +25,8 @@ int main()
 	w.ShowOSPointer(!showPointer);
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE))
 	{
+		ProfilingManager::RecordFrameTimeStart();
+
 		renderer.UpdateScene(w.GetTimer()->GetTimeDeltaSeconds());
 		renderer.RenderScene();
 		renderer.SwapBuffers();
@@ -30,6 +34,8 @@ int main()
 		{
 			Shader::ReloadAllShaders();
 		}
+
+		ProfilingManager::RecordFrameTimeEnd();
 
 		/*if (Window::GetMouse()->ButtonDown(MouseButtons::MOUSE_RIGHT))
 		{

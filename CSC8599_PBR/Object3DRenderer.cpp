@@ -4,8 +4,9 @@
 #include "LookAtCamera.h"
 
 #include <nclgl/FrameBuffer.h>
+#include <nclgl/ProfilingManager.h>
+
 #include <imgui/imgui.h>
-#include <chrono>
 
 unsigned int Object3DRenderer::m_3DEntityIDs = 0;
 
@@ -17,14 +18,14 @@ Object3DRenderer::Object3DRenderer(const float& width, const float& height) :
 
 	if (!InitShaders()) return;
 	if (!InitBuffers()) return;
-
-	auto start = std::chrono::high_resolution_clock::now();
+	
+	ProfilingManager::RecordTextureTimeStart();
+	
 	Add3DObject("Car", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f);
 	Add3DObject("Helmet", "Mesh_SciFi_Helmet.msh", "Mesh_SciFi_Helmet.mat", 3.0f);
 	Add3DObject("Character", "Mesh_SciFi_Character.msh", "Mesh_SciFi_Character.mat", 1.65f);
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
-	std::cout << "Textures Load Time: " << duration.count() << "s" << std::endl;
+	
+	ProfilingManager::RecordTextureTimeEnd();
 
 	m_3DEntities[0]->SetPosition(Vector3(0.0f, 0.5f, 0.0f));
 

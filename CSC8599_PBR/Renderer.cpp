@@ -15,6 +15,7 @@
 #include <nclgl/FrameBufferHDR.h>
 #include <nclgl/UniformBuffer.h>
 #include <nclgl/MeshMaterial.h>
+#include <nclgl/ProfilingManager.h>
 #include <stb_image/stb_image.h>
 
 #if _DEBUG
@@ -26,6 +27,8 @@ Renderer* Renderer::m_Renderer = nullptr;
 
 Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 {
+	ProfilingManager::RecordStartupTimeStart();
+
 	m_Renderer = this;
 
 	init = Initialize();
@@ -34,6 +37,8 @@ Renderer::Renderer(Window& parent) : m_WindowParent(parent), OGLRenderer(parent)
 #if _DEBUG
 	Log("Main Renderer: Everything is Initialised! Good To Go!");
 #endif
+
+	ProfilingManager::RecordStartupTimeEnd();
 }
 
 bool Renderer::Initialize()

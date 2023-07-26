@@ -78,6 +78,7 @@
     <ClCompile Include="TextureCubeMap.cpp" />
     <ClCompile Include="FrameBufferBloom.cpp" />
     <ClCompile Include="Object3D.cpp" />
+    <ClCompile Include="ProfilingManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="TextureCubeMap.h" />
     <ClInclude Include="FrameBufferBloom.h" />
     <ClInclude Include="Object3D.h" />
+    <ClInclude Include="ProfilingManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">
