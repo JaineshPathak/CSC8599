@@ -173,6 +173,9 @@
     <ClInclude Include="FrameBufferBloom.h" />
     <ClInclude Include="Object3D.h" />
     <ClInclude Include="ProfilingManager.h" />
+    <ClInclude Include="..\Third Party\stb_image\stb_image_write.h">
+      <Filter>stb_image</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">

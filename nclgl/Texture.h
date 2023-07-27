@@ -43,8 +43,10 @@ public:
 	virtual ~Texture();
 
 	unsigned int GetID() const { return m_ProgramID; }
-	int GetWidth() const { return m_Width; }
-	int GetHeight() const { return m_Height; }
+	const int GetWidth() const { return m_Width; }
+	const int GetHeight() const { return m_Height; }
+	const int GetChannels() const { return m_Channel; }
+	const void* GetData() const { return m_Data; };
 
 	inline virtual void Bind();
 	inline virtual void Unbind();

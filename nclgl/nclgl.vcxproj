@@ -73,6 +73,7 @@
     <ClInclude Include="..\Third Party\imgui\imstb_textedit.h" />
     <ClInclude Include="..\Third Party\imgui\imstb_truetype.h" />
     <ClInclude Include="..\Third Party\stb_image\stb_image.h" />
+    <ClInclude Include="..\Third Party\stb_image\stb_image_write.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Colour.h" />
     <ClInclude Include="common.h" />

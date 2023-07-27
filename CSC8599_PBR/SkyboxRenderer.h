@@ -23,7 +23,9 @@ struct SkyboxCubeMap
 {
 	SkyboxCubeMap(const std::string& fileName, const std::string& skyboxName);
 
+	std::string m_SkyboxFileName;
 	std::string m_SkyboxName;
+	std::string m_SkyboxFileNameNoExt;
 
 	bool m_AlreadyCapturedCubeMap;
 	bool m_AlreadyCapturedIrradianceMap;
@@ -35,7 +37,6 @@ struct SkyboxCubeMap
 	std::shared_ptr<TextureEnvCubeMap> m_CubeMapIrradianceTexture;
 	std::shared_ptr<TextureEnvCubeMap> m_CubeMapPreFilterTexture;
 	std::shared_ptr<Texture> m_BRDFLUTTexture;
-
 };
 
 class SkyboxRenderer : public IImguiItem
