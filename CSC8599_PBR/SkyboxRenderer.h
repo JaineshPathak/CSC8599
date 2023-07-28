@@ -23,6 +23,13 @@ struct SkyboxCubeMap
 {
 	SkyboxCubeMap(const std::string& fileName, const std::string& skyboxName);
 
+private:
+	bool IsHDRTexturesExists();
+	bool IsIrradianceTexturesExists();
+	bool IsPrefilterTexturesExists();
+	bool IsBRDFLUTTextureExists();
+
+public:
 	std::string m_SkyboxFileName;
 	std::string m_SkyboxName;
 	std::string m_SkyboxFileNameNoExt;
@@ -41,6 +48,8 @@ struct SkyboxCubeMap
 
 class SkyboxRenderer : public IImguiItem
 {
+	friend struct SkyboxCubeMap;
+
 public:
 	SkyboxRenderer();
 	~SkyboxRenderer();
@@ -100,4 +109,9 @@ protected:
 	std::vector<std::string> m_SkyBoxesNames;
 	int m_SkyboxesIndexCurrent;
 	std::vector<SkyboxCubeMap> m_SkyboxesList;
+
+private:
+	const static std::string m_CubeMapFileNamesSuffixHDR[6];
+	const static std::string m_CubeMapFileNamesSuffixIrradiance[6];
+	const static std::string m_CubeMapFileNamesSuffixMip[6];
 };

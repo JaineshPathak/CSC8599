@@ -10,13 +10,17 @@
 #include <nclgl/FrameBufferFP.h>
 #include <nclgl/FrameBufferHDR.h>
 #include <nclgl/UniformBuffer.h>
+#include <nclgl/ProfilingManager.h>
 
 #include <imgui/imgui.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image/stb_image_write.h>
 
-const std::string cubeMapFileNamesSuffix[6]{ "_Right", "_Left", "_Up", "_Down", "_Back", "_Front" };
+const std::string SkyboxRenderer::m_CubeMapFileNamesSuffixHDR[6]{ "_HDR_XPos", "_HDR_XNeg", "_HDR_YPos", "_HDR_YNeg", "_HDR_ZPos", "_HDR_ZNeg" };
+const std::string SkyboxRenderer::m_CubeMapFileNamesSuffixIrradiance[6]{ "_IRR_XPos", "_IRR_XNeg", "_IRR_YPos", "_IRR_YNeg", "_IRR_ZPos", "_IRR_ZNeg" };
+const std::string SkyboxRenderer::m_CubeMapFileNamesSuffixMip[6]{ "_MIP_XPos", "_MIP_XNeg", "_MIP_YPos", "_MIP_YNeg", "_MIP_ZPos", "_MIP_ZNeg" };
+
 std::shared_ptr<TextureCubeMap> testCubeMap;
 const bool saveTex = false;
 
@@ -41,11 +45,6 @@ SkyboxRenderer::SkyboxRenderer() : m_SkyboxesIndexCurrent(0), m_Exposure(5.0f), 
 	m_CaptureViews[3] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::DOWN, Vector3::FORWARD);
 	m_CaptureViews[4] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::BACK, Vector3::DOWN);
 	m_CaptureViews[5] = Matrix4::BuildViewMatrix(Vector3::ZERO, Vector3::FORWARD, Vector3::DOWN);
-
-	/*m_AlreadyCapturedCubeMap = false;
-	m_AlreadyCapturedBRDFLUTMap = false;
-	m_AlreadyCapturedIrradianceMap = false;
-	m_AlreadyCapturedPreFilterMipMaps = false;*/
 
 	ImGuiRenderer::Get()->RegisterItem(this);
 	
@@ -79,7 +78,7 @@ bool SkyboxRenderer::InitShaders()
 
 bool SkyboxRenderer::InitBuffers()
 {
-	m_CaptureHDRFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(2048, 2048));
+	m_CaptureHDRFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(1024, 1024));
 	if (m_CaptureHDRFrameBuffer == nullptr) return false;
 
 	m_CaptureIrradianceFrameBuffer = std::shared_ptr<FrameBufferFP>(new FrameBufferFP(32, 32));
@@ -115,14 +114,14 @@ bool SkyboxRenderer::InitTextures()
 	if (!m_BRDFLUTTexture->IsInitialized()) return false;*/
 
 	AddSkyboxCubeMap("HDR/clarens_night_02_2k.hdr", "Clarens Night");
-	AddSkyboxCubeMap("HDR/decor_shop_2k.hdr", "Interior Shop");
+	/*AddSkyboxCubeMap("HDR/decor_shop_2k.hdr", "Interior Shop");
 	AddSkyboxCubeMap("HDR/snowy_hillside_02_2k.hdr", "Snowy Hills");
 	AddSkyboxCubeMap("HDR/pretville_cinema_2k.hdr", "Cinewall Hall");
-	AddSkyboxCubeMap("HDR/solitude_night_2k.hdr", "Palace Night");
+	AddSkyboxCubeMap("HDR/solitude_night_2k.hdr", "Palace Night");*/
 
-	testCubeMap = std::shared_ptr<TextureCubeMap>(new TextureCubeMap(TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Right.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Left.png",
-																	 TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Up.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Down.png",
-																	 TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Back.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Front.png"));
+	/*testCubeMap = std::shared_ptr<TextureCubeMap>(new TextureCubeMap(TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Right.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Left.png",
+												 					 TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Up.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Down.png",
+																	 TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Back.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Front.png"));*/
 
 	m_SkyboxesNamesList = new char* [m_SkyBoxesNames.size()];
 	for (size_t i = 0; i < m_SkyBoxesNames.size(); i++)	
@@ -139,9 +138,10 @@ void SkyboxRenderer::AddSkyboxCubeMap(const std::string& fileName, const std::st
 
 void SkyboxRenderer::CaptureHDRCubeMap()
 {
-	const int width = 2048;
-	const int height = 2048;
+	const int width = m_CaptureHDRFrameBuffer->GetWidth();
+	const int height = m_CaptureHDRFrameBuffer->GetHeight();
 	const int channels = 3;
+	unsigned char* data = nullptr;
 
 	m_EquiRect2CubeMapShader->Bind();
 	m_EquiRect2CubeMapShader->SetMat4("proj", m_CaptureProjection);
@@ -151,9 +151,6 @@ void SkyboxRenderer::CaptureHDRCubeMap()
 	m_CaptureHDRFrameBuffer->Bind();
 	for (unsigned int i = 0; i < 6; i++)
 	{
-		unsigned char* data = new unsigned char[channels * width * height];
-		memset(data, 0, channels * width * height);
-
 		m_EquiRect2CubeMapShader->SetMat4("view", m_CaptureViews[i]);
 		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapEnvTexture->GetID(), 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
@@ -163,11 +160,15 @@ void SkyboxRenderer::CaptureHDRCubeMap()
 
 		if (saveTex)
 		{
-			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-			stbi_write_png(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + "_HDR" + cubeMapFileNamesSuffix[i] + ".png").c_str(), width, height, channels, data, width * channels);
-		}
+			data = new unsigned char[channels * width * height];
+			memset(data, 0, channels * width * height);
 
-		delete[] data;
+			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+			//stbi_write_png(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + m_CubeMapFileNamesSuffixHDR[i] + ".png").c_str(), width, height, channels, data, width * channels);
+			stbi_write_jpg(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + m_CubeMapFileNamesSuffixHDR[i] + ".jpg").c_str(), width, height, channels, data, 100);
+			
+			delete[] data;
+		}
 	}
 	m_CaptureHDRFrameBuffer->Unbind();
 	m_EquiRect2CubeMapShader->UnBind();
@@ -175,6 +176,11 @@ void SkyboxRenderer::CaptureHDRCubeMap()
 
 void SkyboxRenderer::CaptureIrradianceMap()
 {
+	const int width = m_CaptureIrradianceFrameBuffer->GetWidth();
+	const int height = m_CaptureIrradianceFrameBuffer->GetHeight();
+	const int channels = 3;
+	unsigned char* data = nullptr;
+
 	m_IrradianceCubeMapShader->Bind();
 	m_IrradianceCubeMapShader->SetMat4("proj", m_CaptureProjection);
 	m_IrradianceCubeMapShader->SetTextureCubeMap("environmentHDRCubemap", m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
@@ -189,6 +195,18 @@ void SkyboxRenderer::CaptureIrradianceMap()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		Renderer::Get()->GetCubeMesh()->Draw();
+
+		if (saveTex)
+		{
+			data = new unsigned char[channels * width * height];
+			memset(data, 0, channels * width * height);
+
+			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+			//stbi_write_png(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + m_CubeMapFileNamesSuffixIrradiance[i] + ".png").c_str(), width, height, channels, data, width * channels);
+			stbi_write_jpg(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + m_CubeMapFileNamesSuffixIrradiance[i] + ".jpg").c_str(), width, height, channels, data, 100);
+
+			delete[] data;
+		}
 	}
 	m_CaptureIrradianceFrameBuffer->Unbind();
 	m_IrradianceCubeMapShader->UnBind();
@@ -222,6 +240,21 @@ void SkyboxRenderer::CapturePreFilterMipMaps()
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			Renderer::Get()->GetCubeMesh()->Draw();
+
+			if (saveTex)
+			{
+				const int width = mipWidth;
+				const int height = mipHeight;
+				const int channels = 3;
+				unsigned char* data = new unsigned char[channels * width * height];
+				memset(data, 0, channels * width * height);				
+
+				glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+				//stbi_write_png(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + "_BRDFLUT.png").c_str(), width, height, channels, data, width * channels);
+				stbi_write_jpg(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + m_CubeMapFileNamesSuffixMip[i] + std::to_string(mip) + ".jpg").c_str(), width, height, channels, data, 100);
+				delete[] data;
+			}
 		}
 	}
 
@@ -234,8 +267,7 @@ void SkyboxRenderer::CaptureBRDFLUTMap()
 	const int width = m_SkyboxesList[m_SkyboxesIndexCurrent].m_BRDFLUTTexture->GetWidth();
 	const int height = m_SkyboxesList[m_SkyboxesIndexCurrent].m_BRDFLUTTexture->GetHeight();
 	const int channels = 3;
-	unsigned char* data = new unsigned char[channels * width * height];
-	memset(data, 0, channels * width * height);
+	unsigned char* data = nullptr;
 
 	m_CapturePreFilterFrameBuffer->Bind();
 
@@ -249,18 +281,22 @@ void SkyboxRenderer::CaptureBRDFLUTMap()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Renderer::Get()->GetQuadMesh()->Draw();
 
-	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-	m_BRDFIntegrateShader->UnBind();
-
-	m_CapturePreFilterFrameBuffer->Unbind();
-
 	//Save to a File?
 	if (saveTex)
 	{
-		stbi_write_png(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + "_BRDFLUT.png").c_str(), width, height, channels, data, width * channels);
+		data = new unsigned char[channels * width * height];
+		memset(data, 0, channels * width * height);
+
+		glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+		//stbi_write_png(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + "_BRDFLUT.png").c_str(), width, height, channels, data, width * channels);
+		stbi_write_jpg(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + "_BRDFLUT.jpg").c_str(), width, height, channels, data, 100);
 		delete[] data;
 	}
+
+	m_BRDFIntegrateShader->UnBind();
+
+	m_CapturePreFilterFrameBuffer->Unbind();	
 }
 
 void SkyboxRenderer::Render()
@@ -328,7 +364,7 @@ void SkyboxRenderer::RenderSkybox()
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapIrradianceTexture->GetID(), 0);
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
-	m_CubeMapShader->SetTextureCubeMap("cubeTex", /*m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID()*/ testCubeMap->GetID(), 0);
+	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
 	Renderer::Get()->GetCubeMesh()->Draw();
 	m_CubeMapShader->UnBind();
 
@@ -346,6 +382,7 @@ void SkyboxRenderer::CheckAllSkyboxCaptures()
 {
 	if ((int)m_SkyboxesList.size() == 0) return;
 
+	ProfilingManager::RecordSkyboxCaptureTimeStart();
 	int i = 0;
 	m_SkyboxesIndexCurrent = i;
 	for (auto skybox : m_SkyboxesList)
@@ -376,6 +413,7 @@ void SkyboxRenderer::CheckAllSkyboxCaptures()
 	}
 
 	m_SkyboxesIndexCurrent = 0;
+	ProfilingManager::RecordSkyboxCaptureTimeEnd();
 }
 
 void SkyboxRenderer::OnSkyboxDataChanged()
@@ -409,15 +447,21 @@ void SkyboxRenderer::OnImGuiRender()
 	}
 }
 
-SkyboxCubeMap::SkyboxCubeMap(const std::string& fileName, const std::string& skyboxName) : m_SkyboxName(skyboxName), m_SkyboxFileName(fileName)
+SkyboxCubeMap::SkyboxCubeMap(const std::string& fileName, const std::string& skyboxName) : 
+	m_SkyboxName(skyboxName), 
+	m_SkyboxFileName(fileName),
+	m_AlreadyCapturedCubeMap(false),
+	m_AlreadyCapturedIrradianceMap(false),
+	m_AlreadyCapturedPreFilterMipMaps(false),
+	m_AlreadyCapturedBRDFLUTMap(false)
 {
 	size_t lastDot = m_SkyboxFileName.find_last_of(".");
 	m_SkyboxFileNameNoExt = (lastDot == std::string::npos) ? m_SkyboxFileName : m_SkyboxFileName.substr(0, lastDot);
 
-	m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR + fileName));
+	m_CubeMapHDRTexture = std::shared_ptr<TextureHDR>(new TextureHDR(TEXTUREDIR + m_SkyboxFileName));
 	if (!m_CubeMapHDRTexture->IsInitialized()) return;
 
-	m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(2048, 2048));
+	m_CubeMapEnvTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(1024, 1024));
 	if (!m_CubeMapEnvTexture->IsInitialized()) return;
 
 	m_CubeMapIrradianceTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(32, 32));
@@ -426,11 +470,80 @@ SkyboxCubeMap::SkyboxCubeMap(const std::string& fileName, const std::string& sky
 	m_CubeMapPreFilterTexture = std::shared_ptr<TextureEnvCubeMap>(new TextureEnvCubeMap(128, 128, true));
 	if (!m_CubeMapPreFilterTexture->IsInitialized()) return;
 
-	m_BRDFLUTTexture = std::shared_ptr<Texture>(new Texture(512, 512, GL_RG16F, GL_RG, GL_FLOAT));
-	if (!m_BRDFLUTTexture->IsInitialized()) return;
-
 	m_AlreadyCapturedCubeMap = false;
-	m_AlreadyCapturedBRDFLUTMap = false;
 	m_AlreadyCapturedIrradianceMap = false;
 	m_AlreadyCapturedPreFilterMipMaps = false;
+	m_AlreadyCapturedBRDFLUTMap = IsBRDFLUTTextureExists();
+}
+
+bool SkyboxCubeMap::IsHDRTexturesExists()
+{
+	bool status = true;
+
+	std::ifstream readFile;
+	std::vector<std::string> textureFaces;
+	textureFaces.reserve(6);
+	textureFaces.assign(6, "");
+
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		std::string fileName(TEXTUREDIR + m_SkyboxFileNameNoExt + SkyboxRenderer::m_CubeMapFileNamesSuffixHDR[i] + ".jpg");
+		readFile = std::ifstream(fileName);
+
+		if (readFile.good())
+		{
+			textureFaces[i] = fileName;
+		}
+		else
+		{
+			status = false;
+			return status;
+		}
+	}
+
+	m_CubeMapEnvTexture->SetTextureFaces(textureFaces);
+
+	return status;
+}
+
+bool SkyboxCubeMap::IsIrradianceTexturesExists()
+{
+	bool status = true;
+
+	std::ifstream readFile;
+	std::vector<std::string> textureFaces;
+	textureFaces.reserve(6);
+	textureFaces.assign(6, "");
+
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		std::string fileName(TEXTUREDIR + m_SkyboxFileNameNoExt + SkyboxRenderer::m_CubeMapFileNamesSuffixIrradiance[i] + ".jpg");
+		readFile = std::ifstream(fileName);
+
+		if (readFile.good())
+		{
+			textureFaces[i] = fileName;
+		}
+		else
+		{
+			status = false;
+			return status;
+		}
+	}
+
+	m_CubeMapIrradianceTexture->SetTextureFaces(textureFaces);
+
+	return status;
+}
+
+bool SkyboxCubeMap::IsBRDFLUTTextureExists()
+{
+	std::string fileName(TEXTUREDIR + m_SkyboxFileNameNoExt + "_BRDFLUT.jpg");
+	std::ifstream readBRDFFile = std::ifstream(fileName);
+	if (readBRDFFile.good())
+		m_BRDFLUTTexture = std::shared_ptr<Texture>(new Texture(fileName, GL_RG16F, GL_RG, GL_FLOAT));
+	else
+		m_BRDFLUTTexture = std::shared_ptr<Texture>(new Texture(512, 512, GL_RG16F, GL_RG, GL_FLOAT));
+
+	return m_BRDFLUTTexture->IsInitialized();
 }

@@ -8,22 +8,20 @@
 
 ImGuiRenderer* ImGuiRenderer::m_ImGuiRenderer = nullptr;
 
-ImGuiRenderer::ImGuiRenderer(Window& parent)
+ImGuiRenderer::ImGuiRenderer(Window& parent) : m_MouseOverScene(false)
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-	ImGui::StyleColorsDark();
+	ImGui::StyleColorsClassic();
 
 	ImGui_ImplWin32_Init(parent.GetHandle());
 	ImGui_ImplOpenGL3_Init();
 
 	m_ViewportSize.x = parent.GetScreenSize().x;
 	m_ViewportSize.y = parent.GetScreenSize().y;
-
-	m_MouseOverScene = false;
 
 	m_ImGuiRenderer = this;
 }
@@ -153,7 +151,14 @@ void ImGuiRenderer::RenderProfilingWindow()
 	ImGui::Separator();
 
 	ImGui::Text(std::string("Total Load Time: " + std::to_string(ProfilingManager::GetStartupTime()) + " ms").c_str());
+
+	ImGui::Spacing();
+
 	ImGui::Text(std::string("Texture Load Time: " + std::to_string(ProfilingManager::GetTextureLoadTime()) + " ms").c_str());
+	ImGui::Text(std::string("Skybox Load Time: " + std::to_string(ProfilingManager::GetSkyboxCaptureTime()) + " ms").c_str());
+	
+	ImGui::Spacing();
+
 	ImGui::Text(std::string("Frame Time: " + std::to_string(ProfilingManager::GetFrameTime()) + " ms").c_str());
 
 	ImGui::Separator();
