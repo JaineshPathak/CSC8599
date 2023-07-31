@@ -69,6 +69,7 @@ protected:
 	std::vector<int> m_TexNormalSet;
 	std::vector<int> m_TexOcclusionSet;
 	std::vector<int> m_TexEmissionSet;
+	std::vector<int> m_OpacitySet;
 
 	Vector3 m_Position;
 	Matrix4 m_ModelMatrix;

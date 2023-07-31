@@ -49,11 +49,11 @@ void Object3DEntity::Render()
 		m_ShaderObject->SetBool("hasRoughnessTex", m_TexRoughnessSet[i] != -1);
 		if (m_TexRoughnessSet[i] != -1) m_ShaderObject->SetTexture("roughnessTex", m_TexRoughnessSet[i], 3);
 
-		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
-		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 5);
-
 		m_ShaderObject->SetBool("hasEmissiveTex", m_TexEmissionSet[i] != -1);
 		if (m_TexEmissionSet[i] != -1) m_ShaderObject->SetTexture("emissiveTex", m_TexEmissionSet[i], 4);
+
+		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
+		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 5);		
 
 		m_MeshObject->DrawSubMesh(i);
 	}

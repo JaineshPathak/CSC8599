@@ -32,6 +32,7 @@ Object3D::~Object3D()
 	m_TexNormalSet.clear();
 	m_TexOcclusionSet.clear();
 	m_TexEmissionSet.clear();
+	m_OpacitySet.clear();
 }
 
 bool Object3D::LoadMesh()
@@ -64,6 +65,7 @@ bool Object3D::LoadTextures()
 	m_TexNormalSet.assign(meshSubCount, -1);
 	m_TexOcclusionSet.assign(meshSubCount, -1);
 	m_TexEmissionSet.assign(meshSubCount, -1);
+	m_OpacitySet.assign(meshSubCount, -1);
 
 	if (m_UseThreads)
 	{
@@ -86,6 +88,7 @@ bool Object3D::LoadTextures()
 				FillTextureIDsThreaded(i, "Bump", matEntry, m_TexNormalSet);
 				FillTextureIDsThreaded(i, "Occlusion", matEntry, m_TexOcclusionSet);
 				FillTextureIDsThreaded(i, "Emission", matEntry, m_TexEmissionSet);
+				FillTextureIDsThreaded(i, "Opacity", matEntry, m_OpacitySet);
 			}
 		}
 	}
@@ -102,6 +105,7 @@ bool Object3D::LoadTextures()
 				LoadMaterialTextures(i, "Bump", matEntry, m_TexNormalSet);
 				LoadMaterialTextures(i, "Occlusion", matEntry, m_TexOcclusionSet);
 				LoadMaterialTextures(i, "Emission", matEntry, m_TexEmissionSet);
+				LoadMaterialTextures(i, "Opacity", matEntry, m_OpacitySet);
 			}
 		}
 	}	
