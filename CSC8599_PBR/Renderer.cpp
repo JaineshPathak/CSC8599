@@ -81,7 +81,7 @@ bool Renderer::InitShaders()
 	*/
 
 	m_CombinedShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostFinalFrag.glsl"));
-	if (!m_CombinedShader->LoadSuccess()) return false;		
+	if (!m_CombinedShader->LoadSuccess()) return false;
 
 	return true;
 }
