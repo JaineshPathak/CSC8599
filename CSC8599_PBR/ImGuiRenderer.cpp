@@ -154,7 +154,12 @@ void ImGuiRenderer::RenderProfilingWindow()
 
 	ImGui::Text(std::string("Total Load Time: " + std::to_string(ProfilingManager::GetStartupTime()) + " ms").c_str());
 	ImGui::Text(std::string("Texture Load Time: " + std::to_string(ProfilingManager::GetTextureLoadTime()) + " ms").c_str());
+	ImGui::Text(std::string("Skybox Load Time: " + std::to_string(ProfilingManager::GetSkyboxCaptureTime()) + " ms").c_str());
+
+	ImGui::Separator();
+
 	ImGui::Text(std::string("Frame Time: " + std::to_string(ProfilingManager::GetFrameTime()) + " ms").c_str());
+	ImGui::Text(std::string("Post Process Time: " + std::to_string(ProfilingManager::GetPostProcessTime()) + " ms").c_str());
 
 	ImGui::Separator();
 

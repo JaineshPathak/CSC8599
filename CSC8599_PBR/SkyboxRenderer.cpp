@@ -10,11 +10,7 @@
 #include <nclgl/FrameBufferFP.h>
 #include <nclgl/FrameBufferHDR.h>
 #include <nclgl/UniformBuffer.h>
-
-#include <imgui/imgui.h>
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image/stb_image_write.h>
+#include <nclgl/ProfilingManager.h>
 
 SkyboxRenderer::SkyboxRenderer() : m_SkyboxesIndexCurrent(0), m_Exposure(5.0f), m_Gamma(2.2f)
 {
@@ -306,6 +302,7 @@ void SkyboxRenderer::CheckAllSkyboxCaptures()
 {
 	if ((int)m_SkyboxesList.size() == 0) return;
 
+	ProfilingManager::RecordSkyboxCaptureTimeStart();
 	int i = 0;
 	m_SkyboxesIndexCurrent = i;
 	for (auto skybox : m_SkyboxesList)
@@ -336,6 +333,7 @@ void SkyboxRenderer::CheckAllSkyboxCaptures()
 	}
 
 	m_SkyboxesIndexCurrent = 0;
+	ProfilingManager::RecordSkyboxCaptureTimeEnd();
 }
 
 void SkyboxRenderer::OnSkyboxDataChanged()

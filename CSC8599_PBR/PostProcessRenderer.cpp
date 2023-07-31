@@ -1,6 +1,8 @@
 #include "PostProcessRenderer.h"
 #include "Renderer.h"
 
+#include <nclgl/ProfilingManager.h>
+
 PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsigned int& sizeY) :
 	m_IsEnabled(true),
 	m_Width(sizeX),
@@ -55,6 +57,7 @@ void PostProcessRenderer::RenderPrePass(const unsigned int& srcTexture, const un
 {
 	if (!m_IsEnabled) return;
 
+	ProfilingManager::RecordPostProcessTimeStart();
 	CheckWindowSize();
 	FillPreActivePostEffects();
 	RenderPreActivePostEffects(srcTexture, depthTextureID);
@@ -65,7 +68,7 @@ void PostProcessRenderer::RenderPrePass(const unsigned int& srcTexture, const un
 void PostProcessRenderer::Render(const unsigned int& srcTexture, const unsigned int& depthTextureID)
 {
 	if (!m_IsEnabled) return;
-
+	
 	CheckWindowSize();
 	FillMidActivePostEffects();
 	RenderMidActivePostEffects(srcTexture, depthTextureID);
@@ -74,6 +77,7 @@ void PostProcessRenderer::Render(const unsigned int& srcTexture, const unsigned 
 	m_ActiveMidPostEffects.clear();
 
 	RenderLastPass(GetMidFinalTexture(), depthTextureID);
+	ProfilingManager::RecordPostProcessTimeEnd();
 }
 
 void PostProcessRenderer::RenderLastPass(const unsigned int& srcTexture, const unsigned int& depthTextureID)
