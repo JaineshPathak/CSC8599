@@ -16,10 +16,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image/stb_image_write.h>
 
-const std::string cubeMapFileNamesSuffix[6]{ "_Right", "_Left", "_Up", "_Down", "_Back", "_Front" };
-std::shared_ptr<TextureCubeMap> testCubeMap;
-const bool saveTex = false;
-
 SkyboxRenderer::SkyboxRenderer() : m_SkyboxesIndexCurrent(0), m_Exposure(5.0f), m_Gamma(2.2f)
 {
 	if (!InitShaders()) { m_IsInitialized = false; return; }
@@ -120,10 +116,6 @@ bool SkyboxRenderer::InitTextures()
 	AddSkyboxCubeMap("HDR/pretville_cinema_2k.hdr", "Cinewall Hall");
 	AddSkyboxCubeMap("HDR/solitude_night_2k.hdr", "Palace Night");
 
-	testCubeMap = std::shared_ptr<TextureCubeMap>(new TextureCubeMap(TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Right.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Left.png",
-																	 TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Up.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Down.png",
-																	 TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Back.png", TEXTUREDIR"HDR/clarens_night_02_2k_HDR_Front.png"));
-
 	m_SkyboxesNamesList = new char* [m_SkyBoxesNames.size()];
 	for (size_t i = 0; i < m_SkyBoxesNames.size(); i++)	
 		m_SkyboxesNamesList[i] = (char*)m_SkyBoxesNames[i].c_str();
@@ -139,10 +131,6 @@ void SkyboxRenderer::AddSkyboxCubeMap(const std::string& fileName, const std::st
 
 void SkyboxRenderer::CaptureHDRCubeMap()
 {
-	const int width = 2048;
-	const int height = 2048;
-	const int channels = 3;
-
 	m_EquiRect2CubeMapShader->Bind();
 	m_EquiRect2CubeMapShader->SetMat4("proj", m_CaptureProjection);
 	m_EquiRect2CubeMapShader->SetTexture("equiRectTex", m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapHDRTexture->GetID(), 0);
@@ -151,23 +139,12 @@ void SkyboxRenderer::CaptureHDRCubeMap()
 	m_CaptureHDRFrameBuffer->Bind();
 	for (unsigned int i = 0; i < 6; i++)
 	{
-		unsigned char* data = new unsigned char[channels * width * height];
-		memset(data, 0, channels * width * height);
-
 		m_EquiRect2CubeMapShader->SetMat4("view", m_CaptureViews[i]);
 		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_CubeMapEnvTexture->GetID(), 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		Renderer::Get()->GetCubeMesh()->Draw();
-
-		if (saveTex)
-		{
-			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-			stbi_write_png(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + "_HDR" + cubeMapFileNamesSuffix[i] + ".png").c_str(), width, height, channels, data, width * channels);
-		}
-
-		delete[] data;
+		Renderer::Get()->GetCubeMesh()->Draw();		
 	}
 	m_CaptureHDRFrameBuffer->Unbind();
 	m_EquiRect2CubeMapShader->UnBind();
@@ -231,12 +208,6 @@ void SkyboxRenderer::CapturePreFilterMipMaps()
 
 void SkyboxRenderer::CaptureBRDFLUTMap()
 {
-	const int width = m_SkyboxesList[m_SkyboxesIndexCurrent].m_BRDFLUTTexture->GetWidth();
-	const int height = m_SkyboxesList[m_SkyboxesIndexCurrent].m_BRDFLUTTexture->GetHeight();
-	const int channels = 3;
-	unsigned char* data = new unsigned char[channels * width * height];
-	memset(data, 0, channels * width * height);
-
 	m_CapturePreFilterFrameBuffer->Bind();
 
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
@@ -245,22 +216,11 @@ void SkyboxRenderer::CaptureBRDFLUTMap()
 	glViewport(0, 0, 512, 512);
 
 	m_BRDFIntegrateShader->Bind();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Renderer::Get()->GetQuadMesh()->Draw();
-
-	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-
 	m_BRDFIntegrateShader->UnBind();
 
 	m_CapturePreFilterFrameBuffer->Unbind();
-
-	//Save to a File?
-	if (saveTex)
-	{
-		stbi_write_png(std::string(m_SkyboxesList[m_SkyboxesIndexCurrent].m_SkyboxFileNameNoExt + "_BRDFLUT.png").c_str(), width, height, channels, data, width * channels);
-		delete[] data;
-	}
 }
 
 void SkyboxRenderer::Render()
@@ -328,7 +288,7 @@ void SkyboxRenderer::RenderSkybox()
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapIrradianceTexture->GetID(), 0);
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
 	//m_CubeMapShader->SetTextureCubeMap("cubeTex", m_CubeMapEnvTexture->GetID(), 0);
-	m_CubeMapShader->SetTextureCubeMap("cubeTex", /*m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID()*/ testCubeMap->GetID(), 0);
+	m_CubeMapShader->SetTextureCubeMap("cubeTex", m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture->GetID(), 0);
 	Renderer::Get()->GetCubeMesh()->Draw();
 	m_CubeMapShader->UnBind();
 
