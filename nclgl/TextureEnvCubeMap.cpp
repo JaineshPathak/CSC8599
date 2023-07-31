@@ -22,6 +22,7 @@ void TextureEnvCubeMap::SetTextureFaces(const std::vector<std::string> texture_f
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_ProgramID);
 
 	m_InternalFormat = m_Format = GL_RGB;
+	m_Type = GL_FLOAT;
 	for (unsigned int i = 0; i < 6; i++)
 	{
 		//stbi_set_flip_vertically_on_load(true);
@@ -30,7 +31,7 @@ void TextureEnvCubeMap::SetTextureFaces(const std::vector<std::string> texture_f
 			m_Data = (float*)stbi_loadf(m_Texture_Faces_Files[i].c_str(), &m_Width, &m_Height, &m_Channel, 0);
 			if (m_Data)
 			{
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, GL_FLOAT, m_Data);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, m_Type, m_Data);
 				stbi_image_free(m_Data);
 			}
 		}
@@ -61,8 +62,9 @@ void TextureEnvCubeMap::Validate()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_ProgramID);
 
 	m_InternalFormat = m_Format = GL_RGB;
+	m_Type = GL_FLOAT;
 	for (unsigned int i = 0; i < 6; ++i)
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, m_Type, nullptr);
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

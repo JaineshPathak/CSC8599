@@ -21,7 +21,8 @@ void main(void)
 
 	vec3 cubeColor = texture(cubeTex, IN.viewDir).rgb;
 	
-	cubeColor = cubeColor / (cubeColor + vec3(1.0));
+	//vec3 cubeColor = textureLod(cubeTex, IN.viewDir, 4.0).rgb;
+	//cubeColor = cubeColor / (cubeColor + vec3(1.0));
 	cubeColor = pow(cubeColor, vec3(m_GAMMA));
 	cubeColor = vec3(1.0) - exp(-cubeColor * m_Exposure);
 	cubeColor = pow(cubeColor, vec3(1.0 / m_GAMMA));

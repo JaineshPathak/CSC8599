@@ -254,6 +254,13 @@ void Texture::UploadData(void* data)
 	Unbind();
 }
 
+void Texture::UploadMipData(void* data, const unsigned int& mipLevel, const unsigned int& width, const unsigned int& height)
+{
+	Bind();
+	glTexImage2D(GL_TEXTURE_2D, mipLevel, m_InternalFormat, width, height, 0, m_Format, m_Type, data);
+	Unbind();
+}
+
 void Texture::Validate()
 {
 	stbi_set_flip_vertically_on_load(true);

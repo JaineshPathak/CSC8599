@@ -22,8 +22,8 @@ Object3DRenderer::Object3DRenderer(const float& width, const float& height) :
 	ProfilingManager::RecordTextureTimeStart();
 	
 	Add3DObject("Car", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f);
-	Add3DObject("Helmet", "Mesh_SciFi_Helmet.msh", "Mesh_SciFi_Helmet.mat", 3.0f);
-	Add3DObject("Character", "Mesh_SciFi_Character.msh", "Mesh_SciFi_Character.mat", 1.65f);
+	//Add3DObject("Helmet", "Mesh_SciFi_Helmet.msh", "Mesh_SciFi_Helmet.mat", 3.0f);
+	//Add3DObject("Character", "Mesh_SciFi_Character.msh", "Mesh_SciFi_Character.mat", 1.65f);
 	
 	ProfilingManager::RecordTextureTimeEnd();
 

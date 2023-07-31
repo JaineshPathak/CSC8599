@@ -51,6 +51,7 @@ public:
 	inline virtual void Bind();
 	inline virtual void Unbind();
 	virtual void UploadData(void* data);
+	virtual void UploadMipData(void* data, const unsigned int& mipLevel, const unsigned int& width, const unsigned int& height);
 
 	bool IsInitialized() const
 	{ 

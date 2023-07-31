@@ -18,6 +18,7 @@ _-_-_-_-_-_-_-""  ""
 
 using std::string;
 
+PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 
 
 static const float biasValues[16] = {
@@ -141,6 +142,9 @@ OGLRenderer::OGLRenderer(Window &window)	{
 	glClearColor(0.2f,0.2f,0.2f,1.0f);			//When we clear the screen, we want it to be dark grey
 
 	currentShader = 0;							//0 is the 'null' object name for shader programs...
+
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	wglSwapIntervalEXT(0);
 
 	window.SetRenderer(this);					//Tell our window about the new renderer! (Which will in turn resize the renderer window to fit...)
 }

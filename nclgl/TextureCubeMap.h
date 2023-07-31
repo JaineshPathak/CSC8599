@@ -18,6 +18,10 @@ public:
 	virtual void SetTextureFaces(const std::string texture_faces[]);
 	virtual void SetTextureFaces(const std::vector<std::string> texture_faces);
 
+	inline virtual void Bind() override;
+	inline virtual void Unbind() override;
+	virtual void UploadCubeMipData(const unsigned int& cubeMapAxis, void* data, const unsigned int& mipLevel, const unsigned int& width, const unsigned int& height);
+
 protected:
 	virtual void Validate() override;
 	

@@ -53,6 +53,36 @@ void TextureCubeMap::SetTextureFaces(const std::vector<std::string> texture_face
 	Validate();
 }
 
+inline void TextureCubeMap::Bind()
+{
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_ProgramID);
+}
+
+inline void TextureCubeMap::Unbind()
+{
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void TextureCubeMap::UploadCubeMipData(const unsigned int& cubeMapAxis, void* data, const unsigned int& mipLevel, const unsigned int& width, const unsigned int& height)
+{
+	std::string axisStr;
+	switch (cubeMapAxis)
+	{
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_X: axisStr = "+X"; break;
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_Y: axisStr = "+Y"; break;
+		case GL_TEXTURE_CUBE_MAP_POSITIVE_Z: axisStr = "+Z"; break;
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_X: axisStr = "-X"; break;
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y: axisStr = "-Y"; break;
+		case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z: axisStr = "-Z"; break;
+	}
+
+	std::cout << "Cube Map uploading Data: Axis: " << axisStr << ", Width: " << width << ", Height: " << height << ", Mip Level: " << mipLevel << std::endl;
+
+	Bind();
+	glTexImage2D(cubeMapAxis, mipLevel, m_InternalFormat, width, height, 0, m_Format, m_Type, data);
+	Unbind();
+}
+
 void TextureCubeMap::Validate()
 {
 	if (m_ProgramID > 0)
@@ -65,6 +95,7 @@ void TextureCubeMap::Validate()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_ProgramID);
 
 	m_InternalFormat = m_Format = GL_RGB;
+	m_Type = GL_FLOAT;
 	for (unsigned int i = 0; i < 6; i++)
 	{
 		//stbi_set_flip_vertically_on_load(true);
@@ -73,7 +104,7 @@ void TextureCubeMap::Validate()
 			m_Data = (float*)stbi_loadf(m_Texture_Faces_Files[i].c_str(), &m_Width, &m_Height, &m_Channel, 0);
 			if (m_Data)
 			{
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, GL_FLOAT, m_Data);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_InternalFormat, m_Width, m_Height, 0, m_Format, m_Type, m_Data);
 				stbi_image_free(m_Data);
 			}
 		}
