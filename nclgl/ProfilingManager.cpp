@@ -27,12 +27,48 @@ std::chrono::high_resolution_clock::time_point ProfilingManager::m_SkyboxCapture
 std::chrono::high_resolution_clock::time_point ProfilingManager::m_PostProcessStartTime = std::chrono::high_resolution_clock::now();
 std::chrono::high_resolution_clock::time_point ProfilingManager::m_PostProcessEndTime = std::chrono::high_resolution_clock::now();
 
+DWORDLONG ProfilingManager::m_TotalVirtualMem = 0;
+DWORDLONG ProfilingManager::m_UsedVirtualMem = 0;
+SIZE_T ProfilingManager::m_VirtualMemUsedByProgram = 0;
+
+DWORDLONG ProfilingManager::m_TotalPhysMem = 0;
+DWORDLONG ProfilingManager::m_UsedPhysMem = 0;
+SIZE_T ProfilingManager::m_PhysMemUsedByProgram = 0;
+
 const float ProfilingManager::GetFramerate()
 {
 	if (ImGui::GetCurrentContext() == nullptr)
 		return 0;
 
 	return (const float)ImGui::GetIO().Framerate;
+}
+
+void ProfilingManager::Update()
+{
+	CalculateMemoryUsage();
+	CalculateMemoryUsageByProgram();
+}
+
+void ProfilingManager::CalculateMemoryUsage()
+{
+	MEMORYSTATUSEX memInfo;
+	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+	GlobalMemoryStatusEx(&memInfo);
+
+	m_TotalVirtualMem = memInfo.ullTotalPageFile;
+	m_UsedVirtualMem = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
+
+	m_TotalPhysMem = memInfo.ullTotalPhys;
+	m_UsedPhysMem = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
+}
+
+void ProfilingManager::CalculateMemoryUsageByProgram()
+{
+	PROCESS_MEMORY_COUNTERS_EX pmc;
+	GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+
+	m_VirtualMemUsedByProgram = pmc.PrivateUsage;
+	m_PhysMemUsedByProgram = pmc.WorkingSetSize;
 }
 
 void ProfilingManager::RecordStartupTimeStart()

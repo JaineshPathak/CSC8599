@@ -304,4 +304,6 @@ void Renderer::UpdateScene(float dt)
 		m_MainCamera->UpdateCamera(dt);
 		m_MainCamera->CalcViewMatrix();
 	}
+
+	ProfilingManager::Update();
 }

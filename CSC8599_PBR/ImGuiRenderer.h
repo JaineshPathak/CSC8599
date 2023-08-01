@@ -44,6 +44,8 @@ protected:
 	bool m_MouseOverScene;
 
 private:
+	Window& m_WindowParent;
+
 	int m_Minor, m_Major;
 	std::string m_VersionStr;
 

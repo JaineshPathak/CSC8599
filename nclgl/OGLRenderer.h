@@ -60,6 +60,9 @@ public:
 
 	static void SetTextureRepeating(GLuint target, bool repeating);
 	static bool BindTexture(GLuint texID, GLuint unit, const std::string& uniformName, Shader* s);
+
+	const bool GetVerticalSyncState() const { return (bool)vSyncState; }
+	virtual bool SetVerticalSync(const int& state);
 	
 protected:
 	virtual void	Resize(int x, int y);	
@@ -84,6 +87,7 @@ protected:
 	int		width;			//Render area width (not quite the same as window width)
 	int		height;			//Render area height (not quite the same as window height)
 	bool	init;			//Did the renderer initialise properly?
+	int		vSyncState;
 
 protected:
 	void SetShaderLight(const Light& L);

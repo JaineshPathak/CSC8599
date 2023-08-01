@@ -8,7 +8,7 @@
 
 ImGuiRenderer* ImGuiRenderer::m_ImGuiRenderer = nullptr;
 
-ImGuiRenderer::ImGuiRenderer(Window& parent)
+ImGuiRenderer::ImGuiRenderer(Window& parent) : m_WindowParent(parent)
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -147,6 +147,11 @@ void ImGuiRenderer::RenderProfilingWindow()
 {
 	ImGui::Begin("Profiling");
 
+	bool vSyncState = m_WindowParent.GetRenderer()->GetVerticalSyncState();
+	if (ImGui::Checkbox("Enable V-Sync", &vSyncState)) m_WindowParent.GetRenderer()->SetVerticalSync(vSyncState);
+
+	ImGui::Separator();
+
 	ImGui::Text(std::string("FPS: " + std::to_string(ProfilingManager::GetFramerate())).c_str());
 	ImGui::Text(std::string("Draw calls: " + std::to_string(ProfilingManager::DrawCalls)).c_str());
 	ImGui::Text(std::string("Screen: " + std::to_string((int)std::ceilf(m_ViewportSize.x)) + " x " + std::to_string((int)std::ceilf(m_ViewportSize.y))).c_str());
@@ -177,6 +182,52 @@ void ImGuiRenderer::RenderProfilingWindow()
 	ProfilingManager::DrawCalls = 0;
 	ProfilingManager::VerticesCountCurrent = 0;
 	ProfilingManager::TrianglesCountCurrent = 0;
+
+	ImGui::Spacing();
+
+	if (ImGui::CollapsingHeader("Memory Usage")) 
+	{
+		ImGui::BeginTable("Memory Usage Table", 2);
+
+		ImGui::TableNextColumn();
+		ImGui::Text("Virtual Memory By Program");
+		ImGui::TableNextColumn();
+		ImGui::Text(ProfilingManager::GetVirutalUsageByProgram().c_str());
+
+		ImGui::TableNextColumn();
+
+		ImGui::Text("Virtual Memory");
+		ImGui::TableNextColumn();
+		ImGui::Text(ProfilingManager::GetVirtualMemoryUsage().c_str());
+
+		ImGui::TableNextColumn();
+
+		ImGui::Text("Total Virtual Memory");
+		ImGui::TableNextColumn();
+		ImGui::Text(ProfilingManager::GetTotalVirtualMemory().c_str());
+
+		ImGui::TableNextColumn();
+		ImGui::TableNextColumn();
+		ImGui::TableNextColumn();
+
+		ImGui::Text("Physical Memory By Program");
+		ImGui::TableNextColumn();
+		ImGui::Text(ProfilingManager::GetPhysicalUsagebyProgram().c_str());
+
+		ImGui::TableNextColumn();
+
+		ImGui::Text("Physical Memory");
+		ImGui::TableNextColumn();
+		ImGui::Text(ProfilingManager::GetPhysicalMemoryUsage().c_str());
+
+		ImGui::TableNextColumn();
+
+		ImGui::Text("Total Physical Memory");
+		ImGui::TableNextColumn();
+		ImGui::Text(ProfilingManager::GetTotalPhysicalMemory().c_str());
+
+		ImGui::EndTable();
+	}
 
 	ImGui::End();
 }

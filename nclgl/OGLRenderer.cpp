@@ -18,7 +18,7 @@ _-_-_-_-_-_-_-""  ""
 
 using std::string;
 
-
+PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 
 static const float biasValues[16] = {
 	0.5, 0.0, 0.0, 0.0,
@@ -142,6 +142,10 @@ OGLRenderer::OGLRenderer(Window &window)	{
 
 	currentShader = 0;							//0 is the 'null' object name for shader programs...
 
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	vSyncState = 1;
+	wglSwapIntervalEXT(vSyncState);
+
 	window.SetRenderer(this);					//Tell our window about the new renderer! (Which will in turn resize the renderer window to fit...)
 }
 
@@ -247,6 +251,13 @@ bool OGLRenderer::BindTexture(GLuint texID, GLuint unit, const std::string& unif
 	glUniform1i(uniformID, unit);
 
 	return true;
+}
+
+bool OGLRenderer::SetVerticalSync(const int& state)
+{
+	if (!wglSwapIntervalEXT) return false;
+	vSyncState = state;
+	return wglSwapIntervalEXT(vSyncState);
 }
 
 void OGLRenderer::SetShaderLight(const Light& L)
