@@ -24,12 +24,16 @@ public:
 	static void RecordPostProcessTimeStart();
 	static void RecordPostProcessTimeEnd();
 
+	static void RecordGUITimeStart();
+	static void RecordGUITimeEnd();
+
 	static const float GetFramerate();
 	static const double GetStartupTime() { return s_StartupTimeSec; }
 	static const double GetTextureLoadTime() { return s_TextureLoadTimeSec; }
 	static const double GetFrameTime() { return s_FrameTimeSec; }
 	static const double GetSkyboxCaptureTime() { return s_SkyboxCaptureTimeSec; }
 	static const double GetPostProcessTime() { return s_PostProcessTimeSec; }
+	static const double GetGUITime() { return s_GUITimeSec; }
 
 	static const std::string GetVirtualMemoryUsage() { return ConvertMemoryUsage(s_UsedVirtualMem); }
 	static const std::string GetVirutalUsageByProgram() { return ConvertMemoryUsage(s_VirtualMemUsedByProgram); }
@@ -53,6 +57,7 @@ private:
 	static double s_FrameTimeSec;
 	static double s_SkyboxCaptureTimeSec;
 	static double s_PostProcessTimeSec;
+	static double s_GUITimeSec;
 
 	static const int BYTE_TO_MB = 1048576;
 	static std::string ConvertMemoryUsage(DWORDLONG a) { return std::to_string(a / BYTE_TO_MB) + " MB"; }
@@ -62,6 +67,7 @@ private:
 	static std::chrono::high_resolution_clock::time_point s_FrameStartTime, s_FrameEndTime;
 	static std::chrono::high_resolution_clock::time_point s_SkyboxCaptureStartTime, s_SkyboxCaptureEndTime;
 	static std::chrono::high_resolution_clock::time_point s_PostProcessStartTime, s_PostProcessEndTime;
+	static std::chrono::high_resolution_clock::time_point s_GUIStartTime, s_GUIEndTime;
 	
 	static void CalculateMemoryUsage();
 	static void CalculateMemoryUsageByProgram();

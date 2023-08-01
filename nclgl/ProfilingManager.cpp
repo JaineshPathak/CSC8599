@@ -11,6 +11,7 @@ double ProfilingManager::s_TextureLoadTimeSec = 0.0;
 double ProfilingManager::s_FrameTimeSec = 0.0;
 double ProfilingManager::s_SkyboxCaptureTimeSec = 0.0;
 double ProfilingManager::s_PostProcessTimeSec = 0.0;
+double ProfilingManager::s_GUITimeSec = 0.0;
 
 std::chrono::high_resolution_clock::time_point ProfilingManager::s_StartupStartTime = std::chrono::high_resolution_clock::now();
 std::chrono::high_resolution_clock::time_point ProfilingManager::s_StartupEndTime = std::chrono::high_resolution_clock::now();
@@ -26,6 +27,9 @@ std::chrono::high_resolution_clock::time_point ProfilingManager::s_SkyboxCapture
 
 std::chrono::high_resolution_clock::time_point ProfilingManager::s_PostProcessStartTime = std::chrono::high_resolution_clock::now();
 std::chrono::high_resolution_clock::time_point ProfilingManager::s_PostProcessEndTime = std::chrono::high_resolution_clock::now();
+
+std::chrono::high_resolution_clock::time_point ProfilingManager::s_GUIStartTime = std::chrono::high_resolution_clock::now();
+std::chrono::high_resolution_clock::time_point ProfilingManager::s_GUIEndTime = std::chrono::high_resolution_clock::now();
 
 DWORDLONG ProfilingManager::s_TotalVirtualMem = 0;
 DWORDLONG ProfilingManager::s_UsedVirtualMem = 0;
@@ -124,4 +128,15 @@ void ProfilingManager::RecordPostProcessTimeEnd()
 {
 	s_PostProcessEndTime = std::chrono::high_resolution_clock::now();
 	s_PostProcessTimeSec = std::chrono::duration_cast<std::chrono::milliseconds>(s_PostProcessEndTime - s_PostProcessStartTime).count() / 1000.0;
+}
+
+void ProfilingManager::RecordGUITimeStart()
+{
+	s_GUIStartTime = std::chrono::high_resolution_clock::now();
+}
+
+void ProfilingManager::RecordGUITimeEnd()
+{
+	s_GUIEndTime = std::chrono::high_resolution_clock::now();
+	s_GUITimeSec = std::chrono::duration_cast<std::chrono::milliseconds>(s_GUIEndTime - s_GUIStartTime).count() / 1000.0;
 }

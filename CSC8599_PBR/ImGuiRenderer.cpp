@@ -176,6 +176,7 @@ void ImGuiRenderer::RenderProfilingWindow()
 
 	ImGui::Text(std::string("Frame Time: " + std::to_string(ProfilingManager::GetFrameTime()) + " ms").c_str());
 	ImGui::Text(std::string("Post Process Time: " + std::to_string(ProfilingManager::GetPostProcessTime()) + " ms").c_str());
+	ImGui::Text(std::string("GUI Time: " + std::to_string(ProfilingManager::GetGUITime()) + " ms").c_str());
 
 	ImGui::Separator();
 

@@ -292,7 +292,9 @@ void Renderer::RenderImGui()
 	if (m_ImGuiRenderer == nullptr)
 		return;
 
+	ProfilingManager::RecordGUITimeStart();
 	m_ImGuiRenderer->Render();
+	ProfilingManager::RecordGUITimeEnd();
 }
 
 void Renderer::UpdateScene(float dt)
