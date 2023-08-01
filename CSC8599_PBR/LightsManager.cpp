@@ -277,8 +277,9 @@ void LightsManager::OnImGuiRender()
 							OnPointLightPropertyChanged(i, light->GetPosition(), m_LightColor);
 						}
 
-						float m_LightRadius = light->GetRadius();
-						if (ImGui::DragFloat("Radius", &m_LightRadius, 1.0f, 0.1f, 1000.0f)) light->SetRadius(m_LightRadius);
+						/*float m_LightRadius = light->GetRadius();
+						if (ImGui::DragFloat("Radius", &m_LightRadius, 1.0f, 0.1f, 1000.0f)) light->SetRadius(m_LightRadius);*/
+
 						ImGui::Unindent();
 					}
 					i++;

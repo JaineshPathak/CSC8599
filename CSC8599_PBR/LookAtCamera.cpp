@@ -90,6 +90,8 @@ void LookAtCamera::OnImGuiRender()
 {	
 	if (ImGui::CollapsingHeader("Camera"))
 	{
+		ImGui::Indent();
+
 		ImGui::Combo("Movement Type", &m_CameraMovementType, m_CameraMovementTypeStr, 2);
 
 		if (m_CameraMovementType == 0)
@@ -129,6 +131,8 @@ void LookAtCamera::OnImGuiRender()
 		ImGui::DragFloat3("Front", m_camFrontDir);
 
 		float m_camRightDir[3] = { m_CamRight.x, m_CamRight.y, m_CamRight.z };
-		ImGui::DragFloat3("Right", m_camRightDir);			
+		ImGui::DragFloat3("Right", m_camRightDir);
+
+		ImGui::Unindent();
 	}
 }

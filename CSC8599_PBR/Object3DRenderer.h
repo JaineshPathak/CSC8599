@@ -26,6 +26,7 @@ public:
 
 private:
 	std::shared_ptr<Object3DEntity> Add3DObject(const std::string& objectName, const std::string& objectMeshFile, const std::string& objectMeshMaterialFile, const float& lookAtDistance = 3.0f);
+	void ChangeShaderMode(const int& newShaderMode);
 
 public:
 	void Draw();
@@ -35,9 +36,11 @@ public:
 
 private:
 	float m_Width, m_Height;
+	int m_ShaderMode;
 
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 	std::shared_ptr<Shader> m_PBRShader;
+	std::shared_ptr<Shader> m_BlinnShader;
 	std::shared_ptr<Shader> m_DepthBufferShader;
 
 	std::shared_ptr<FrameBuffer> m_DepthFrameBuffer;

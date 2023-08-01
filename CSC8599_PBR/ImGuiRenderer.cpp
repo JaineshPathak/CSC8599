@@ -60,11 +60,6 @@ void ImGuiRenderer::Render()
 
 	//ImGui::ShowDemoWindow();
 
-	//if (ImGui::GetCurrentContext()->CurrentWindow != nullptr)
-		//std::cout << "Current Window Name: " << ImGui::GetCurrentContext()->CurrentWindow->ID << std::endl;
-	//if(ImGui::GetCurrentContext()->HoveredWindow != nullptr)
-		//std::cout << "Hovered Window Name: " << ImGui::GetCurrentContext()->HoveredWindow->Name << std::endl;
-
 	ImGui::DockSpaceOverViewport();
 	
 	RenderSettingsWindow();

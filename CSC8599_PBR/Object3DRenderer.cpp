@@ -11,8 +11,10 @@
 unsigned int Object3DRenderer::m_3DEntityIDs = 0;
 
 Object3DRenderer::Object3DRenderer(const float& width, const float& height) : 
-	m_Width(width), m_Height(height),
-	m_Current3DEntityIndex(0), m_IsInitialized(false)
+	m_Width(width), m_Height(height), 
+	m_ShaderMode(0),
+	m_Current3DEntityIndex(0), 
+	m_IsInitialized(false)
 {
 	m_MainCamera = Renderer::Get()->GetMainCamera();
 
@@ -46,8 +48,9 @@ Object3DRenderer::~Object3DRenderer()
 bool Object3DRenderer::InitShaders()
 {
 	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
+	m_BlinnShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
 	m_DepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
-	if (!m_PBRShader->LoadSuccess() || !m_DepthBufferShader->LoadSuccess())
+	if (!m_PBRShader->LoadSuccess() || !m_BlinnShader->LoadSuccess() || !m_DepthBufferShader->LoadSuccess())
 	{
 		std::cout << "ERROR: Object3DRenderer: Failed to load Shader" << std::endl;
 		return false;
@@ -82,6 +85,24 @@ std::shared_ptr<Object3DEntity> Object3DRenderer::Add3DObject(const std::string&
 	return entity;
 }
 
+void Object3DRenderer::ChangeShaderMode(const int& newShaderMode)
+{
+	if (m_3DEntities.size() == 0) return;
+	if (m_ShaderMode == newShaderMode) return;
+
+	m_ShaderMode = newShaderMode;
+	for (auto it = m_3DEntities.cbegin(); it != m_3DEntities.cend(); ++it)
+	{
+		switch (m_ShaderMode)
+		{
+			case 0: it->second->SetObjectShader(m_PBRShader); break;
+			case 1: it->second->SetObjectShader(m_BlinnShader); break;
+		}
+
+		it->second->SetShaderMode(m_ShaderMode);
+	}
+}
+
 void Object3DRenderer::Draw()
 {
 	m_3DEntities[m_Current3DEntityIndex]->Draw();
@@ -114,6 +135,10 @@ void Object3DRenderer::OnImGuiRender()
 
 		if (ImGui::Combo("Object Type", &m_Current3DEntityIndex, m_3DEntitiesNamesList, (int)m_3DEntities.size()))
 			m_MainCamera->SetLookAtDistance(m_3DEntities[m_Current3DEntityIndex]->GetLookDistance());
+
+		if (ImGui::Button("PBR Mode")) ChangeShaderMode(0);
+		ImGui::SameLine();
+		if (ImGui::Button("Blinn Mode")) ChangeShaderMode(1);
 
 		ImGui::Unindent();
 	}

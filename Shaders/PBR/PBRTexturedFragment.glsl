@@ -27,7 +27,6 @@ uniform vec3 diffuseColor = vec3(1.0);
 //Lightings
 uniform vec3 cameraPos;
 
-const float GAMMA = 2.2;
 const int MAX_POINT_LIGHTS = 100;
 const int MAX_SPOT_LIGHTS = 2;
 const float PI = 3.14159265359;

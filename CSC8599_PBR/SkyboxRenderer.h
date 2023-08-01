@@ -47,6 +47,7 @@ public:
 
 	const bool IsInitialized() const { return m_IsInitialized; }
 
+	std::shared_ptr<TextureEnvCubeMap> GetEnvCubeMapTexture() { return m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapEnvTexture; }
 	std::shared_ptr<TextureEnvCubeMap> GetIrradianceTexture() { return m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapIrradianceTexture; }
 	std::shared_ptr<TextureEnvCubeMap> GetPreFilterTexture() { return m_SkyboxesList[m_SkyboxesIndexCurrent].m_CubeMapPreFilterTexture; }
 	std::shared_ptr<Texture> GetBRDFLUTTexture() { return m_SkyboxesList[m_SkyboxesIndexCurrent].m_BRDFLUTTexture; }
