@@ -25,18 +25,18 @@ public:
 	static void RecordPostProcessTimeEnd();
 
 	static const float GetFramerate();
-	static const double GetStartupTime() { return m_StartupTimeSec; }
-	static const double GetTextureLoadTime() { return m_TextureLoadTimeSec; }
-	static const double GetFrameTime() { return m_FrameTimeSec; }
-	static const double GetSkyboxCaptureTime() { return m_SkyboxCaptureTimeSec; }
-	static const double GetPostProcessTime() { return m_PostProcessTimeSec; }
+	static const double GetStartupTime() { return s_StartupTimeSec; }
+	static const double GetTextureLoadTime() { return s_TextureLoadTimeSec; }
+	static const double GetFrameTime() { return s_FrameTimeSec; }
+	static const double GetSkyboxCaptureTime() { return s_SkyboxCaptureTimeSec; }
+	static const double GetPostProcessTime() { return s_PostProcessTimeSec; }
 
-	static const std::string GetVirtualMemoryUsage() { return ConvertMemoryUsage(m_UsedVirtualMem); }
-	static const std::string GetVirutalUsageByProgram() { return ConvertMemoryUsage(m_VirtualMemUsedByProgram); }
-	static const std::string GetTotalVirtualMemory() { return ConvertMemoryUsage(m_TotalVirtualMem); }
-	static const std::string GetPhysicalMemoryUsage() { return ConvertMemoryUsage(m_UsedPhysMem); }
-	static const std::string GetPhysicalUsagebyProgram() { return ConvertMemoryUsage(m_PhysMemUsedByProgram); }
-	static const std::string GetTotalPhysicalMemory() { return ConvertMemoryUsage(m_TotalPhysMem); }
+	static const std::string GetVirtualMemoryUsage() { return ConvertMemoryUsage(s_UsedVirtualMem); }
+	static const std::string GetVirutalUsageByProgram() { return ConvertMemoryUsage(s_VirtualMemUsedByProgram); }
+	static const std::string GetTotalVirtualMemory() { return ConvertMemoryUsage(s_TotalVirtualMem); }
+	static const std::string GetPhysicalMemoryUsage() { return ConvertMemoryUsage(s_UsedPhysMem); }
+	static const std::string GetPhysicalUsagebyProgram() { return ConvertMemoryUsage(s_PhysMemUsedByProgram); }
+	static const std::string GetTotalPhysicalMemory() { return ConvertMemoryUsage(s_TotalPhysMem); }
 	
 	static void Update();
 
@@ -48,29 +48,29 @@ public:
 	static long long VerticesCountCurrent;
 
 private:
-	static double m_StartupTimeSec;
-	static double m_TextureLoadTimeSec;
-	static double m_FrameTimeSec;
-	static double m_SkyboxCaptureTimeSec;
-	static double m_PostProcessTimeSec;
+	static double s_StartupTimeSec;
+	static double s_TextureLoadTimeSec;
+	static double s_FrameTimeSec;
+	static double s_SkyboxCaptureTimeSec;
+	static double s_PostProcessTimeSec;
 
-	static const int byteToMb = 1048576;
-	static std::string ConvertMemoryUsage(DWORDLONG a) { return std::to_string(a / byteToMb) + " MB"; }
+	static const int BYTE_TO_MB = 1048576;
+	static std::string ConvertMemoryUsage(DWORDLONG a) { return std::to_string(a / BYTE_TO_MB) + " MB"; }
 
-	static std::chrono::high_resolution_clock::time_point m_StartupStartTime, m_StartupEndTime;
-	static std::chrono::high_resolution_clock::time_point m_TextureStartTime, m_TextureEndTime;
-	static std::chrono::high_resolution_clock::time_point m_FrameStartTime, m_FrameEndTime;
-	static std::chrono::high_resolution_clock::time_point m_SkyboxCaptureStartTime, m_SkyboxCaptureEndTime;
-	static std::chrono::high_resolution_clock::time_point m_PostProcessStartTime, m_PostProcessEndTime;
+	static std::chrono::high_resolution_clock::time_point s_StartupStartTime, s_StartupEndTime;
+	static std::chrono::high_resolution_clock::time_point s_TextureStartTime, s_TextureEndTime;
+	static std::chrono::high_resolution_clock::time_point s_FrameStartTime, s_FrameEndTime;
+	static std::chrono::high_resolution_clock::time_point s_SkyboxCaptureStartTime, s_SkyboxCaptureEndTime;
+	static std::chrono::high_resolution_clock::time_point s_PostProcessStartTime, s_PostProcessEndTime;
 	
 	static void CalculateMemoryUsage();
 	static void CalculateMemoryUsageByProgram();
 
-	static DWORDLONG	m_TotalVirtualMem;
-	static DWORDLONG	m_UsedVirtualMem;
-	static SIZE_T		m_VirtualMemUsedByProgram;
+	static DWORDLONG	s_TotalVirtualMem;
+	static DWORDLONG	s_UsedVirtualMem;
+	static SIZE_T		s_VirtualMemUsedByProgram;
 
-	static DWORDLONG	m_TotalPhysMem;
-	static DWORDLONG	m_UsedPhysMem;
-	static SIZE_T		m_PhysMemUsedByProgram;
+	static DWORDLONG	s_TotalPhysMem;
+	static DWORDLONG	s_UsedPhysMem;
+	static SIZE_T		s_PhysMemUsedByProgram;
 };
