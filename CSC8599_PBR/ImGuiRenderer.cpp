@@ -67,6 +67,7 @@ void ImGuiRenderer::Render()
 	RenderSceneWindow();
 	RenderProfilingWindow();
 	RenderApplicationWindow();
+	RenderMaterialWindow();
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -235,6 +236,33 @@ void ImGuiRenderer::RenderApplicationWindow()
 	ImGui::Text(m_VersionStr.c_str());
 	ImGui::Text(m_VendorStr.c_str());
 	ImGui::Text(m_RendererStr.c_str());
+
+	ImGui::End();
+}
+
+void ImGuiRenderer::RenderMaterialWindow()
+{
+	static float padding = 0.0f;
+	static float buttonSize = 64.0f;
+	float cellSize = buttonSize + padding;
+
+	ImGui::Begin("Materials");
+
+	float matWindowWith = ImGui::GetContentRegionAvail().x;
+	int columnCount = (int)(matWindowWith / cellSize);
+	if (columnCount < 1) columnCount = 1;
+
+	ImGui::Columns(columnCount, 0, false);
+
+	//TODO: Render from the Material Manager
+	for (int i = 0; i < 100; i++)
+	{
+		std::string str("Mat - " + std::to_string(i));
+		ImGui::Button(str.c_str(), {buttonSize, buttonSize});
+		ImGui::NextColumn();
+	}
+
+	ImGui::Columns(1);
 
 	ImGui::End();
 }

@@ -47,6 +47,7 @@
     <ClCompile Include="MeshMaterial.cpp" />
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="Object3D.cpp" />
+    <ClCompile Include="Object3DMaterial.cpp" />
     <ClCompile Include="OGLRenderer.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="ProfilingManager.cpp" />
@@ -98,6 +99,7 @@
     <ClInclude Include="MeshMaterial.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="Object3D.h" />
+    <ClInclude Include="Object3DMaterial.h" />
     <ClInclude Include="OGLRenderer.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="ProfilingManager.h" />

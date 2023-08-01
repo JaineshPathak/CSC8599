@@ -11,7 +11,6 @@
 #include <unordered_set>
 #include <memory>
 
-class ProfilingManager;
 class ImGuiRenderer
 {
 public:
@@ -34,6 +33,7 @@ private:
 	void RenderPostProcessWindow();
 	void RenderProfilingWindow();
 	void RenderApplicationWindow();
+	void RenderMaterialWindow();
 
 protected:
 	static ImGuiRenderer* m_ImGuiRenderer;

@@ -79,6 +79,7 @@
     <ClCompile Include="FrameBufferBloom.cpp" />
     <ClCompile Include="Object3D.cpp" />
     <ClCompile Include="ProfilingManager.cpp" />
+    <ClCompile Include="Object3DMaterial.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="..\Third Party\stb_image\stb_image_write.h">
       <Filter>stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="Object3DMaterial.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">
