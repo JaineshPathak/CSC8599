@@ -33,6 +33,7 @@ private:
 	void RenderSceneWindow();
 	void RenderPostProcessWindow();
 	void RenderProfilingWindow();
+	void RenderApplicationWindow();
 
 protected:
 	static ImGuiRenderer* m_ImGuiRenderer;
@@ -41,4 +42,12 @@ protected:
 
 	ImVec2 m_ViewportSize;
 	bool m_MouseOverScene;
+
+private:
+	int m_Minor, m_Major;
+	std::string m_VersionStr;
+
+	char* m_Vendor;
+	char* m_Renderer;
+	std::string m_VendorStr, m_RendererStr;
 };

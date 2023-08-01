@@ -28,7 +28,7 @@ PostProcessSSAO::PostProcessSSAO(const unsigned int& sizeX, const unsigned int& 
 
     ImGuiRenderer::Get()->RegisterPostProcessItem(this);
 
-    m_IsEnabled = false;
+    m_IsEnabled = true;
 }
 
 PostProcessSSAO::~PostProcessSSAO()

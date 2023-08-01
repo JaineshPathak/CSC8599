@@ -20,6 +20,16 @@ ImGuiRenderer::ImGuiRenderer(Window& parent)
 	ImGui_ImplWin32_Init(parent.GetHandle());
 	ImGui_ImplOpenGL3_Init();
 
+	glGetIntegerv(GL_MINOR_VERSION, &m_Minor);
+	glGetIntegerv(GL_MAJOR_VERSION, &m_Major);
+	m_VersionStr = std::string("OpenGL Version: " + std::to_string(m_Major) + "." + std::to_string(m_Minor));
+
+	m_Vendor = (char*)glGetString(GL_VENDOR);
+	m_VendorStr = "Vendor: " + std::string(m_Vendor);
+
+	m_Renderer = (char*)glGetString(GL_RENDERER);
+	m_RendererStr = "Renderer: " + std::string(m_Renderer);
+
 	m_ViewportSize.x = parent.GetScreenSize().x;
 	m_ViewportSize.y = parent.GetScreenSize().y;
 
@@ -32,7 +42,7 @@ ImGuiRenderer::~ImGuiRenderer()
 {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+	ImGui::DestroyContext();	
 }
 
 bool ImGuiRenderer::IsInitialised()
@@ -61,6 +71,7 @@ void ImGuiRenderer::Render()
 	RenderPostProcessWindow();
 	RenderSceneWindow();
 	RenderProfilingWindow();
+	RenderApplicationWindow();
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -166,6 +177,17 @@ void ImGuiRenderer::RenderProfilingWindow()
 	ProfilingManager::DrawCalls = 0;
 	ProfilingManager::VerticesCountCurrent = 0;
 	ProfilingManager::TrianglesCountCurrent = 0;
+
+	ImGui::End();
+}
+
+void ImGuiRenderer::RenderApplicationWindow()
+{
+	ImGui::Begin("Application Info");
+
+	ImGui::Text(m_VersionStr.c_str());
+	ImGui::Text(m_VendorStr.c_str());
+	ImGui::Text(m_RendererStr.c_str());
 
 	ImGui::End();
 }
