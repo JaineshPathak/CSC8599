@@ -121,7 +121,7 @@ void ImGuiRenderer::RenderSceneWindow()
 		texID = Renderer::Get()->GetGlobalFrameBuffer()->GetColorAttachmentTex();
 
 	if (texID != -1)
-		ImGui::Image((void*)texID, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::Image((ImTextureID)texID, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
 
 	ImGui::End();
 	ImGui::PopStyleVar();
