@@ -196,5 +196,6 @@
     <None Include="..\Shaders\PostProcess\PostSSAOVert.glsl">
       <Filter>Shader Files</Filter>
     </None>
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentDisney.glsl" />
   </ItemGroup>
 </Project>

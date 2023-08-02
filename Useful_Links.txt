@@ -7,6 +7,8 @@ Billboards: https://archive.fo/SLzw2
 
 SSAO: https://betterprogramming.pub/depth-only-ssao-for-forward-renderers-1a3dcfa1873a
 
+Disney BRDF: https://schuttejoe.github.io/post/disneybsdf/
+
 nclgl Linked Directory:
 ..\Third Party\SOIL\$(Platform)\$(Configuration)
 

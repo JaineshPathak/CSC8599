@@ -22,7 +22,10 @@ uniform bool hasRoughnessTex = false;
 uniform bool hasEmissiveTex = false;
 uniform bool hasOcclusionTex = false;
 
-uniform vec3 diffuseColor = vec3(1.0);
+uniform vec3 baseColor = vec3(1.0);
+uniform float metallic = 0.01;
+uniform float roughness = 0.5;
+uniform float emission = 1.5;
 
 //Lightings
 uniform vec3 cameraPos;
@@ -164,7 +167,7 @@ void CalcDirectionalLight(inout vec3 result, vec3 albedoColor, float metallicStr
 	float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
 	vec3 specular = numerator / denominator;
 
-	float NdotL = max(dot(N, L), 0.0);
+	float NdotL = max(dot(N, L), 0.0001);
 	result = (kD * albedoColor / PI + specular) * radiance * NdotL;
 }
 
@@ -193,7 +196,7 @@ void CalcPointLights(inout vec3 result, vec3 albedoColor, float metallicStrength
 		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
 		vec3 specular = numerator / denominator;
 
-		float NdotL = max(dot(N, L), 0.0);
+		float NdotL = max(dot(N, L), 0.0001);
 		result += (kD * albedoColor / PI + specular) * radiance * NdotL;
 	}
 }
@@ -228,7 +231,7 @@ void CalcSpotLights(inout vec3 result, vec3 albedoColor, float metallicStrength,
 		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
 		vec3 specular = numerator / denominator;
 
-		float NdotL = max(dot(N, L), 0.0);
+		float NdotL = max(dot(N, L), 0.0001);
 		result += (kD * albedoColor / PI + specular) * radiance * NdotL;
 	}
 }
@@ -275,7 +278,7 @@ void main(void)
 	float m_GAMMA = skyboxData.y;
 	float m_Exposure = skyboxData.x;
 
-	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * diffuseColor : diffuseColor;
+	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * baseColor : baseColor;
 	albedoColor = pow(albedoColor, vec3(m_GAMMA));
 
 	mat3 TBN = mat3(normalize(IN.tangent), normalize(IN.bitangent), normalize(IN.normal));
@@ -291,21 +294,21 @@ void main(void)
 	//float metallicStrength = 1.0;
 	//float roughnessStrength = 0.1;
 
-	float metallicStrength = hasMetallicTex ? texture(metallicTex, IN.texCoord).r : 0.01;
-	float roughnessStrength = hasRoughnessTex ? texture(roughnessTex, IN.texCoord).r : 1.0;
+	float metallicStrength = hasMetallicTex ? texture(metallicTex, IN.texCoord).r : metallic;
+	float roughnessStrength = hasRoughnessTex ? texture(roughnessTex, IN.texCoord).r : roughness;
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, albedoColor, metallicStrength);
 
 	vec3 N = normalize(normalColor);
 	vec3 V = normalize(cameraPos - IN.fragWorldPos);
-	vec3 R = reflect(-V, N);	
+	vec3 R = reflect(-V, N);
 
 	vec3 result = vec3(0.0);
 	CalcDirectionalLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
 	CalcPointLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
 	CalcSpotLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
-	CalcAmbientLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, R, F0);	
+	CalcAmbientLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, R, F0);
 
 	result = vec3(1.0) - exp(-result * m_Exposure);
 	result = pow(result, vec3(1.0 / m_GAMMA));
@@ -313,7 +316,7 @@ void main(void)
 	if(hasEmissiveTex)
 	{
 		vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;
-		result += emissiveColor * 1.5;
+		result += emissiveColor * emission;
 	}
 
 	//vec3 metallicColor = texture(metallicTex, IN.texCoord).rgb;

@@ -17,7 +17,8 @@ uniform bool hasNormalTex = false;
 uniform bool hasEmissiveTex = false;
 uniform bool hasOcclusionTex = false;
 
-uniform vec3 diffuseColor = vec3(1.0);
+uniform vec3 baseColor = vec3(1.0);
+uniform float emission = 1.5;
 
 //Lightings
 uniform vec3 cameraPos;
@@ -209,7 +210,7 @@ void CalcRefraction(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
 	float refractiveIndex = 1.00 / 1.5848;	//Metal - Iron
 	vec3 I = normalize(IN.position - cameraPos);
 	vec3 R = refract(I, normalize(normalColor), refractiveIndex);
-	result += texture(cubeTex, R).rgb * albedoColor;
+	result += texture(cubeTex, -R).rgb * albedoColor;
 }
 
 void main(void) 
@@ -217,7 +218,7 @@ void main(void)
 	float m_GAMMA = skyboxData.y;
 	float m_Exposure = skyboxData.x;
 
-	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * diffuseColor : diffuseColor;
+	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * baseColor : baseColor;
 	albedoColor = pow(albedoColor, vec3(m_GAMMA));
 
 	mat3 TBN = mat3(normalize(IN.tangent), normalize(IN.bitangent), normalize(IN.normal));
@@ -253,7 +254,7 @@ void main(void)
 	if(hasEmissiveTex)
 	{
 		vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;
-		result += emissiveColor * 1.5;
+		result += emissiveColor * emission;
 	}
 
 	fragColour = vec4(result, 1.0);

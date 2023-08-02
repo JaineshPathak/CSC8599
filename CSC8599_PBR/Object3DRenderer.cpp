@@ -49,8 +49,9 @@ bool Object3DRenderer::InitShaders()
 {
 	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
 	m_BlinnShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
+	m_DisneyShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentDisney.glsl"));
 	m_DepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
-	if (!m_PBRShader->LoadSuccess() || !m_BlinnShader->LoadSuccess() || !m_DepthBufferShader->LoadSuccess())
+	if (!m_PBRShader->LoadSuccess() || !m_BlinnShader->LoadSuccess() || !m_DisneyShader->LoadSuccess() || !m_DepthBufferShader->LoadSuccess())
 	{
 		std::cout << "ERROR: Object3DRenderer: Failed to load Shader" << std::endl;
 		return false;
@@ -95,8 +96,10 @@ void Object3DRenderer::ChangeShaderMode(const int& newShaderMode)
 	{
 		switch (m_ShaderMode)
 		{
-			case 0: it->second->SetObjectShader(m_PBRShader); break;
+			case 0: it->second->SetObjectShader(m_PBRShader);	break;
 			case 1: it->second->SetObjectShader(m_BlinnShader); break;
+			case 2: it->second->SetObjectShader(m_DisneyShader); break;
+			default:it->second->SetObjectShader(m_PBRShader);	break;
 		}
 
 		it->second->SetShaderMode(m_ShaderMode);
@@ -108,7 +111,7 @@ void Object3DRenderer::Draw()
 	m_3DEntities[m_Current3DEntityIndex]->Draw();
 }
 
-void Object3DRenderer::RenderDepths()
+void Object3DRenderer::RenderDepths() 
 {
 	m_DepthFrameBuffer->Bind();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -139,6 +142,8 @@ void Object3DRenderer::OnImGuiRender()
 		if (ImGui::Button("PBR Mode")) ChangeShaderMode(0);
 		ImGui::SameLine();
 		if (ImGui::Button("Blinn Mode")) ChangeShaderMode(1);
+		ImGui::SameLine();
+		if (ImGui::Button("Disney Mode")) ChangeShaderMode(2);
 
 		ImGui::Unindent();
 	}

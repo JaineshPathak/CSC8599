@@ -19,6 +19,7 @@ public:
 private:
 	void RenderPBRMode();
 	void RenderBlinnMode();
+	void RenderDisneyMode();
 
 private:
 	std::shared_ptr<SkyboxRenderer> m_SkyboxRenderer;
