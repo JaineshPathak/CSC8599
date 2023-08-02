@@ -32,8 +32,7 @@ private:
 	void RenderSceneWindow();
 	void RenderPostProcessWindow();
 	void RenderProfilingWindow();
-	void RenderApplicationWindow();
-	void RenderMaterialWindow();
+	void RenderApplicationWindow();	
 
 protected:
 	static ImGuiRenderer* m_ImGuiRenderer;
