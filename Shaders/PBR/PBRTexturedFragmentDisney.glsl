@@ -24,17 +24,17 @@ uniform bool hasOcclusionTex = false;
 
 //Disney Vars
 uniform vec3 baseColor = vec3(1.0);
-uniform float metallic = 0.01;
-uniform float subsurface = 0.0;
-uniform float specular = 0.0;
-uniform float roughness = 0.5;
-uniform float specularTint = 0.0;
-uniform float anisotropic = 0.0;
-uniform float sheen = 1.0;
-uniform float sheenTint = 0.5;
-uniform float clearCoat = 0.0;
-uniform float clearCoatRoughness = 1.0;
-uniform float emission = 1.5;
+uniform float u_Metallic = 0.01;
+uniform float u_Subsurface = 0.0;
+uniform float u_Roughness = 0.5;
+uniform float u_Specular = 0.0;
+uniform float u_SpecularTint = 0.0;
+uniform float u_Anisotropic = 0.0;
+uniform float u_Sheen = 1.0;
+uniform float u_SheenTint = 0.5;
+uniform float u_ClearCoat = 0.0;
+uniform float u_ClearCoatRoughness = 1.0;
+uniform float u_Emission = 1.5;
 
 //Lightings
 uniform vec3 cameraPos;
@@ -153,43 +153,48 @@ float SmithG_GGX_Aniso(float NdotV, float VdotX, float VdotY, float ax, float ay
 	return 1.0 / (NdotV + sqrt( sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV) ));
 }
 
-vec3 Mon2Linear(vec3 x)
+vec3 CalcTint(const in vec3 albedoColor)
 {
-    return vec3(pow(x[0], 2.2), pow(x[1], 2.2), pow(x[2], 2.2));
+	//float Luminance = dot(vec3(0.3, 0.6, 0.1), albedoColor);
+	float Luminance = 0.3 * albedoColor.r + 0.6 * albedoColor.g + 0.1 * albedoColor.b;
+	vec3 Tint = (Luminance > 0) ? albedoColor * (1.0 / Luminance) : vec3(1.0);
+	
+	return Tint;
 }
 
 //X - Tangent, Y - BiTangent or BiNormal
 //Diffuse
-vec3 DisneyDiffuse(const in vec3 albedoColor, const in float roughnessStrength, const in float NdotL, const in float NdotV, const in float LdotH)
+vec3 CalcDiffuse(const in vec3 albedoColor, const in float roughnessStrength, const in float NdotL, const in float NdotV, const in float LdotH)
 {
+	float FLambert = 1.0 / PI;
 	float FL = FresnelSchlick(NdotL);
 	float FV = FresnelSchlick(NdotV);
 
-	float Fd90 = 0.5 + 2.0 * LdotH * LdotH * roughnessStrength;
-	float Fd = mix(1.0, Fd90, FL) * mix(1.0, Fd90, FV);
+	float Rr = 2.0 * roughnessStrength * LdotH * LdotH;
+	float FRetro = FLambert * Rr * (FL + FV + FL * FV * (Rr - 1.0));
 
-	return (1.0 / PI) * Fd * albedoColor;
+	float FDiffuse = FLambert * (1.0 - 0.5 * FL) * (1.0 - 0.5 * FV) + FRetro;
+	return FDiffuse * albedoColor;
 }
 
 //Diffuse Flatten
-vec3 DisneySubsurface(const in vec3 albedoColor, const in float roughnessStrength, const in float NdotL, const in float NdotV, const in float LdotH)
+vec3 CalcDiffuseSubsurface(const in vec3 albedoColor, const in float roughnessStrength, const in float NdotL, const in float NdotV, const in float LdotH)
 {
+	float FLambert = 1.0 / PI;
 	float FL = FresnelSchlick(NdotL);
 	float FV = FresnelSchlick(NdotV);
 
 	float Fss90 = LdotH * LdotH * roughnessStrength;
 	float Fss = mix(1.0, Fss90, FL) * mix(1.0, Fss90, FV);
-	float ss = 1.25 * (Fss * (1.0 / (NdotL + NdotV) - 0.5) + 0.5);
+	float FSubsurface = 1.25 * (Fss * (1.0 / (NdotL + NdotV) - 0.5) + 0.5);
 
-	return (1.0 / PI) * ss * albedoColor;
+	return FLambert * FSubsurface * albedoColor;
 }
 
-vec3 DisneyMicrofacetIsotropic(const in vec3 albedoColor, const in float metallicStrength, const in float roughnessStrength, float NdotL, float NdotV, float NdotH, float LdotH)
+vec3 CalcSpecularIsotropic(const in vec3 albedoColor, const in float metallicStrength, const in float roughnessStrength, float NdotL, float NdotV, float NdotH, float LdotH)
 {
-	float cdLum = 0.3 * albedoColor.r + 0.6 * albedoColor.g + 0.1 * albedoColor.b;
-
-	vec3 cTint = (cdLum > 0) ? albedoColor / cdLum : vec3(1.0);
-	vec3 cSpec0 = mix(specular * 0.08 * mix(vec3(1.0), cTint, specularTint), albedoColor, metallicStrength);
+	vec3 cTint = CalcTint(albedoColor);
+	vec3 cSpec0 = mix(u_Specular * 0.08 * mix(vec3(1.0), cTint, u_SpecularTint), albedoColor, metallicStrength);
 
 	float a = max(0.001, sqr(roughnessStrength));
 	float Ds = GTR2(NdotH, a);
@@ -203,17 +208,15 @@ vec3 DisneyMicrofacetIsotropic(const in vec3 albedoColor, const in float metalli
 	return Gs * Fs * Ds;
 }
 
-vec3 DisneyMicrofacetAnisotropic(const in vec3 albedoColor, const in float metallicStrength, const in float roughnessStrength, 
+vec3 CalcSpecularAnisotropic(const in vec3 albedoColor, const in float metallicStrength, const in float roughnessStrength, 
 								 float NdotL, float NdotV, float NdotH, float LdotH,
 								 const in vec3 L, const in vec3 V, const in vec3 H,
 								 const in vec3 X, const in vec3 Y)
 {
-	float cdLum = 0.3 * albedoColor.r + 0.6 * albedoColor.g + 0.1 * albedoColor.b;
+	vec3 cTint = CalcTint(albedoColor);
+	vec3 cSpec0 = mix(u_Specular * 0.08 * mix(vec3(1.0), cTint, u_SpecularTint), albedoColor, metallicStrength);
 
-	vec3 cTint = (cdLum > 0) ? albedoColor / cdLum : vec3(1.0);
-	vec3 cSpec0 = mix(specular * 0.08 * mix(vec3(1.0), cTint, specularTint), albedoColor, metallicStrength);
-
-	float aspect = sqrt(1.0 - anisotropic * 0.9);
+	float aspect = sqrt(1.0 - u_Anisotropic * 0.9);
 	float ax = max(0.001, sqr(roughnessStrength) / aspect);
 	float ay = max(0.001, sqr(roughnessStrength) * aspect);
 
@@ -228,99 +231,139 @@ vec3 DisneyMicrofacetAnisotropic(const in vec3 albedoColor, const in float metal
 	return Gs * Fs * Ds;
 }
 
-float DisneyClearCoat(float NdotL, float NdotV, float NdotH, float LdotH)
+vec3 CalcSheen(const in vec3 albedoColor, float LdotH)
 {
-	float gloss = mix(0.1, 0.001, clearCoatRoughness);
-	float Dr = GTR1(abs(NdotH), gloss);
+	if(u_Sheen <= 0.0)
+		return vec3(0.0);
+
+	float FresLdotH = FresnelSchlick(LdotH);
+	vec3 Tint = CalcTint(albedoColor);
+	vec3 Sheen = u_Sheen * mix(vec3(1.0), albedoColor, u_SheenTint) * FresLdotH;
+}
+
+float CalcClearCoat(float NdotL, float NdotV, float NdotH, float LdotH)
+{
+	float rough = mix(0.1, 0.001, u_ClearCoatRoughness);
+	float Dr = GTR1(abs(NdotH), rough);
 	float FH = FresnelSchlick(LdotH);
 	float Fr = mix(0.04, 1.0, FH);
 	float Gr = SmithG_GGX(NdotL, 0.25) * SmithG_GGX(NdotV, 0.25);
 
-	return clearCoat * Fr * Gr * Dr;
-}
-
-vec3 DisneySheen(const in vec3 albedoColor, float LdotH)
-{
-	float FH = FresnelSchlick(LdotH);
-	float cdLum = 0.3 * albedoColor.r + 0.6 * albedoColor.g + 0.1 * albedoColor.b;
-	
-	vec3 cTint = (cdLum > 0) ? albedoColor / cdLum : vec3(1.0);
-	vec3 cSheen = mix(vec3(1.0), cTint, sheenTint);
-	vec3 fSheen = FH * sheen * cSheen;
-
-	return FH * sheen * fSheen;
+	return u_ClearCoat * Fr * Gr * Dr;
 }
 
 //w0 = L
 //wi = V
-void CalcDirectionalLight(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 V, vec3 N, vec3 F0)
+//wm = H
+//ThetaD = H dot V -> max(HdotV, 0.0) used in Fresnel Schlick
+void CalcDirectionalLight(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 N, vec3 V, vec3 F0)
 {
 	vec3 X = IN.tangent;
 	vec3 Y = IN.bitangent;
-
-	vec3 L = normalize(directionalLight.lightDirection.xyz);
-	vec3 H = normalize(V + L);
-	float NdotH = dot(N, H);
-	float LdotH = dot(L, H);
-
-	float NdotL = max(dot(N, L), 0.0001);
-	float NdotV = max(dot(N, V), 0.0001);
-	//if(NdotL < 0.0 || NdotV < 0.0)
-		//result = vec3(0.0);	
-
 	vec3 radiance = directionalLight.lightColor.xyz;
 
-	vec3 diffuse = DisneyDiffuse(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
-	vec3 subSurface = DisneySubsurface(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
+	vec3 L = normalize(-directionalLight.lightDirection.xyz);
+	vec3 H = normalize(V + L);
 	
-	vec3 glossy = DisneyMicrofacetAnisotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH, L, V, H, X, Y);
-	//vec3 glossy = DisneyMicrofacetIsotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH);
-	float clearCoat = DisneyClearCoat(NdotL, NdotV, NdotH, LdotH);
-	
-	vec3 sheen = DisneySheen(albedoColor, LdotH);
+	float NdotV = abs(dot(N, V)) + 1e-5;
+	float NdotL = clamp(dot(N, L), 0.001, 1.0);
+	float NdotH = clamp(dot(N, H), 0.001, 1.0);
+	float LdotH = clamp(dot(L, H), 0.001, 1.0);
+	float HdotV = clamp(dot(H, V), 0.001, 1.0);
 
-	vec3 kD = mix(diffuse, subSurface, subsurface) + sheen;
-	kD *= 1.0 - metallicStrength;
-	vec3 kS = glossy + clearCoat;
+	vec3 FDiffuse = CalcDiffuse(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
+	vec3 FDiffuseSubsurface = CalcDiffuseSubsurface(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
 
-	result = (kD + kS) * radiance;
+	vec3 FSpecular = CalcSpecularAnisotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH, L, V, H, X, Y);
+	//vec3 FSpecular = CalcSpecularIsotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH);
+
+	vec3 FSheen = mix(vec3(1.0), albedoColor, u_SheenTint) * u_Sheen * FresnelSchlick(LdotH);	
+	float FClearcoat = CalcClearCoat(NdotL, NdotV, NdotH, LdotH);
+
+	vec3 FDiffuseFinal = mix(FDiffuse, FDiffuseSubsurface, u_Subsurface);
+	vec3 FSpecularFinal = FSpecular + FClearcoat;	
+
+	//result = (FDiffuseFinal + FSheen + FClearcoat) * radiance * NdotL;
+	//result = FSpecular * radiance * NdotL;
+
+	result = ((FDiffuseFinal + FSheen) * (1.0 - metallicStrength) + FSpecularFinal) * radiance * NdotL;
+	//result *= radiance * NdotL;		//So that it doesn't apply on the whole model and only where the light ray falls on model surface
 }
 
 void CalcPointLights(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 N, vec3 V, vec3 F0)
 {
 	vec3 X = IN.tangent;
-	vec3 Y = IN.bitangent;	
+	vec3 Y = IN.bitangent;
 
 	for(int i = 0; i < numPointLights; i++)
 	{
-		vec3 L = normalize(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
-		vec3 H = normalize(V + L);
-		float NdotH = dot(N, H);
-		float LdotH = dot(L, H);
-
-		float NdotL = max(dot(N, L), 0.0001);
-		float NdotV = max(dot(N, V), 0.0001);
-		if(NdotL < 0.0 || NdotV < 0.0)
-			result = vec3(0.0);
-
 		float distance = length(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
 		float attenuation = 1.0 / (distance * distance);
-		//float attenuation = 1.0 / (pointLights[i].lightAttenData.x + pointLights[i].lightAttenData.y * distance + pointLights[i].lightAttenData.z * (distance * distance));
 		vec3 radiance = pointLights[i].lightColor.xyz * attenuation;
 
-		vec3 diffuse = DisneyDiffuse(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
-		vec3 subSurface = DisneySubsurface(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
-	
-		vec3 glossy = DisneyMicrofacetAnisotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH, L, V, H, X, Y);
-		float clearCoat = DisneyClearCoat(NdotL, NdotV, NdotH, LdotH);
-	
-		vec3 sheen = DisneySheen(albedoColor, LdotH);
+		vec3 L = normalize(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
+		vec3 H = normalize(V + L);
+		
+		float NdotV = abs(dot(N, V)) + 1e-5;
+		float NdotL = clamp(dot(N, L), 0.001, 1.0);
+		float NdotH = clamp(dot(N, H), 0.001, 1.0);
+		float LdotH = clamp(dot(L, H), 0.001, 1.0);
+		float HdotV = clamp(dot(H, V), 0.001, 1.0);		
 
-		vec3 kD = mix(diffuse, subSurface, subsurface) + sheen;
-		kD *= 1.0 - metallicStrength;
-		vec3 kS = glossy + clearCoat;
+		vec3 FDiffuse = CalcDiffuse(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
+		vec3 FDiffuseSubsurface = CalcDiffuseSubsurface(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
 
-		result = (kD + kS) * radiance;
+		vec3 FSpecular = CalcSpecularAnisotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH, L, V, H, X, Y);
+		//vec3 FSpecular = CalcSpecularIsotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH);
+
+		vec3 FSheen = mix(vec3(1.0), albedoColor, u_SheenTint) * u_Sheen * FresnelSchlick(LdotH);	
+		float FClearcoat = CalcClearCoat(NdotL, NdotV, NdotH, LdotH);
+
+		vec3 FDiffuseFinal = mix(FDiffuse, FDiffuseSubsurface, u_Subsurface);
+		vec3 FSpecularFinal = FSpecular + FClearcoat;
+
+		result += ((FDiffuseFinal + FSheen) * (1.0 - metallicStrength) + FSpecularFinal) * radiance * NdotL;
+	}
+}
+
+void CalcSpotLights(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 N, vec3 V, vec3 F0)
+{
+	vec3 X = IN.tangent;
+	vec3 Y = IN.bitangent;
+
+	for(int i = 0; i < numSpotLights; i++)
+	{
+		vec3 L = normalize(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
+		vec3 H = normalize(V + L);
+
+		float distance = length(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
+		float attenuation = 1.0 / (distance * distance);
+
+		float theta = dot(L, normalize(-spotLights[i].lightDirection.xyz));
+		float epsilon = spotLights[i].lightCutoffData.x - spotLights[i].lightCutoffData.y;
+		float edgeFactor = clamp((theta - spotLights[i].lightCutoffData.y) / epsilon, 0.0, 1.0);
+		
+		vec3 radiance = spotLights[i].lightColor.xyz * attenuation * edgeFactor;		
+
+		float NdotV = abs(dot(N, V)) + 1e-5;
+		float NdotL = clamp(dot(N, L), 0.001, 1.0);
+		float NdotH = clamp(dot(N, H), 0.001, 1.0);
+		float LdotH = clamp(dot(L, H), 0.001, 1.0);
+		float HdotV = clamp(dot(H, V), 0.001, 1.0);		
+
+		vec3 FDiffuse = CalcDiffuse(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
+		vec3 FDiffuseSubsurface = CalcDiffuseSubsurface(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
+
+		vec3 FSpecular = CalcSpecularAnisotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH, L, V, H, X, Y);
+		//vec3 FSpecular = CalcSpecularIsotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH);
+
+		vec3 FSheen = mix(vec3(1.0), albedoColor, u_SheenTint) * u_Sheen * FresnelSchlick(LdotH);	
+		float FClearcoat = CalcClearCoat(NdotL, NdotV, NdotH, LdotH);
+
+		vec3 FDiffuseFinal = mix(FDiffuse, FDiffuseSubsurface, u_Subsurface);
+		vec3 FSpecularFinal = FSpecular + FClearcoat;
+
+		result += ((FDiffuseFinal + FSheen) * (1.0 - metallicStrength) + FSpecularFinal) * radiance * NdotL;		
 	}
 }
 
@@ -379,8 +422,8 @@ void main(void)
 	}	
 	normalColor = normalize(TBN * normalize(normalColor));
 
-	float metallicStrength = hasMetallicTex ? texture(metallicTex, IN.texCoord).r : metallic;
-	float roughnessStrength = hasRoughnessTex ? texture(roughnessTex, IN.texCoord).r : roughness;
+	float metallicStrength = hasMetallicTex ? texture(metallicTex, IN.texCoord).r * u_Metallic : u_Metallic;
+	float roughnessStrength = hasRoughnessTex ? texture(roughnessTex, IN.texCoord).r * u_Roughness : u_Roughness;
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, albedoColor, metallicStrength);
@@ -391,8 +434,9 @@ void main(void)
 
 	vec3 result = vec3(0.0);
 	CalcDirectionalLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
-	//CalcPointLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
-	//CalcAmbientLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, R, F0);
+	CalcPointLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
+	CalcSpotLights(result, albedoColor, metallicStrength, roughnessStrength, N, V, F0);
+	CalcAmbientLight(result, albedoColor, metallicStrength, roughnessStrength, N, V, R, F0);
 
 	result = vec3(1.0) - exp(-result * m_Exposure);
 	result = pow(result, vec3(1.0 / m_GAMMA));
@@ -400,7 +444,7 @@ void main(void)
 	if(hasEmissiveTex)
 	{
 		vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;
-		result += emissiveColor * emission;
+		result += emissiveColor * u_Emission;
 	}
 
 	fragColour = vec4(result, 1.0);

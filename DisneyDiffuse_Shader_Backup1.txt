@@ -1,0 +1,52 @@
+void CalcDirectionalLight(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 V, vec3 N, vec3 F0)
+{
+	vec3 X = IN.tangent;
+	vec3 Y = IN.bitangent;
+
+	vec3 L = normalize(-directionalLight.lightDirection.xyz);
+	vec3 H = normalize(V + L);
+	/*float NdotH = dot(N, H);
+	float LdotH = dot(L, H);
+
+	float NdotL = max(dot(N, L), 0.0001);
+	float NdotV = max(dot(N, V), 0.0001);
+	float HdotV = max(dot(H, V), 0.0001);*/
+	//if(NdotL < 0.0 || NdotV < 0.0)
+		//result = vec3(0.0);	
+
+	float NdotV = abs(dot(N, V)) + 1e-5;
+	float NdotL = clamp(dot(N, L), 0.0, 1.0);
+	float NdotH = clamp(dot(N, H), 0.0, 1.0);
+	float LdotH = clamp(dot(L, H), 0.0, 1.0);
+	float HdotV = clamp(dot(H, V), 0.0, 1.0);
+
+	vec3 radiance = directionalLight.lightColor.xyz;
+
+	//vec3 diffuse = DisneyDiffuse(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
+	vec3 diffuse = DisneyDiffuseV2(albedoColor, roughnessStrength, NdotL, NdotV, LdotH, HdotV);
+	vec3 subSurface = DisneySubsurface(albedoColor, roughnessStrength, NdotL, NdotV, LdotH);
+	
+	vec3 glossy = DisneyMicrofacetAnisotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH, L, V, H, X, Y);
+	//vec3 glossy = DisneyMicrofacetIsotropic(albedoColor, metallicStrength, roughnessStrength, NdotL, NdotV, NdotH, LdotH);
+	float clearCoat = DisneyClearCoat(NdotL, NdotV, NdotH, LdotH);
+	
+	vec3 sheen = DisneySheen(albedoColor, LdotH);
+
+	vec3 kD = mix(diffuse, subSurface, subsurface) + sheen;
+	kD *= 1.0 - metallicStrength;
+	vec3 kS = glossy + clearCoat;
+
+	//result = (kD + kS) * radiance;
+	result = albedoColor * max(dot(N, L), 0.0001);
+}
+
+vec3 DisneyDiffuse(const in vec3 albedoColor, const in float roughnessStrength, const in float NdotL, const in float NdotV, const in float LdotH)
+{
+	float FL = FresnelSchlick(NdotL);
+	float FV = FresnelSchlick(NdotV);
+
+	float Fd90 = 0.5 + 2.0 * LdotH * LdotH * roughnessStrength;
+	float Fd = mix(1.0, Fd90, FL) * mix(1.0, Fd90, FV);
+
+	return (1.0 / PI) * Fd * albedoColor;
+}
