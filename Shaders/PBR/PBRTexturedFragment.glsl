@@ -162,13 +162,15 @@ void CalcDirectionalLight(inout vec3 result, vec3 albedoColor, float metallicStr
 	vec3 kD = vec3(1.0) - kS;
 	kD *= 1.0 - metallicStrength;
 
+	vec3 diffuse = kD * albedoColor / PI;
+
 	//Cook-Torrance BRDF
 	vec3 numerator = NDF * G * F;
 	float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
 	vec3 specular = numerator / denominator;
 
 	float NdotL = max(dot(N, L), 0.0001);
-	result = (kD * albedoColor / PI + specular) * radiance * NdotL;
+	result = (diffuse + specular) * radiance * NdotL;
 }
 
 void CalcPointLights(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 N, vec3 V, vec3 F0)

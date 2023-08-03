@@ -95,7 +95,7 @@ void CalcDirectionalLight(inout vec3 result, in vec3 albedoColor, in vec3 normal
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * vec3(directionalLight.lightColor.xyz);
 
-	float specularStrength = 1.0;
+	float specularStrength = 0.5;
 	vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
 	vec3 viewDirHalf = normalize(lightDir + viewDir);
 	//vec3 reflectDir = reflect(-lightDir, norm);
@@ -118,7 +118,7 @@ void CalcPointsLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColo
 		float diff = max(dot(norm, lightDir), 0.0);
 		vec3 diffuse = diff * vec3(pointLights[i].lightColor.xyz);
 
-		float specularStrength = 1.0;
+		float specularStrength = 0.5;
 		vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
 		vec3 viewDirHalf = normalize(lightDir + viewDir);
 		//vec3 reflectDir = reflect(-lightDir, norm);
@@ -154,7 +154,7 @@ void CalcSpotLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
 		float diff = max(dot(norm, lightDir), 0.0);
 		vec3 diffuse = diff * vec3(spotLights[i].lightColor.xyz);
 
-		float specularStrength = 1.0;
+		float specularStrength = 0.5;
 		vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
 		vec3 viewDirHalf = normalize(lightDir + viewDir);
 		//vec3 reflectDir = reflect(-lightDir, norm);

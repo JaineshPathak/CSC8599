@@ -13,7 +13,7 @@ unsigned int Object3DRenderer::m_3DEntityIDs = 0;
 Object3DRenderer::Object3DRenderer(const float& width, const float& height) : 
 	m_Width(width), m_Height(height), 
 	m_ShaderMode(0),
-	m_Current3DEntityIndex(0), 
+	m_Current3DEntityIndex(0),
 	m_IsInitialized(false)
 {
 	m_MainCamera = Renderer::Get()->GetMainCamera();
@@ -29,11 +29,13 @@ Object3DRenderer::Object3DRenderer(const float& width, const float& height) :
 	
 	ProfilingManager::RecordTextureTimeEnd();
 
-	m_3DEntities[0]->SetPosition(Vector3(0.0f, 0.5f, 0.0f));
+	//m_3DEntities[0]->SetPosition(Vector3(0.0f, 0.5f, 0.0f));
 
 	m_3DEntitiesNamesList = new char* [m_3DEntitiesNames.size()];
 	for (size_t i = 0; i < m_3DEntitiesNames.size(); i++)
 		m_3DEntitiesNamesList[i] = (char*)m_3DEntitiesNames[i].c_str();
+
+	m_MainCamera->SetLookAtDistance(m_3DEntities[m_Current3DEntityIndex]->GetLookDistance());
 
 	ImGuiRenderer::Get()->RegisterItem(this);
 
@@ -146,5 +148,5 @@ void Object3DRenderer::OnImGuiRender()
 		if (ImGui::Button("Disney Mode")) ChangeShaderMode(2);
 
 		ImGui::Unindent();
-	}
+	}	
 }

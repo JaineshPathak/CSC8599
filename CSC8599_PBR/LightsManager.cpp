@@ -39,7 +39,7 @@ LightsManager::LightsManager()
 	m_DirectionalLightsUBO = std::shared_ptr<UniformBuffer>(new UniformBuffer(sizeof(DirectionalLightStruct), NULL, GL_DYNAMIC_DRAW, 2, 0));
 	if (!m_DirectionalLightsUBO->IsInitialized()) { m_IsInitialized = false; return; }
 
-	m_DirectionalLight = std::shared_ptr<DirectionalLight>(new DirectionalLight(Vector3(0.8574929257125442f, -0.5144957554275266f, 0.0f), Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
+	m_DirectionalLight = std::shared_ptr<DirectionalLight>(new DirectionalLight(Vector3(0.8574929257125442f, -0.5144957554275266f, 0.0f), Vector4::WHITE));
 	if (m_DirectionalLight == nullptr) { m_IsInitialized = false; return; }
 
 	m_DirectionalLightStruct = DirectionalLightStruct();

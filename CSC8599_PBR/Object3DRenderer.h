@@ -50,7 +50,7 @@ private:
 	char** m_3DEntitiesNamesList;
 	std::vector<std::string> m_3DEntitiesNames;
 	int m_Current3DEntityIndex;
-	std::unordered_map<unsigned int, std::shared_ptr<Object3DEntity>> m_3DEntities;
+	std::unordered_map<unsigned int, std::shared_ptr<Object3DEntity>> m_3DEntities;	
 
 	bool m_IsInitialized;
 };
