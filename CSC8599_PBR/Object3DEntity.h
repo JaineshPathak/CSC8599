@@ -32,6 +32,7 @@ private:
 
 	int m_ShaderMode;		//0 - PBR, 1 - Blinn Phong, 2 - Disney
 
+	Vector4 m_BaseColor;
 	float m_Metallic;
 	float m_Subsurface;
 	float m_Roughness;

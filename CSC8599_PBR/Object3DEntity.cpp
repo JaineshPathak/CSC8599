@@ -11,6 +11,7 @@ bool Object3DEntity::m_HasRegistered = false;
 
 Object3DEntity::Object3DEntity(const std::string& objectName, const std::string& meshFileName, const std::string& meshMaterialName, const std::string& meshShaderVertexFile, const std::string& meshShaderFragmentFile, const float& lookAtDistance) :
 	m_ShaderMode(0),
+	m_BaseColor(Vector4::WHITE),
 	m_Metallic(1.0f),
 	m_Subsurface(0.0f),
 	m_Roughness(1.0f),
@@ -155,6 +156,7 @@ void Object3DEntity::RenderDisneyMode()
 		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
 		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 5);
 
+		m_ShaderObject->SetVector3("u_BaseColor", Vector3(m_BaseColor.x, m_BaseColor.y, m_BaseColor.z));
 		m_ShaderObject->SetFloat("u_Metallic", m_Metallic);
 		m_ShaderObject->SetFloat("u_Subsurface", m_Subsurface);
 		m_ShaderObject->SetFloat("u_Roughness", m_Roughness);
@@ -182,6 +184,8 @@ void Object3DEntity::OnImGuiRender()
 		{
 			case 2:
 			{
+				ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+
 				ImGui::DragFloat("Metallic", &m_Metallic, 0.01f, 0.0f, 1.0f);
 
 				ImGui::DragFloat("Subsurface", &m_Subsurface, 0.01f, 0.0f, 1.0f);

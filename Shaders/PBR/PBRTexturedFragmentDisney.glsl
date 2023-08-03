@@ -23,7 +23,7 @@ uniform bool hasEmissiveTex = false;
 uniform bool hasOcclusionTex = false;
 
 //Disney Vars
-uniform vec3 baseColor = vec3(1.0);
+uniform vec3 u_BaseColor = vec3(1.0);
 uniform float u_Metallic = 0.01;
 uniform float u_Subsurface = 0.0;
 uniform float u_Roughness = 0.5;
@@ -409,7 +409,7 @@ void main(void)
 	float m_GAMMA = skyboxData.y;
 	float m_Exposure = skyboxData.x;
 
-	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * baseColor : baseColor;
+	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * u_BaseColor : u_BaseColor;
 	albedoColor = pow(albedoColor, vec3(m_GAMMA));
 
 	mat3 TBN = mat3(normalize(IN.tangent), normalize(IN.bitangent), normalize(IN.normal));
