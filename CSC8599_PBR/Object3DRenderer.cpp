@@ -29,7 +29,7 @@ Object3DRenderer::Object3DRenderer(const float& width, const float& height) :
 	
 	ProfilingManager::RecordTextureTimeEnd();
 
-	m_3DEntities[0]->SetPosition(Vector3(0.0f, 0.5f, 0.0f));
+	//m_3DEntities[0]->SetPosition(Vector3(0.0f, 0.5f, 0.0f));
 
 	m_3DEntitiesNamesList = new char* [m_3DEntitiesNames.size()];
 	for (size_t i = 0; i < m_3DEntitiesNames.size(); i++)
