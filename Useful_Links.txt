@@ -9,6 +9,8 @@ SSAO: https://betterprogramming.pub/depth-only-ssao-for-forward-renderers-1a3dcf
 
 Disney BRDF: https://schuttejoe.github.io/post/disneybsdf/
 
+Lighting Shaders: https://garykeen27.wixsite.com/portfolio/first-pass-techniques
+
 nclgl Linked Directory:
 ..\Third Party\SOIL\$(Platform)\$(Configuration)
 
