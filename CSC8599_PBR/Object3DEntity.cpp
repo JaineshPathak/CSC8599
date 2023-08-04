@@ -16,6 +16,7 @@ Object3DEntity::Object3DEntity(const std::string& objectName, const std::string&
 	m_Sheen(0.0f), m_SheenTint(1.0f),
 	m_ClearCoat(0.0f), m_ClearCoatRoughness(1.0f),
 	m_Specular(0.5f), m_SpecularTint(1.0f),
+	m_Shininess(128.0f),
 	m_Anisotropic(0.0f),
 	m_Emission(1.5f),
 	Object3D(objectName, meshFileName, meshMaterialName, meshShaderVertexFile, meshShaderFragmentFile, lookAtDistance)
@@ -38,6 +39,8 @@ void Object3DEntity::Render()
 		case 0: RenderPBRMode(); break;
 		case 1: RenderBlinnMode(); break;
 		case 2: RenderDisneyMode(); break;
+		case 3: RenderOrenNayarMode(); break;
+		default: RenderPBRMode(); break;
 	}
 }
 
@@ -75,6 +78,11 @@ void Object3DEntity::RenderPBRMode()
 		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
 		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 5);
 
+		m_ShaderObject->SetVector3("u_BaseColor", Vector3(m_BaseColor.x, m_BaseColor.y, m_BaseColor.z));
+		m_ShaderObject->SetFloat("u_Metallic", m_Metallic);
+		m_ShaderObject->SetFloat("u_Roughness", m_Roughness);
+		m_ShaderObject->SetFloat("u_Emission", m_Emission);
+
 		m_MeshObject->DrawSubMesh(i);
 	}
 
@@ -107,6 +115,11 @@ void Object3DEntity::RenderBlinnMode()
 
 		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
 		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 3);
+
+		m_ShaderObject->SetVector3("u_BaseColor", Vector3(m_BaseColor.x, m_BaseColor.y, m_BaseColor.z));
+		m_ShaderObject->SetFloat("u_Specular", m_Specular);
+		m_ShaderObject->SetFloat("u_Shininess", m_Shininess);
+		m_ShaderObject->SetFloat("u_Emission", m_Emission);
 
 		m_MeshObject->DrawSubMesh(i);
 	}
@@ -167,10 +180,71 @@ void Object3DEntity::RenderDisneyMode()
 	m_ShaderObject->UnBind();
 }
 
+void Object3DEntity::RenderOrenNayarMode()
+{
+	m_ShaderObject->Bind();
+
+	m_ShaderObject->SetTextureCubeMap("irradianceTex", m_SkyboxRenderer->GetIrradianceTexture()->GetID(), 5);
+
+	m_ShaderObject->SetTexture("ssaoTex", m_PostProcessRenderer->GetSSAOProcessedTexture(), 6);
+	m_ShaderObject->SetInt("ssaoEnabled", m_PostProcessRenderer->IsSSAOEnabled() && m_PostProcessRenderer->IsEnabled());
+
+	m_ShaderObject->SetVector3("cameraPos", m_MainCamera->GetPosition());
+	m_ShaderObject->SetMat4("modelMatrix", m_ModelMatrix);
+
+	for (int i = 0; i < m_MeshObject->GetSubMeshCount(); i++)
+	{
+		m_ShaderObject->SetBool("hasAlbedoTex", m_TexDiffuseSet[i] != -1);
+		if (m_TexDiffuseSet[i] != -1) m_ShaderObject->SetTexture("albedoTex", m_TexDiffuseSet[i], 0);
+
+		m_ShaderObject->SetBool("hasNormalTex", m_TexNormalSet[i] != -1);
+		if (m_TexNormalSet[i] != -1) m_ShaderObject->SetTexture("normalTex", m_TexNormalSet[i], 1);
+
+		m_ShaderObject->SetBool("hasRoughnessTex", m_TexRoughnessSet[i] != -1);
+		if (m_TexRoughnessSet[i] != -1) m_ShaderObject->SetTexture("roughnessTex", m_TexRoughnessSet[i], 2);
+
+		m_ShaderObject->SetBool("hasEmissiveTex", m_TexEmissionSet[i] != -1);
+		if (m_TexEmissionSet[i] != -1) m_ShaderObject->SetTexture("emissiveTex", m_TexEmissionSet[i], 3);
+
+		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
+		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 4);
+
+		m_ShaderObject->SetVector3("u_BaseColor", Vector3(m_BaseColor.x, m_BaseColor.y, m_BaseColor.z));
+		m_ShaderObject->SetFloat("u_Roughness", m_Roughness);
+		m_ShaderObject->SetFloat("u_Emission", m_Emission);
+
+		m_MeshObject->DrawSubMesh(i);
+	}
+
+	m_ShaderObject->UnBind();
+}
+
 void Object3DEntity::RenderShaderProperties()
 {
 	switch (m_ShaderMode)
 	{
+		case 0:		//PBR Mode
+		{
+			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+
+			ImGui::DragFloat("Metallic", &m_Metallic, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Roughness", &m_Roughness, 0.01f, 0.0f, 1.0f);
+
+			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
+			break;
+		}
+
+		case 1:		//Blinn Phong
+		{
+			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+
+			ImGui::DragFloat("Specular", &m_Specular, 0.01f, 0.0f, 10.0f);
+			ImGui::DragFloat("Specular Power", &m_Shininess, 1.0f, 0.0f, 256.0f);
+
+			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
+			break;
+		}
+
 		case 2:		//Disney Mode
 		{
 			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
@@ -192,6 +266,15 @@ void Object3DEntity::RenderShaderProperties()
 			ImGui::DragFloat("Clear Coat", &m_ClearCoat, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Clear Coat Roughness", &m_ClearCoatRoughness, 0.01f, 0.0f, 1.0f);
 
+			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
+			break;
+		}
+
+		case 3:		//Oren-Nayar Mode
+		{
+			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+
+			ImGui::DragFloat("Roughness", &m_Roughness, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
 			break;
 		}

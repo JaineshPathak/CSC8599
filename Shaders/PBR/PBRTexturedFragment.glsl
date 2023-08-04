@@ -22,10 +22,10 @@ uniform bool hasRoughnessTex = false;
 uniform bool hasEmissiveTex = false;
 uniform bool hasOcclusionTex = false;
 
-uniform vec3 baseColor = vec3(1.0);
-uniform float metallic = 0.01;
-uniform float roughness = 0.5;
-uniform float emission = 1.5;
+uniform vec3 u_BaseColor = vec3(1.0);
+uniform float u_Metallic = 0.01;
+uniform float u_Roughness = 0.5;
+uniform float u_Emission = 1.5;
 
 //Lightings
 uniform vec3 cameraPos;
@@ -280,7 +280,7 @@ void main(void)
 	float m_GAMMA = skyboxData.y;
 	float m_Exposure = skyboxData.x;
 
-	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * baseColor : baseColor;
+	vec3 albedoColor = hasAlbedoTex ? texture(albedoTex, IN.texCoord).rgb * u_BaseColor : u_BaseColor;
 	albedoColor = pow(albedoColor, vec3(m_GAMMA));
 
 	mat3 TBN = mat3(normalize(IN.tangent), normalize(IN.bitangent), normalize(IN.normal));
@@ -296,8 +296,8 @@ void main(void)
 	//float metallicStrength = 1.0;
 	//float roughnessStrength = 0.1;
 
-	float metallicStrength = hasMetallicTex ? texture(metallicTex, IN.texCoord).r : metallic;
-	float roughnessStrength = hasRoughnessTex ? texture(roughnessTex, IN.texCoord).r : roughness;
+	float metallicStrength = hasMetallicTex ? texture(metallicTex, IN.texCoord).r * u_Metallic : u_Metallic;
+	float roughnessStrength = hasRoughnessTex ? texture(roughnessTex, IN.texCoord).r * u_Roughness : u_Roughness;
 
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, albedoColor, metallicStrength);
@@ -318,7 +318,7 @@ void main(void)
 	if(hasEmissiveTex)
 	{
 		vec3 emissiveColor = texture(emissiveTex, IN.texCoord).rgb;
-		result += emissiveColor * emission;
+		result += emissiveColor * u_Emission;
 	}
 
 	//vec3 metallicColor = texture(metallicTex, IN.texCoord).rgb;

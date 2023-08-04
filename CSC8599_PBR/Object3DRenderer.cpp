@@ -52,8 +52,9 @@ bool Object3DRenderer::InitShaders()
 	m_PBRShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragment.glsl"));
 	m_BlinnShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
 	m_DisneyShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentDisney.glsl"));
+	m_OrenNayarShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentOrenNayar.glsl"));
 	m_DepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
-	if (!m_PBRShader->LoadSuccess() || !m_BlinnShader->LoadSuccess() || !m_DisneyShader->LoadSuccess() || !m_DepthBufferShader->LoadSuccess())
+	if (!m_PBRShader->LoadSuccess() || !m_BlinnShader->LoadSuccess() || !m_DisneyShader->LoadSuccess() || !m_OrenNayarShader->LoadSuccess() || !m_DepthBufferShader->LoadSuccess())
 	{
 		std::cout << "ERROR: Object3DRenderer: Failed to load Shader" << std::endl;
 		return false;
@@ -102,6 +103,7 @@ void Object3DRenderer::ChangeShaderMode(const int& newShaderMode)
 			case 0: it->second->SetObjectShader(m_PBRShader);	break;
 			case 1: it->second->SetObjectShader(m_BlinnShader); break;
 			case 2: it->second->SetObjectShader(m_DisneyShader); break;
+			case 3: it->second->SetObjectShader(m_OrenNayarShader); break;
 			default:it->second->SetObjectShader(m_PBRShader);	break;
 		}
 
@@ -151,11 +153,39 @@ void Object3DRenderer::OnImGuiRender()
 		if (ImGui::Button("PBR Mode")) ChangeShaderMode(0);
 		ImGui::SameLine();
 		if (ImGui::Button("Blinn Mode")) ChangeShaderMode(1);
-		ImGui::SameLine();
+		ImGui::NewLine();
 		if (ImGui::Button("Disney Mode")) ChangeShaderMode(2);
+		ImGui::SameLine();
+		if (ImGui::Button("Oren-Nayar Mode")) ChangeShaderMode(3);
 
 		ImGui::Unindent();
 	}
+
+	ImGui::Begin("Shaders");
+	const float PADDING = 0.0f;
+	const float BUTTON_SIZE = 128.0f;
+	float cellsize = BUTTON_SIZE + PADDING;
+
+	float panelWidth = ImGui::GetContentRegionAvail().x;
+	int columnsCount = (int)(panelWidth / cellsize);
+	if (columnsCount < 1)
+		columnsCount = 1;
+
+	ImGui::Columns(columnsCount, 0, false);
+	if(ImGui::Button("PBR", { BUTTON_SIZE, BUTTON_SIZE })) ChangeShaderMode(0);
+	ImGui::NextColumn();
+
+	if (ImGui::Button("Blinn-Phong", { BUTTON_SIZE, BUTTON_SIZE })) ChangeShaderMode(1);
+	ImGui::NextColumn();
+
+	if (ImGui::Button("Disney", { BUTTON_SIZE, BUTTON_SIZE })) ChangeShaderMode(2);
+	ImGui::NextColumn();
+
+	if (ImGui::Button("Oren-Nayar", { BUTTON_SIZE, BUTTON_SIZE })) ChangeShaderMode(3);
+	ImGui::NextColumn();
+
+	ImGui::Columns(1.0f);
+	ImGui::End();
 
 	ImGui::Begin("Shader Properties");
 	m_3DEntities[m_Current3DEntityIndex]->RenderShaderProperties();

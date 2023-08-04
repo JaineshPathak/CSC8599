@@ -19,6 +19,7 @@ private:
 	void RenderPBRMode();
 	void RenderBlinnMode();
 	void RenderDisneyMode();
+	void RenderOrenNayarMode();
 
 public:
 	virtual void RenderShaderProperties();
@@ -37,6 +38,7 @@ private:
 	float m_Sheen, m_SheenTint;
 	float m_ClearCoat, m_ClearCoatRoughness;
 	float m_Specular, m_SpecularTint;
+	float m_Shininess;								//Used in Blinn-Phong
 	float m_Anisotropic;
 	float m_Emission;
 };

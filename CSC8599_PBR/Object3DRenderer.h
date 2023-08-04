@@ -43,6 +43,7 @@ private:
 	std::shared_ptr<Shader> m_PBRShader;
 	std::shared_ptr<Shader> m_BlinnShader;
 	std::shared_ptr<Shader> m_DisneyShader;
+	std::shared_ptr<Shader> m_OrenNayarShader;
 	std::shared_ptr<Shader> m_DepthBufferShader;
 
 	std::shared_ptr<FrameBuffer> m_DepthFrameBuffer;
