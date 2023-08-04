@@ -27,6 +27,7 @@ public:
 private:
 	std::shared_ptr<Object3DEntity> Add3DObject(const std::string& objectName, const std::string& objectMeshFile, const std::string& objectMeshMaterialFile, const float& lookAtDistance = 3.0f);
 	void ChangeShaderMode(const int& newShaderMode);
+	void OnObject3DChanged();
 
 public:
 	void Draw();
@@ -46,11 +47,11 @@ private:
 
 	std::shared_ptr<FrameBuffer> m_DepthFrameBuffer;
 
-	static unsigned int m_3DEntityIDs;
+	static unsigned int s_3DEntityIDs;
 	char** m_3DEntitiesNamesList;
 	std::vector<std::string> m_3DEntitiesNames;
 	int m_Current3DEntityIndex;
-	std::unordered_map<unsigned int, std::shared_ptr<Object3DEntity>> m_3DEntities;	
+	std::unordered_map<unsigned int, std::shared_ptr<Object3DEntity>> m_3DEntities;
 
 	bool m_IsInitialized;
 };

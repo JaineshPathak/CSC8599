@@ -7,9 +7,7 @@
 
 #include <nclgl/TextureEnvCubeMap.h>
 
-bool Object3DEntity::m_HasRegistered = false;
-
-Object3DEntity::Object3DEntity(const std::string& objectName, const std::string& meshFileName, const std::string& meshMaterialName, const std::string& meshShaderVertexFile, const std::string& meshShaderFragmentFile, const float& lookAtDistance) :
+Object3DEntity::Object3DEntity(const std::string& objectName, const std::string& meshFileName, const std::string& meshMaterialName, const std::string& meshShaderVertexFile, const std::string& meshShaderFragmentFile, const float& lookAtDistance) :	
 	m_ShaderMode(0),
 	m_BaseColor(Vector4::WHITE),
 	m_Metallic(1.0f),
@@ -25,12 +23,6 @@ Object3DEntity::Object3DEntity(const std::string& objectName, const std::string&
 	m_SkyboxRenderer = Renderer::Get()->GetSkyboxRenderer();
 	m_PostProcessRenderer = Renderer::Get()->GetPostProcessRenderer();
 	m_MainCamera = Renderer::Get()->GetMainCamera();
-
-	if (!m_HasRegistered)
-	{
-		m_HasRegistered = true;
-		ImGuiRenderer::Get()->RegisterItem(this);
-	}
 }
 
 void Object3DEntity::Render()
@@ -175,38 +167,33 @@ void Object3DEntity::RenderDisneyMode()
 	m_ShaderObject->UnBind();
 }
 
-void Object3DEntity::OnImGuiRender()
+void Object3DEntity::RenderShaderProperties()
 {
-	if (m_ShaderMode == 2)
+	switch (m_ShaderMode)
 	{
-		ImGui::Begin("Shader Properties");
-		switch (m_ShaderMode)
+		case 2:		//Disney Mode
 		{
-			case 2:
-			{
-				ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
 
-				ImGui::DragFloat("Metallic", &m_Metallic, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Metallic", &m_Metallic, 0.01f, 0.0f, 1.0f);
 
-				ImGui::DragFloat("Subsurface", &m_Subsurface, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Subsurface", &m_Subsurface, 0.01f, 0.0f, 1.0f);
 
-				ImGui::DragFloat("Roughness", &m_Roughness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Roughness", &m_Roughness, 0.01f, 0.0f, 1.0f);
 
-				ImGui::DragFloat("Specular", &m_Specular, 0.01f, 0.0f, 1.0f);
-				ImGui::DragFloat("Specular Tint", &m_SpecularTint, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Specular", &m_Specular, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Specular Tint", &m_SpecularTint, 0.01f, 0.0f, 1.0f);
 
-				ImGui::DragFloat("Anisotropic", &m_Anisotropic, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Anisotropic", &m_Anisotropic, 0.01f, 0.0f, 1.0f);
 
-				ImGui::DragFloat("Sheen", &m_Sheen, 0.01f, 0.0f, 1.0f);
-				ImGui::DragFloat("Sheen Tint", &m_SheenTint, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Sheen", &m_Sheen, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Sheen Tint", &m_SheenTint, 0.01f, 0.0f, 1.0f);
 
-				ImGui::DragFloat("Clear Coat", &m_ClearCoat, 0.01f, 0.0f, 1.0f);
-				ImGui::DragFloat("Clear Coat Roughness", &m_ClearCoatRoughness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Clear Coat", &m_ClearCoat, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Clear Coat Roughness", &m_ClearCoatRoughness, 0.01f, 0.0f, 1.0f);
 
-				ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
-				break;
-			}
+			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
+			break;
 		}
-		ImGui::End();
 	}
 }

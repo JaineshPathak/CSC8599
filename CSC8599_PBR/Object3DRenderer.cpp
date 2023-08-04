@@ -8,7 +8,7 @@
 
 #include <imgui/imgui.h>
 
-unsigned int Object3DRenderer::m_3DEntityIDs = 0;
+unsigned int Object3DRenderer::s_3DEntityIDs = 0;
 
 Object3DRenderer::Object3DRenderer(const float& width, const float& height) : 
 	m_Width(width), m_Height(height), 
@@ -80,8 +80,9 @@ std::shared_ptr<Object3DEntity> Object3DRenderer::Add3DObject(const std::string&
 	std::shared_ptr<Object3DEntity> entity = std::shared_ptr<Object3DEntity>(new Object3DEntity(objectName, objectMeshFile, objectMeshMaterialFile, "", "", lookAtDistance));
 	if (entity != nullptr)
 	{
-		m_3DEntities[m_3DEntityIDs++] = entity;
 		entity->SetObjectShader(m_PBRShader);
+
+		m_3DEntities[s_3DEntityIDs++] = entity;		
 		m_3DEntitiesNames.emplace_back(objectName);
 	}
 
@@ -106,6 +107,12 @@ void Object3DRenderer::ChangeShaderMode(const int& newShaderMode)
 
 		it->second->SetShaderMode(m_ShaderMode);
 	}
+}
+
+void Object3DRenderer::OnObject3DChanged()
+{
+	if (m_MainCamera == nullptr) return;		
+	m_MainCamera->SetLookAtDistance(m_3DEntities[m_Current3DEntityIndex]->GetLookDistance());
 }
 
 void Object3DRenderer::Draw()
@@ -139,7 +146,7 @@ void Object3DRenderer::OnImGuiRender()
 		ImGui::Indent();
 
 		if (ImGui::Combo("Object Type", &m_Current3DEntityIndex, m_3DEntitiesNamesList, (int)m_3DEntities.size()))
-			m_MainCamera->SetLookAtDistance(m_3DEntities[m_Current3DEntityIndex]->GetLookDistance());
+			OnObject3DChanged();
 
 		if (ImGui::Button("PBR Mode")) ChangeShaderMode(0);
 		ImGui::SameLine();
@@ -148,5 +155,9 @@ void Object3DRenderer::OnImGuiRender()
 		if (ImGui::Button("Disney Mode")) ChangeShaderMode(2);
 
 		ImGui::Unindent();
-	}	
+	}
+
+	ImGui::Begin("Shader Properties");
+	m_3DEntities[m_Current3DEntityIndex]->RenderShaderProperties();
+	ImGui::End();
 }
