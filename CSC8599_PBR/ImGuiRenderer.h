@@ -27,6 +27,8 @@ public:
 
 	const bool IsMouseOverScene() const { return m_MouseOverScene; }
 
+	static void AddTextCentered(const float& windowWidth, const std::string& text);
+
 private:
 	void RenderSettingsWindow();
 	void RenderSceneWindow();

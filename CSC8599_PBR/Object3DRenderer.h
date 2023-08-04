@@ -48,6 +48,8 @@ private:
 
 	std::shared_ptr<FrameBuffer> m_DepthFrameBuffer;
 
+	std::shared_ptr<Texture> m_ShaderTex;
+
 	static unsigned int s_3DEntityIDs;
 	char** m_3DEntitiesNamesList;
 	std::vector<std::string> m_3DEntitiesNames;

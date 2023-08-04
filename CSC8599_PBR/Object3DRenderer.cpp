@@ -20,6 +20,9 @@ Object3DRenderer::Object3DRenderer(const float& width, const float& height) :
 
 	if (!InitShaders()) return;
 	if (!InitBuffers()) return;
+
+	m_ShaderTex = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Icons/Icon_Shader.png"));
+	if (!m_ShaderTex->IsInitialized()) return;
 	
 	ProfilingManager::RecordTextureTimeStart();
 	
@@ -150,20 +153,20 @@ void Object3DRenderer::OnImGuiRender()
 		if (ImGui::Combo("Object Type", &m_Current3DEntityIndex, m_3DEntitiesNamesList, (int)m_3DEntities.size()))
 			OnObject3DChanged();
 
-		if (ImGui::Button("PBR Mode")) ChangeShaderMode(0);
+		/*if (ImGui::Button("PBR Mode")) ChangeShaderMode(0);
 		ImGui::SameLine();
 		if (ImGui::Button("Blinn Mode")) ChangeShaderMode(1);
 		ImGui::NewLine();
 		if (ImGui::Button("Disney Mode")) ChangeShaderMode(2);
 		ImGui::SameLine();
-		if (ImGui::Button("Oren-Nayar Mode")) ChangeShaderMode(3);
+		if (ImGui::Button("Oren-Nayar Mode")) ChangeShaderMode(3);*/
 
 		ImGui::Unindent();
 	}
 
 	ImGui::Begin("Shaders");
-	const float PADDING = 0.0f;
-	const float BUTTON_SIZE = 128.0f;
+	const float PADDING = 16.0f;
+	const float BUTTON_SIZE = 64.0f;
 	float cellsize = BUTTON_SIZE + PADDING;
 
 	float panelWidth = ImGui::GetContentRegionAvail().x;
@@ -172,18 +175,30 @@ void Object3DRenderer::OnImGuiRender()
 		columnsCount = 1;
 
 	ImGui::Columns(columnsCount, 0, false);
-	if(ImGui::Button("PBR", { BUTTON_SIZE, BUTTON_SIZE })) ChangeShaderMode(0);
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+	if (ImGui::ImageButton("PBR", (ImTextureID)m_ShaderTex->GetID(), {BUTTON_SIZE, BUTTON_SIZE}, {0, 1}, {1, 0}))
+		ChangeShaderMode(0);
+	ImGui::Text("PBR");
+
 	ImGui::NextColumn();
 
-	if (ImGui::Button("Blinn-Phong", { BUTTON_SIZE, BUTTON_SIZE })) ChangeShaderMode(1);
+	if (ImGui::ImageButton("Blinn-Phong", (ImTextureID)m_ShaderTex->GetID(), {BUTTON_SIZE, BUTTON_SIZE}, {0, 1}, {1, 0}))
+		ChangeShaderMode(1);
+	ImGui::Text("Blinn-Phong");
+
 	ImGui::NextColumn();
 
-	if (ImGui::Button("Disney", { BUTTON_SIZE, BUTTON_SIZE })) ChangeShaderMode(2);
+	if (ImGui::ImageButton("Disney", (ImTextureID)m_ShaderTex->GetID(), {BUTTON_SIZE, BUTTON_SIZE}, {0, 1}, {1, 0}))
+		ChangeShaderMode(2);
+	ImGui::Text("Disney");
+
 	ImGui::NextColumn();
 
-	if (ImGui::Button("Oren-Nayar", { BUTTON_SIZE, BUTTON_SIZE })) ChangeShaderMode(3);
-	ImGui::NextColumn();
-
+	if (ImGui::ImageButton("Oren-Nayar", (ImTextureID)m_ShaderTex->GetID(), {BUTTON_SIZE, BUTTON_SIZE}, {0, 1}, {1, 0}))
+		ChangeShaderMode(3);
+	ImGui::Text("Oren-Nayar");
+	ImGui::PopStyleColor();
+	
 	ImGui::Columns(1.0f);
 	ImGui::End();
 

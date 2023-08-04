@@ -82,6 +82,14 @@ void ImGuiRenderer::RegisterPostProcessItem(IImguiItem* _newItem)
 	m_PostProcessImGuiItems.insert(_newItem);
 }
 
+void ImGuiRenderer::AddTextCentered(const float& windowWidth, const std::string& text)
+{
+	float textWidth = ImGui::CalcTextSize(text.c_str()).x;
+	ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+
+	ImGui::Text(text.c_str());
+}
+
 void ImGuiRenderer::RenderSettingsWindow()
 {
 	ImGui::Begin("Settings");
