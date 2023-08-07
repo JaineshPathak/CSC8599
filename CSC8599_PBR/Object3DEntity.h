@@ -94,14 +94,20 @@ struct MaterialDataOrenNayar : MaterialData
 {
 	MaterialDataOrenNayar() :
 		MaterialData(Vector4::WHITE),
+		m_SpecularEnabled(false),
+		m_SpecularType(0),
 		m_Roughness(1.0f),
 		m_Emission(1.5f) {}
 
-	MaterialDataOrenNayar(const Vector4& baseColor, const float& roughness, const float& emission) :
+	MaterialDataOrenNayar(const Vector4& baseColor, const bool& enableSpecular, const int specularType, const float& roughness, const float& emission) :
 		MaterialData(baseColor),
+		m_SpecularEnabled(enableSpecular),
+		m_SpecularType(specularType),
 		m_Roughness(roughness),
 		m_Emission(emission) {}
 
+	bool m_SpecularEnabled;
+	int m_SpecularType;		//0 - Gaussian Distribtion, 1 - Beckmann Distribution
 	float m_Roughness;
 	float m_Emission;
 };

@@ -197,5 +197,6 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="..\Shaders\PBR\PBRTexturedFragmentDisney.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentOrenNayar.glsl" />
   </ItemGroup>
 </Project>

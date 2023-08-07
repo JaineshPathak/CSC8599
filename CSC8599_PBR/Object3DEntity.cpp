@@ -204,6 +204,8 @@ void Object3DEntity::RenderOrenNayarMode()
 
 		Vector3 baseColor = Vector3(m_MaterialOrenNayar.m_BaseColor.x, m_MaterialOrenNayar.m_BaseColor.y, m_MaterialOrenNayar.m_BaseColor.z);
 		m_ShaderObject->SetVector3("u_BaseColor", baseColor);
+		m_ShaderObject->SetBool("u_SpecularEnabled", m_MaterialOrenNayar.m_SpecularEnabled);
+		m_ShaderObject->SetInt("u_SpecularType", m_MaterialOrenNayar.m_SpecularType);
 		m_ShaderObject->SetFloat("u_Roughness", m_MaterialOrenNayar.m_Roughness);
 		m_ShaderObject->SetFloat("u_Emission", m_MaterialOrenNayar.m_Emission);
 
@@ -267,6 +269,10 @@ void Object3DEntity::RenderShaderProperties()
 		case 3:		//Oren-Nayar Mode
 		{
 			ImGui::ColorEdit4("Base Color", (float*)&m_MaterialOrenNayar.m_BaseColor);
+
+			ImGui::Checkbox("Enable Specular", &m_MaterialOrenNayar.m_SpecularEnabled);
+			if (m_MaterialOrenNayar.m_SpecularEnabled)
+				ImGui::Combo("Specular Type", &m_MaterialOrenNayar.m_SpecularType, "Gaussian\0Beckmann\0GGX");
 
 			ImGui::DragFloat("Roughness", &m_MaterialOrenNayar.m_Roughness, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Emission", &m_MaterialOrenNayar.m_Emission, 0.01f, 0.0f, 5.0f);

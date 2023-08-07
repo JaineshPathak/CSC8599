@@ -188,6 +188,7 @@
     <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedFragmentBlinnPhong.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedFragmentDisney.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentOrenNayar.glsl" />
     <None Include="..\Shaders\PBR\PBRTexturedVertex.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomBrightenFrag.glsl" />
     <None Include="..\Shaders\PostProcess\PostBloomDownSampleFrag.glsl" />

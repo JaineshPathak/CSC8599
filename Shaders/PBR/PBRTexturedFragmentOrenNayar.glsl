@@ -19,6 +19,8 @@ uniform bool hasEmissiveTex = false;
 uniform bool hasOcclusionTex = false;
 
 uniform vec3 u_BaseColor = vec3(1.0);
+uniform bool u_SpecularEnabled = false;
+uniform int u_SpecularType = 0;				//0 - Gaussian, 1 - Beckmann
 uniform float u_Roughness = 0.5;
 uniform float u_Emission = 1.5;
 
@@ -87,6 +89,39 @@ in Vertex
 
 out vec4 fragColour;
 
+float CalcGaussianDistribution(const in float roughnessStrength, const in float NdotH)
+{
+	float alpha = acos(NdotH);
+	float m = roughnessStrength;
+
+	float exponent = alpha / m;
+	float exponent2 = -(exponent * exponent);
+
+	return exp(exponent2);
+}
+
+float CalcBeckmannDistribution(const in float roughnessStrength, const in float NdotH)
+{	
+	float T = NdotH * NdotH;
+	float M = roughnessStrength * roughnessStrength;
+
+	float numerator = exp((T - 1.0) / (T * M)); 
+	float denominator = PI * M * T * T;
+
+	return numerator / denominator;
+}
+
+float CalcGGX(const in float roughnessStrength, const in float NdotH)
+{
+	float Alpha = roughnessStrength * roughnessStrength;
+	float AlphaMinus = Alpha - 1.0;
+	float NdotHSq = NdotH * NdotH;
+
+	float numerator = Alpha;
+	float denominator = PI * pow(NdotHSq * AlphaMinus + 1.0, 2.0);
+
+	return numerator / denominator;
+}
 
 //cos i = NdotL
 //cos r = NdotV
@@ -99,6 +134,7 @@ void CalcDirectionalLight(inout vec3 result, in vec3 albedoColor, in float rough
 
 	float NdotL = clamp(dot(N, L), 0.001, 1.0);
 	float NdotV = clamp(dot(N, V), 0.001, 1.0);
+	float NdotH = clamp(dot(N, H), 0.001, 1.0);
 	float thetaNL = acos(NdotL);
 	float thetaNV = acos(NdotV);
 
@@ -130,77 +166,119 @@ void CalcDirectionalLight(inout vec3 result, in vec3 albedoColor, in float rough
 	float C2 = 0.45 * roughness2 / (roughness2 + 0.09);
 	float C3 = sin(alpha) * tan(beta);
 
-	float FDiffuse = (1.0 / PI) * (C1 + (C2 * gamma * C3)) * NdotL;
-	result = albedoColor * radiance * FDiffuse;
+	float FDiffuse = (1.0 / PI) * (C1 + (C2 * gamma * C3));
+	float FSpecular = 0.0f;
+	if(u_SpecularEnabled)
+	{
+		switch(u_SpecularType)
+		{
+			case 0: { FSpecular = CalcGaussianDistribution(r, NdotH); break; }
+			case 1: { FSpecular = CalcBeckmannDistribution(r, NdotH); break; }
+			case 2: { FSpecular = CalcGGX(r, NdotH); break; }
+			default: { FSpecular = 0.0f; break; }
+		}
+	}
+	
+	result = (FDiffuse + FSpecular) * albedoColor * radiance * NdotL;
 }
 
-/*void CalcPointsLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
+void CalcPointsLights(inout vec3 result, in vec3 albedoColor, in float roughnessStrength, in vec3 N, in vec3 V)
 {
 	for(int i = 0; i < numPointLights; i++)
 	{
-		float ambientStrength = 0.3;
-		vec3 ambient = ambientStrength * vec3(pointLights[i].lightColor.xyz);
-
-		vec3 norm = normalize(normalColor);
-		vec3 lightDir = normalize(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
-		float diff = max(dot(norm, lightDir), 0.0);
-		vec3 diffuse = diff * vec3(pointLights[i].lightColor.xyz);
-
-		float specularStrength = 0.5;
-		vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
-		vec3 viewDirHalf = normalize(lightDir + viewDir);
-		//vec3 reflectDir = reflect(-lightDir, norm);
-
-		float spec = pow(max(dot(norm, viewDirHalf), 0.0), 128.0);
-		vec3 specular = specularStrength * spec * vec3(pointLights[i].lightColor.xyz);
+		vec3 L = normalize(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
+		vec3 H = normalize(V + L);
 
 		float distance = length(pointLights[i].lightPosition.xyz - IN.fragWorldPos);
-		//float attenuation = 1.0 / (pointLights[i].lightAttenData.x + pointLights[i].lightAttenData.y * distance + pointLights[i].lightAttenData.z * (distance * distance));
-		float attenuation = 1.0 / distance * distance;
+		float attenuation = 1.0 / (distance * distance);
 
-		ambient *= attenuation;
-		diffuse *= attenuation;
-		specular *= attenuation;
+		vec3 radiance = pointLights[i].lightColor.xyz * attenuation;
 
-		result += (diffuse + specular) * albedoColor;		
+		float NdotL = clamp(dot(N, L), 0.001, 1.0);
+		float NdotV = clamp(dot(N, V), 0.001, 1.0);
+		float NdotH = clamp(dot(N, H), 0.001, 1.0);
+		float thetaNL = acos(NdotL);
+		float thetaNV = acos(NdotV);
+
+		float alpha = max(thetaNL, thetaNV);
+		float beta = min(thetaNL, thetaNV);
+		float gamma = max(cos(thetaNV - thetaNL), 0.0);
+
+		float sinAlpha = sin(alpha);
+		float r = clamp(roughnessStrength, 0.01, 1.0);
+		float roughness2 = r * r;
+
+		float C1 = 1.0 - 0.5 * roughness2 / (roughness2 + 0.57);
+		float C2 = 0.45 * roughness2 / (roughness2 + 0.09);
+		float C3 = sin(alpha) * tan(beta);
+
+		float FDiffuse = (1.0 / PI) * (C1 + (C2 * gamma * C3));
+		float FSpecular = 0.0f;
+		if(u_SpecularEnabled)
+		{
+			switch(u_SpecularType)
+			{
+				case 0: { FSpecular = CalcGaussianDistribution(r, NdotH); break; }
+				case 1: { FSpecular = CalcBeckmannDistribution(r, NdotH); break; }
+				case 2: { FSpecular = CalcGGX(r, NdotH); break; }
+				default: { FSpecular = 0.0f; break; }
+			}
+		}
+	
+		result += (FDiffuse + FSpecular) * albedoColor * radiance * NdotL;
 	}
 }
 
-void CalcSpotLights(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
+void CalcSpotLights(inout vec3 result, in vec3 albedoColor, in float roughnessStrength, in vec3 N, in vec3 V)
 {
 	for(int i = 0; i < numSpotLights; i++)
 	{
-		vec3 lightDir = normalize(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
-		float theta = dot(lightDir, normalize(-spotLights[i].lightDirection.xyz));
-		float epsilon = spotLights[i].lightCutoffData.x - spotLights[i].lightCutoffData.y;
-		float edgeFactor = clamp((theta - spotLights[i].lightCutoffData.y) / epsilon, 0.0, 1.0);
-
-		float ambientStrength = 0.3;
-		vec3 ambient = ambientStrength * vec3(spotLights[i].lightColor.xyz);
-			
-		vec3 norm = normalize(normalColor);
-		float diff = max(dot(norm, lightDir), 0.0);
-		vec3 diffuse = diff * vec3(spotLights[i].lightColor.xyz);
-
-		float specularStrength = 0.5;
-		vec3 viewDir = normalize(cameraPos - IN.fragWorldPos);
-		vec3 viewDirHalf = normalize(lightDir + viewDir);
-		//vec3 reflectDir = reflect(-lightDir, norm);
-
-		float spec = pow(max(dot(norm, viewDirHalf), 0.0), 128.0);
-		vec3 specular = specularStrength * spec * vec3(spotLights[i].lightColor.xyz);
+		vec3 L = normalize(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
+		vec3 H = normalize(V + L);
 
 		float distance = length(spotLights[i].lightPosition.xyz - IN.fragWorldPos);
-		//float attenuation = 1.0 / (spotLights[i].lightAttenData.x + spotLights[i].lightAttenData.y * distance + spotLights[i].lightAttenData.z * (distance * distance));
-		float attenuation = 1.0 / distance * distance;
+		float attenuation = 1.0 / (distance * distance);
 
-		ambient *= attenuation * edgeFactor;
-		diffuse *= attenuation * edgeFactor;
-		specular *= attenuation * edgeFactor;
+		float theta = dot(L, normalize(-spotLights[i].lightDirection.xyz));
+		float epsilon = spotLights[i].lightCutoffData.x - spotLights[i].lightCutoffData.y;
+		float edgeFactor = clamp((theta - spotLights[i].lightCutoffData.y) / epsilon, 0.0, 1.0);
+		
+		vec3 radiance = spotLights[i].lightColor.xyz * attenuation * edgeFactor;
 
-		result += (diffuse + specular) * albedoColor;		
+		float NdotL = clamp(dot(N, L), 0.001, 1.0);
+		float NdotV = clamp(dot(N, V), 0.001, 1.0);
+		float NdotH = clamp(dot(N, H), 0.001, 1.0);
+		float thetaNL = acos(NdotL);
+		float thetaNV = acos(NdotV);
+
+		float alpha = max(thetaNL, thetaNV);
+		float beta = min(thetaNL, thetaNV);
+		float gamma = max(cos(thetaNV - thetaNL), 0.0);
+
+		float sinAlpha = sin(alpha);
+		float r = clamp(roughnessStrength, 0.01, 1.0);
+		float roughness2 = r * r;
+
+		float C1 = 1.0 - 0.5 * roughness2 / (roughness2 + 0.57);
+		float C2 = 0.45 * roughness2 / (roughness2 + 0.09);
+		float C3 = sin(alpha) * tan(beta);
+
+		float FDiffuse = (1.0 / PI) * (C1 + (C2 * gamma * C3));
+		float FSpecular = 0.0f;
+		if(u_SpecularEnabled)
+		{
+			switch(u_SpecularType)
+			{
+				case 0: { FSpecular = CalcGaussianDistribution(r, NdotH); break; }
+				case 1: { FSpecular = CalcBeckmannDistribution(r, NdotH); break; }
+				case 2: { FSpecular = CalcGGX(r, NdotH); break; }
+				default: { FSpecular = 0.0f; break; }
+			}
+		}
+	
+		result += (FDiffuse + FSpecular) * albedoColor * radiance * NdotL;
 	}
-}*/
+}
 
 void CalcAmbientLight(inout vec3 result, in vec3 albedoColor, in vec3 normalColor)
 {
@@ -252,8 +330,8 @@ void main(void)
 
 	vec3 result = vec3(0.0);
 	CalcDirectionalLight(result, albedoColor, roughnessStrength, N, V);
-	//CalcPointsLights(result, albedoColor, normalColor);
-	//CalcSpotLights(result, albedoColor, normalColor);
+	CalcPointsLights(result, albedoColor, roughnessStrength, N, V);
+	CalcSpotLights(result, albedoColor, roughnessStrength, N, V);
 	CalcAmbientLight(result, albedoColor, normalColor);
 
 	//Gamma	
