@@ -20,19 +20,12 @@ Object3DRenderer::Object3DRenderer(const float& width, const float& height) :
 
 	if (!InitShaders()) return;
 	if (!InitBuffers()) return;
+	if (!InitMeshes()) return;
 
 	m_ShaderTex = std::shared_ptr<Texture>(new Texture(TEXTUREDIR"Icons/Icon_Shader.png"));
-	if (!m_ShaderTex->IsInitialized()) return;
-	
-	ProfilingManager::RecordTextureTimeStart();
-	
-	Add3DObject("Car", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f);
-	Add3DObject("Helmet", "Mesh_SciFi_Helmet.msh", "Mesh_SciFi_Helmet.mat", 3.0f);
-	Add3DObject("Character", "Mesh_SciFi_Character.msh", "Mesh_SciFi_Character.mat", 1.65f);
-	
-	ProfilingManager::RecordTextureTimeEnd();
+	if (!m_ShaderTex->IsInitialized()) return;	
 
-	m_3DEntities[0]->SetPosition(Vector3(0.0f, 0.5f, 0.0f));
+	m_3DEntities[0]->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
 
 	m_3DEntitiesNamesList = new char* [m_3DEntitiesNames.size()];
 	for (size_t i = 0; i < m_3DEntitiesNames.size(); i++)
@@ -62,6 +55,23 @@ bool Object3DRenderer::InitShaders()
 		std::cout << "ERROR: Object3DRenderer: Failed to load Shader" << std::endl;
 		return false;
 	}
+
+	return true;
+}
+
+bool Object3DRenderer::InitMeshes()
+{
+	ProfilingManager::RecordTextureTimeStart();
+
+	if (Add3DObject("Car", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f) == nullptr) return false;
+	if(Add3DObject("Helmet", "Mesh_SciFi_Helmet.msh", "Mesh_SciFi_Helmet.mat", 3.0f) == nullptr) return false;
+	if(Add3DObject("Character", "Mesh_SciFi_Character.msh", "Mesh_SciFi_Character.mat", 1.65f) == nullptr) return false;
+
+	m_3DPlatform = std::shared_ptr<Object3DEntity>(new Object3DEntity("Platform", "Mesh_Platform.msh", "Mesh_Platform.mat", "", "", 3.0f));
+	if (m_3DPlatform == nullptr) return false;
+	m_3DPlatform->SetObjectShader(m_PBRShader);
+
+	ProfilingManager::RecordTextureTimeEnd();
 
 	return true;
 }
@@ -112,6 +122,17 @@ void Object3DRenderer::ChangeShaderMode(const int& newShaderMode)
 
 		it->second->SetShaderMode(m_ShaderMode);
 	}
+
+	//For 3D Platform
+	switch (m_ShaderMode)
+	{
+		case 0: m_3DPlatform->SetObjectShader(m_PBRShader);	break;
+		case 1: m_3DPlatform->SetObjectShader(m_BlinnShader); break;
+		case 2: m_3DPlatform->SetObjectShader(m_DisneyShader); break;
+		case 3: m_3DPlatform->SetObjectShader(m_OrenNayarShader); break;
+		default:m_3DPlatform->SetObjectShader(m_PBRShader);	break;
+	}
+	m_3DPlatform->SetShaderMode(m_ShaderMode);
 }
 
 void Object3DRenderer::OnObject3DChanged()
@@ -134,6 +155,7 @@ void Object3DRenderer::RenderDepths()
 	
 	m_DepthBufferShader->SetMat4("modelMatrix", m_3DEntities[m_Current3DEntityIndex]->GetModelMatrix());
 	m_3DEntities[m_Current3DEntityIndex]->Draw();
+	m_3DPlatform->Draw();
 
 	m_DepthBufferShader->UnBind();
 	m_DepthFrameBuffer->Unbind();
@@ -142,6 +164,12 @@ void Object3DRenderer::RenderDepths()
 void Object3DRenderer::Render()
 {
 	m_3DEntities[m_Current3DEntityIndex]->Render();
+	RenderPlatform();
+}
+
+void Object3DRenderer::RenderPlatform()
+{
+	m_3DPlatform->Render();
 }
 
 void Object3DRenderer::OnImGuiRender()

@@ -17,8 +17,9 @@ public:
 	~Object3DRenderer();
 
 protected:
-	bool InitShaders();
 	bool InitBuffers();
+	bool InitShaders();
+	bool InitMeshes();
 
 public:
 	const bool IsInitialized() const { return m_IsInitialized; }
@@ -33,6 +34,7 @@ public:
 	void Draw();
 	void RenderDepths();
 	void Render();
+	void RenderPlatform();
 	virtual void OnImGuiRender() override;
 
 private:
@@ -55,6 +57,8 @@ private:
 	std::vector<std::string> m_3DEntitiesNames;
 	int m_Current3DEntityIndex;
 	std::unordered_map<unsigned int, std::shared_ptr<Object3DEntity>> m_3DEntities;
+
+	std::shared_ptr<Object3DEntity> m_3DPlatform;
 
 	bool m_IsInitialized;
 };
