@@ -8,17 +8,7 @@
 #include <nclgl/TextureEnvCubeMap.h>
 
 Object3DEntity::Object3DEntity(const std::string& objectName, const std::string& meshFileName, const std::string& meshMaterialName, const std::string& meshShaderVertexFile, const std::string& meshShaderFragmentFile, const float& lookAtDistance) :	
-	m_ShaderMode(0),
-	m_BaseColor(Vector4::WHITE),
-	m_Metallic(1.0f),
-	m_Subsurface(0.0f),
-	m_Roughness(1.0f),
-	m_Sheen(0.0f), m_SheenTint(1.0f),
-	m_ClearCoat(0.0f), m_ClearCoatRoughness(1.0f),
-	m_Specular(0.5f), m_SpecularTint(1.0f),
-	m_Shininess(128.0f),
-	m_Anisotropic(0.0f),
-	m_Emission(1.5f),
+	m_ShaderMode(0),	
 	Object3D(objectName, meshFileName, meshMaterialName, meshShaderVertexFile, meshShaderFragmentFile, lookAtDistance)
 {
 	m_SkyboxRenderer = Renderer::Get()->GetSkyboxRenderer();
@@ -78,10 +68,11 @@ void Object3DEntity::RenderPBRMode()
 		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
 		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 5);
 
-		m_ShaderObject->SetVector3("u_BaseColor", Vector3(m_BaseColor.x, m_BaseColor.y, m_BaseColor.z));
-		m_ShaderObject->SetFloat("u_Metallic", m_Metallic);
-		m_ShaderObject->SetFloat("u_Roughness", m_Roughness);
-		m_ShaderObject->SetFloat("u_Emission", m_Emission);
+		Vector3 baseColor = Vector3(m_MaterialPBR.m_BaseColor.x, m_MaterialPBR.m_BaseColor.y, m_MaterialPBR.m_BaseColor.z);
+		m_ShaderObject->SetVector3("u_BaseColor", baseColor);
+		m_ShaderObject->SetFloat("u_Metallic", m_MaterialPBR.m_Metallic);
+		m_ShaderObject->SetFloat("u_Roughness", m_MaterialPBR.m_Roughness);
+		m_ShaderObject->SetFloat("u_Emission", m_MaterialPBR.m_Emission);
 
 		m_MeshObject->DrawSubMesh(i);
 	}
@@ -116,10 +107,11 @@ void Object3DEntity::RenderBlinnMode()
 		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
 		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 3);
 
-		m_ShaderObject->SetVector3("u_BaseColor", Vector3(m_BaseColor.x, m_BaseColor.y, m_BaseColor.z));
-		m_ShaderObject->SetFloat("u_Specular", m_Specular);
-		m_ShaderObject->SetFloat("u_Shininess", m_Shininess);
-		m_ShaderObject->SetFloat("u_Emission", m_Emission);
+		Vector3 baseColor = Vector3(m_MaterialBlinnPhong.m_BaseColor.x, m_MaterialBlinnPhong.m_BaseColor.y, m_MaterialBlinnPhong.m_BaseColor.z);
+		m_ShaderObject->SetVector3("u_BaseColor", baseColor);
+		m_ShaderObject->SetFloat("u_Specular", m_MaterialBlinnPhong.m_Specular);
+		m_ShaderObject->SetFloat("u_Shininess", m_MaterialBlinnPhong.m_Shininess);
+		m_ShaderObject->SetFloat("u_Emission", m_MaterialBlinnPhong.m_Emission);
 
 		m_MeshObject->DrawSubMesh(i);
 	}
@@ -161,18 +153,19 @@ void Object3DEntity::RenderDisneyMode()
 		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
 		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 5);
 
-		m_ShaderObject->SetVector3("u_BaseColor", Vector3(m_BaseColor.x, m_BaseColor.y, m_BaseColor.z));
-		m_ShaderObject->SetFloat("u_Metallic", m_Metallic);
-		m_ShaderObject->SetFloat("u_Subsurface", m_Subsurface);
-		m_ShaderObject->SetFloat("u_Roughness", m_Roughness);
-		m_ShaderObject->SetFloat("u_Specular", m_Specular);
-		m_ShaderObject->SetFloat("u_SpecularTint", m_SpecularTint);
-		m_ShaderObject->SetFloat("u_Anisotropic", m_Anisotropic);
-		m_ShaderObject->SetFloat("u_Sheen", m_Sheen);
-		m_ShaderObject->SetFloat("u_SheenTint", m_SheenTint);
-		m_ShaderObject->SetFloat("u_ClearCoat", m_ClearCoat);
-		m_ShaderObject->SetFloat("u_ClearCoatRoughness", m_ClearCoatRoughness);
-		m_ShaderObject->SetFloat("u_Emission", m_Emission);
+		Vector3 baseColor = Vector3(m_MaterialDisney.m_BaseColor.x, m_MaterialDisney.m_BaseColor.y, m_MaterialDisney.m_BaseColor.z);
+		m_ShaderObject->SetVector3("u_BaseColor", baseColor);
+		m_ShaderObject->SetFloat("u_Metallic", m_MaterialDisney.m_Metallic);
+		m_ShaderObject->SetFloat("u_Subsurface", m_MaterialDisney.m_Subsurface);
+		m_ShaderObject->SetFloat("u_Roughness", m_MaterialDisney.m_Roughness);
+		m_ShaderObject->SetFloat("u_Specular", m_MaterialDisney.m_Specular);
+		m_ShaderObject->SetFloat("u_SpecularTint", m_MaterialDisney.m_SpecularTint);
+		m_ShaderObject->SetFloat("u_Anisotropic", m_MaterialDisney.m_Anisotropic);
+		m_ShaderObject->SetFloat("u_Sheen", m_MaterialDisney.m_Sheen);
+		m_ShaderObject->SetFloat("u_SheenTint", m_MaterialDisney.m_SheenTint);
+		m_ShaderObject->SetFloat("u_ClearCoat", m_MaterialDisney.m_ClearCoat);
+		m_ShaderObject->SetFloat("u_ClearCoatRoughness", m_MaterialDisney.m_ClearCoatRoughness);
+		m_ShaderObject->SetFloat("u_Emission", m_MaterialDisney.m_Emission);
 
 		m_MeshObject->DrawSubMesh(i);
 	}
@@ -209,9 +202,10 @@ void Object3DEntity::RenderOrenNayarMode()
 		m_ShaderObject->SetBool("hasOcclusionTex", m_TexOcclusionSet[i] != -1);
 		if (m_TexOcclusionSet[i] != -1) m_ShaderObject->SetTexture("occlusionTex", m_TexOcclusionSet[i], 4);
 
-		m_ShaderObject->SetVector3("u_BaseColor", Vector3(m_BaseColor.x, m_BaseColor.y, m_BaseColor.z));
-		m_ShaderObject->SetFloat("u_Roughness", m_Roughness);
-		m_ShaderObject->SetFloat("u_Emission", m_Emission);
+		Vector3 baseColor = Vector3(m_MaterialOrenNayar.m_BaseColor.x, m_MaterialOrenNayar.m_BaseColor.y, m_MaterialOrenNayar.m_BaseColor.z);
+		m_ShaderObject->SetVector3("u_BaseColor", baseColor);
+		m_ShaderObject->SetFloat("u_Roughness", m_MaterialOrenNayar.m_Roughness);
+		m_ShaderObject->SetFloat("u_Emission", m_MaterialOrenNayar.m_Emission);
 
 		m_MeshObject->DrawSubMesh(i);
 	}
@@ -225,57 +219,57 @@ void Object3DEntity::RenderShaderProperties()
 	{
 		case 0:		//PBR Mode
 		{
-			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+			ImGui::ColorEdit4("Base Color", (float*)&m_MaterialPBR.m_BaseColor);
 
-			ImGui::DragFloat("Metallic", &m_Metallic, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Roughness", &m_Roughness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Metallic", &m_MaterialPBR.m_Metallic, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Roughness", &m_MaterialPBR.m_Roughness, 0.01f, 0.0f, 1.0f);
 
-			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
+			ImGui::DragFloat("Emission", &m_MaterialPBR.m_Emission, 0.01f, 0.0f, 5.0f);
 			break;
 		}
 
 		case 1:		//Blinn Phong
 		{
-			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+			ImGui::ColorEdit4("Base Color", (float*)&m_MaterialBlinnPhong.m_BaseColor);
 
-			ImGui::DragFloat("Specular", &m_Specular, 0.01f, 0.0f, 10.0f);
-			ImGui::DragFloat("Specular Power", &m_Shininess, 1.0f, 0.0f, 256.0f);
+			ImGui::DragFloat("Specular", &m_MaterialBlinnPhong.m_Specular, 0.01f, 0.0f, 10.0f);
+			ImGui::DragFloat("Specular Power", &m_MaterialBlinnPhong.m_Shininess, 1.0f, 0.0f, 256.0f);
 
-			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
+			ImGui::DragFloat("Emission", &m_MaterialBlinnPhong.m_Emission, 0.01f, 0.0f, 5.0f);
 			break;
 		}
 
 		case 2:		//Disney Mode
 		{
-			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+			ImGui::ColorEdit4("Base Color", (float*)&m_MaterialDisney.m_BaseColor);
 
-			ImGui::DragFloat("Metallic", &m_Metallic, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Metallic", &m_MaterialDisney.m_Metallic, 0.01f, 0.0f, 1.0f);
 
-			ImGui::DragFloat("Subsurface", &m_Subsurface, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Subsurface", &m_MaterialDisney.m_Subsurface, 0.01f, 0.0f, 1.0f);
 
-			ImGui::DragFloat("Roughness", &m_Roughness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Roughness", &m_MaterialDisney.m_Roughness, 0.01f, 0.0f, 1.0f);
 
-			ImGui::DragFloat("Specular", &m_Specular, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Specular Tint", &m_SpecularTint, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Specular", &m_MaterialDisney.m_Specular, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Specular Tint", &m_MaterialDisney.m_SpecularTint, 0.01f, 0.0f, 1.0f);
 
-			ImGui::DragFloat("Anisotropic", &m_Anisotropic, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Anisotropic", &m_MaterialDisney.m_Anisotropic, 0.01f, 0.0f, 1.0f);
 
-			ImGui::DragFloat("Sheen", &m_Sheen, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Sheen Tint", &m_SheenTint, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Sheen", &m_MaterialDisney.m_Sheen, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Sheen Tint", &m_MaterialDisney.m_SheenTint, 0.01f, 0.0f, 1.0f);
 
-			ImGui::DragFloat("Clear Coat", &m_ClearCoat, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Clear Coat Roughness", &m_ClearCoatRoughness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Clear Coat", &m_MaterialDisney.m_ClearCoat, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Clear Coat Roughness", &m_MaterialDisney.m_ClearCoatRoughness, 0.01f, 0.0f, 1.0f);
 
-			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
+			ImGui::DragFloat("Emission", &m_MaterialDisney.m_Emission, 0.01f, 0.0f, 5.0f);
 			break;
 		}
 
 		case 3:		//Oren-Nayar Mode
 		{
-			ImGui::ColorEdit4("Base Color", (float*)&m_BaseColor);
+			ImGui::ColorEdit4("Base Color", (float*)&m_MaterialOrenNayar.m_BaseColor);
 
-			ImGui::DragFloat("Roughness", &m_Roughness, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Emission", &m_Emission, 0.01f, 0.0f, 5.0f);
+			ImGui::DragFloat("Roughness", &m_MaterialOrenNayar.m_Roughness, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Emission", &m_MaterialOrenNayar.m_Emission, 0.01f, 0.0f, 5.0f);
 			break;
 		}
 	}
