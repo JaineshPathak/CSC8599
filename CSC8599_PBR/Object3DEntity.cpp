@@ -96,6 +96,8 @@ void Object3DEntity::RenderBlinnMode()
 	m_ShaderObject->SetTexture("shadowTex", m_Object3DRenderer->GetShadowDepthTexture(), 7);
 
 	m_ShaderObject->SetVector3("cameraPos", m_MainCamera->GetPosition());
+
+	m_ShaderObject->SetMat4("lightSpaceMatrix", m_Object3DRenderer->GetLightSpaceMatrix());
 	m_ShaderObject->SetMat4("modelMatrix", m_ModelMatrix);
 
 	for (int i = 0; i < m_MeshObject->GetSubMeshCount(); i++)
@@ -138,6 +140,8 @@ void Object3DEntity::RenderDisneyMode()
 	m_ShaderObject->SetTexture("shadowTex", m_Object3DRenderer->GetShadowDepthTexture(), 10);
 
 	m_ShaderObject->SetVector3("cameraPos", m_MainCamera->GetPosition());
+
+	m_ShaderObject->SetMat4("lightSpaceMatrix", m_Object3DRenderer->GetLightSpaceMatrix());
 	m_ShaderObject->SetMat4("modelMatrix", m_ModelMatrix);
 
 	for (int i = 0; i < m_MeshObject->GetSubMeshCount(); i++)
@@ -192,6 +196,8 @@ void Object3DEntity::RenderOrenNayarMode()
 	m_ShaderObject->SetTexture("shadowTex", m_Object3DRenderer->GetShadowDepthTexture(), 7);
 
 	m_ShaderObject->SetVector3("cameraPos", m_MainCamera->GetPosition());
+
+	m_ShaderObject->SetMat4("lightSpaceMatrix", m_Object3DRenderer->GetLightSpaceMatrix());
 	m_ShaderObject->SetMat4("modelMatrix", m_ModelMatrix);
 
 	for (int i = 0; i < m_MeshObject->GetSubMeshCount(); i++)

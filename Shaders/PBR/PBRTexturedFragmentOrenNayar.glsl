@@ -103,7 +103,7 @@ float CalcShadows(float NdotL)
 	float shadow = 0.0;
 	vec2 texelSize = 1.0 / textureSize(shadowTex, 0);
 	const int halfkernelWidth = 3;
-	for(int x = halfkernelWidth; x <= halfkernelWidth; x++)
+	for(int x = -halfkernelWidth; x <= halfkernelWidth; x++)
 	{
 		for(int y = -halfkernelWidth; y <= halfkernelWidth; y++)
 		{
@@ -112,8 +112,8 @@ float CalcShadows(float NdotL)
 		}
 	}
 	
-	shadow /= 7.0;
-	//shadow /= ((halfkernelWidth * 2.0 + 1.0) * (halfkernelWidth * 2.0 + 1.0));
+	//shadow /= 9.0;
+	shadow /= ((halfkernelWidth * 2.0 + 1.0) * (halfkernelWidth * 2.0 + 1.0));
 
 	if(projCoords.z > 1.0)
 		shadow = 1.0;
@@ -211,8 +211,9 @@ void CalcDirectionalLight(inout vec3 result, in vec3 albedoColor, in float rough
 		}
 	}
 
-	float shadow = CalcShadows(NdotL);	
-	result = (FDiffuse + FSpecular) * albedoColor * radiance * NdotL;
+	float NoL = max(dot(N, L), 0.0001);
+	float shadow = CalcShadows(NoL);
+	result = (FDiffuse + FSpecular) * (1.0 - shadow) * albedoColor * radiance * NoL;	
 }
 
 void CalcPointsLights(inout vec3 result, in vec3 albedoColor, in float roughnessStrength, in vec3 N, in vec3 V)

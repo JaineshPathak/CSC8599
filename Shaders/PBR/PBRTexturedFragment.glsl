@@ -106,7 +106,7 @@ float CalcShadows(float NdotL)
 	float shadow = 0.0;
 	vec2 texelSize = 1.0 / textureSize(shadowTex, 0);
 	const int halfkernelWidth = 3;
-	for(int x = halfkernelWidth; x <= halfkernelWidth; x++)
+	for(int x = -halfkernelWidth; x <= halfkernelWidth; x++)
 	{
 		for(int y = -halfkernelWidth; y <= halfkernelWidth; y++)
 		{
@@ -115,8 +115,8 @@ float CalcShadows(float NdotL)
 		}
 	}
 	
-	shadow /= 7.0;
-	//shadow /= ((halfkernelWidth * 2.0 + 1.0) * (halfkernelWidth * 2.0 + 1.0));
+	//shadow /= 9.0;
+	shadow /= ((halfkernelWidth * 2.0 + 1.0) * (halfkernelWidth * 2.0 + 1.0));
 
 	if(projCoords.z > 1.0)
 		shadow = 1.0;

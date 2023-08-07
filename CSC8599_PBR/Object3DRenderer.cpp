@@ -177,17 +177,19 @@ void Object3DRenderer::RenderShadowDepths()
 
 	float near_plane = 0.1f, far_plane = 10.0f;
 	Matrix4 lightProjection = Matrix4::Orthographic(near_plane, far_plane, 10.0f, -10.0f, 10.0f, -10.0f);
-	Matrix4 lightView = Matrix4::BuildViewMatrix(Vector3(-3.0f, 2.0f, 0.0f), Vector3::ZERO, Vector3::UP);
+	Matrix4 lightView = Matrix4::BuildViewMatrix(-dirLight->GetLightDir(), Vector3::ZERO, Vector3::UP);
 	m_LightSpaceMatrix = lightProjection * lightView;
 
 	m_ShadowDepthBufferShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
 	m_ShadowDepthBufferShader->SetMat4("modelMatrix", m_3DEntities[m_Current3DEntityIndex]->GetModelMatrix());
 
-	glCullFace(GL_FRONT);
+	//glCullFace(GL_FRONT);
+	glDisable(GL_CULL_FACE);
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 	Draw();
 	
+	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
 	m_ShadowDepthBufferShader->UnBind();

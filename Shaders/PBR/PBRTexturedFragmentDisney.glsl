@@ -120,7 +120,7 @@ float CalcShadows(float NdotL)
 	float shadow = 0.0;
 	vec2 texelSize = 1.0 / textureSize(shadowTex, 0);
 	const int halfkernelWidth = 3;
-	for(int x = halfkernelWidth; x <= halfkernelWidth; x++)
+	for(int x = -halfkernelWidth; x <= halfkernelWidth; x++)
 	{
 		for(int y = -halfkernelWidth; y <= halfkernelWidth; y++)
 		{
@@ -129,8 +129,8 @@ float CalcShadows(float NdotL)
 		}
 	}
 	
-	shadow /= 7.0;
-	//shadow /= ((halfkernelWidth * 2.0 + 1.0) * (halfkernelWidth * 2.0 + 1.0));
+	//shadow /= 9.0;
+	shadow /= ((halfkernelWidth * 2.0 + 1.0) * (halfkernelWidth * 2.0 + 1.0));
 
 	if(projCoords.z > 1.0)
 		shadow = 1.0;
@@ -321,7 +321,8 @@ void CalcDirectionalLight(inout vec3 result, vec3 albedoColor, float metallicStr
 	float NoL = max(dot(N, L), 0.0001);
 	float shadow = CalcShadows(NoL);
 
-	result = ((FDiffuseFinal + FSheen) * (1.0 - metallicStrength) + FSpecularFinal) * (1.0 - shadow) * radiance * NdotL;
+	result = ((FDiffuseFinal + FSheen) * (1.0 - metallicStrength) + FSpecularFinal) * radiance * NdotL;
+	result *= (1.0 - shadow);
 	//result *= radiance * NdotL;		//So that it doesn't apply on the whole model and only where the light ray falls on model surface
 }
 
