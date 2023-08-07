@@ -24,11 +24,16 @@ protected:
 public:
 	const bool IsInitialized() const { return m_IsInitialized; }
 	const unsigned int GetDepthTexture() const;
+	const unsigned int GetShadowDepthTexture() const;
+	const Matrix4 GetLightSpaceMatrix() const { return m_LightSpaceMatrix; }
 
 private:
 	std::shared_ptr<Object3DEntity> Add3DObject(const std::string& objectName, const std::string& objectMeshFile, const std::string& objectMeshMaterialFile, const float& lookAtDistance = 3.0f);
 	void ChangeShaderMode(const int& newShaderMode);
 	void OnObject3DChanged();
+
+	void RenderUsualDepths();
+	void RenderShadowDepths();
 
 public:
 	void Draw();
@@ -36,6 +41,9 @@ public:
 	void Render();
 	void RenderPlatform();
 	virtual void OnImGuiRender() override;
+
+protected:
+	Matrix4 m_LightSpaceMatrix;
 
 private:
 	float m_Width, m_Height;
@@ -46,9 +54,12 @@ private:
 	std::shared_ptr<Shader> m_BlinnShader;
 	std::shared_ptr<Shader> m_DisneyShader;
 	std::shared_ptr<Shader> m_OrenNayarShader;
+
 	std::shared_ptr<Shader> m_DepthBufferShader;
+	std::shared_ptr<Shader> m_ShadowDepthBufferShader;	
 
 	std::shared_ptr<FrameBuffer> m_DepthFrameBuffer;
+	std::shared_ptr<FrameBuffer> m_ShadowDepthFrameBuffer;
 
 	std::shared_ptr<Texture> m_ShaderTex;
 

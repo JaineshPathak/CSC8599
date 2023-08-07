@@ -12,6 +12,7 @@ uniform samplerCube irradianceTex;
 uniform samplerCube prefilterTex;
 uniform sampler2D brdfLUTTex;
 uniform sampler2D ssaoTex;
+uniform sampler2D shadowTex;
 
 //Flags
 uniform bool ssaoEnabled;
@@ -94,6 +95,7 @@ in Vertex
 	vec3 normal;
 	vec3 fragWorldPos;
 	vec4 fragClipSpacePos;
+	vec4 fragLightSpacePos;
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 TBN;
@@ -104,6 +106,36 @@ out vec4 fragColour;
 float sqr(float x) 
 { 
 	return x * x;
+}
+
+float CalcShadows(float NdotL)
+{
+	vec3 projCoords = IN.fragLightSpacePos.xyz / IN.fragLightSpacePos.w;
+	projCoords = projCoords * 0.5 + 0.5;
+
+	float closestDepth = texture(shadowTex, projCoords.xy).r;
+	float currentDepth = projCoords.z;
+
+	float bias = max(0.01 * (1.0 - NdotL), 0.005);
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(shadowTex, 0);
+	const int halfkernelWidth = 3;
+	for(int x = halfkernelWidth; x <= halfkernelWidth; x++)
+	{
+		for(int y = -halfkernelWidth; y <= halfkernelWidth; y++)
+		{
+			float pcfDepth = texture(shadowTex, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
+	}
+	
+	shadow /= 7.0;
+	//shadow /= ((halfkernelWidth * 2.0 + 1.0) * (halfkernelWidth * 2.0 + 1.0));
+
+	if(projCoords.z > 1.0)
+		shadow = 1.0;
+
+	return shadow;
 }
 
 float FresnelSchlick(float cos)
@@ -286,7 +318,10 @@ void CalcDirectionalLight(inout vec3 result, vec3 albedoColor, float metallicStr
 	//result = (FDiffuseFinal + FSheen + FClearcoat) * radiance * NdotL;
 	//result = FSpecular * radiance * NdotL;
 
-	result = ((FDiffuseFinal + FSheen) * (1.0 - metallicStrength) + FSpecularFinal) * radiance * NdotL;
+	float NoL = max(dot(N, L), 0.0001);
+	float shadow = CalcShadows(NoL);
+
+	result = ((FDiffuseFinal + FSheen) * (1.0 - metallicStrength) + FSpecularFinal) * (1.0 - shadow) * radiance * NdotL;
 	//result *= radiance * NdotL;		//So that it doesn't apply on the whole model and only where the light ray falls on model surface
 }
 

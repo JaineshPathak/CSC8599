@@ -12,6 +12,7 @@ uniform samplerCube irradianceTex;
 uniform samplerCube prefilterTex;
 uniform sampler2D brdfLUTTex;
 uniform sampler2D ssaoTex;
+uniform sampler2D shadowTex;
 
 //Flags
 uniform bool ssaoEnabled;
@@ -85,12 +86,43 @@ in Vertex
 	vec3 normal;
 	vec3 fragWorldPos;
 	vec4 fragClipSpacePos;
+	vec4 fragLightSpacePos;
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 TBN;
 } IN;
 
 out vec4 fragColour;
+
+float CalcShadows(float NdotL)
+{
+	vec3 projCoords = IN.fragLightSpacePos.xyz / IN.fragLightSpacePos.w;
+	projCoords = projCoords * 0.5 + 0.5;
+
+	float closestDepth = texture(shadowTex, projCoords.xy).r;
+	float currentDepth = projCoords.z;
+
+	float bias = max(0.01 * (1.0 - NdotL), 0.005);
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(shadowTex, 0);
+	const int halfkernelWidth = 3;
+	for(int x = halfkernelWidth; x <= halfkernelWidth; x++)
+	{
+		for(int y = -halfkernelWidth; y <= halfkernelWidth; y++)
+		{
+			float pcfDepth = texture(shadowTex, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
+	}
+	
+	shadow /= 7.0;
+	//shadow /= ((halfkernelWidth * 2.0 + 1.0) * (halfkernelWidth * 2.0 + 1.0));
+
+	if(projCoords.z > 1.0)
+		shadow = 1.0;
+
+	return shadow;
+}
 
 float DistributionGGX(vec3 N, vec3 H, float roughnessStrength)
 {
@@ -170,7 +202,9 @@ void CalcDirectionalLight(inout vec3 result, vec3 albedoColor, float metallicStr
 	vec3 specular = numerator / denominator;
 
 	float NdotL = max(dot(N, L), 0.0001);
-	result = (diffuse + specular) * radiance * NdotL;
+	float shadow = CalcShadows(NdotL);
+
+	result = (diffuse + specular) * (1.0 - shadow) * radiance * NdotL;
 }
 
 void CalcPointLights(inout vec3 result, vec3 albedoColor, float metallicStrength, float roughnessStrength, vec3 N, vec3 V, vec3 F0)

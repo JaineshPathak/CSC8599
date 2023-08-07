@@ -114,6 +114,7 @@ struct MaterialDataOrenNayar : MaterialData
 
 class SkyboxRenderer;
 class PostProcessRenderer;
+class Object3DRenderer;
 class LookAtCamera;
 class Object3DEntity : public Object3D
 {
@@ -138,6 +139,7 @@ public:
 private:
 	std::shared_ptr<SkyboxRenderer> m_SkyboxRenderer;
 	std::shared_ptr<PostProcessRenderer> m_PostProcessRenderer;
+	std::shared_ptr<Object3DRenderer> m_Object3DRenderer;
 	std::shared_ptr<LookAtCamera> m_MainCamera;
 
 	int m_ShaderMode;		//0 - PBR, 1 - Blinn Phong, 2 - Disney

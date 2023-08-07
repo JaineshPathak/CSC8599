@@ -100,8 +100,14 @@ void FrameBuffer::Invalidate()
 		glDrawBuffers(1, &attachmentsV[0]);
 	}
 
+	if (m_NumColorAttachments <= 0)
+	{
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+	}
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cerr << "Frame Buffer is Incomplete! ID: " << m_ProgramID << std::endl;
+		std::cerr << "Frame Buffer is Incomplete! ID: " << m_ProgramID << std::endl;	
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

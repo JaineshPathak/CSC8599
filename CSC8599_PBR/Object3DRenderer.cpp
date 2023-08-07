@@ -2,9 +2,11 @@
 #include "Object3DEntity.h"
 #include "Renderer.h"
 #include "LookAtCamera.h"
+#include "LightsManager.h"
 
 #include <nclgl/FrameBuffer.h>
 #include <nclgl/ProfilingManager.h>
+#include <nclgl/DirectionalLight.h>
 
 #include <imgui/imgui.h>
 
@@ -49,8 +51,11 @@ bool Object3DRenderer::InitShaders()
 	m_BlinnShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentBlinnPhong.glsl"));
 	m_DisneyShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentDisney.glsl"));
 	m_OrenNayarShader = std::shared_ptr<Shader>(new Shader("PBR/PBRTexturedVertex.glsl", "PBR/PBRTexturedFragmentOrenNayar.glsl"));
+
 	m_DepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
-	if (!m_PBRShader->LoadSuccess() || !m_BlinnShader->LoadSuccess() || !m_DisneyShader->LoadSuccess() || !m_OrenNayarShader->LoadSuccess() || !m_DepthBufferShader->LoadSuccess())
+	m_ShadowDepthBufferShader = std::shared_ptr<Shader>(new Shader("PBR/PBRShadowDepthBufferVert.glsl", "PBR/PBRDepthBufferFrag.glsl"));
+
+	if (!m_PBRShader->LoadSuccess() || !m_BlinnShader->LoadSuccess() || !m_DisneyShader->LoadSuccess() || !m_OrenNayarShader->LoadSuccess() || !m_DepthBufferShader->LoadSuccess() || !m_ShadowDepthBufferShader->LoadSuccess())
 	{
 		std::cout << "ERROR: Object3DRenderer: Failed to load Shader" << std::endl;
 		return false;
@@ -78,8 +83,11 @@ bool Object3DRenderer::InitMeshes()
 
 bool Object3DRenderer::InitBuffers()
 {
-	m_DepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)m_Width, (unsigned int)m_Height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));
+	m_DepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)m_Width, (unsigned int)m_Height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	if (m_DepthFrameBuffer == nullptr) return false;
+
+	m_ShadowDepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(1024, 1024, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+	if (m_ShadowDepthFrameBuffer == nullptr) return false;
 
 	return true;
 }
@@ -87,6 +95,11 @@ bool Object3DRenderer::InitBuffers()
 const unsigned int Object3DRenderer::GetDepthTexture() const
 {
 	return m_DepthFrameBuffer->GetDepthAttachmentTex();
+}
+
+const unsigned int Object3DRenderer::GetShadowDepthTexture() const
+{
+	return m_ShadowDepthFrameBuffer->GetDepthAttachmentTex();
 }
 
 std::shared_ptr<Object3DEntity> Object3DRenderer::Add3DObject(const std::string& objectName, const std::string& objectMeshFile, const std::string& objectMeshMaterialFile, const float& lookAtDistance)
@@ -141,24 +154,56 @@ void Object3DRenderer::OnObject3DChanged()
 	m_MainCamera->SetLookAtDistance(m_3DEntities[m_Current3DEntityIndex]->GetLookDistance());
 }
 
+void Object3DRenderer::RenderUsualDepths()
+{
+	m_DepthFrameBuffer->Bind();
+	m_DepthBufferShader->Bind();
+
+	m_DepthBufferShader->SetMat4("modelMatrix", m_3DEntities[m_Current3DEntityIndex]->GetModelMatrix());
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+	Draw();
+
+	m_DepthBufferShader->UnBind();
+	m_DepthFrameBuffer->Unbind();
+}
+
+void Object3DRenderer::RenderShadowDepths()
+{
+	m_ShadowDepthFrameBuffer->Bind();
+	m_ShadowDepthBufferShader->Bind();
+
+	std::shared_ptr<DirectionalLight> dirLight = LightsManager::Get()->GetDirectionalLight();
+
+	float near_plane = 0.1f, far_plane = 10.0f;
+	Matrix4 lightProjection = Matrix4::Orthographic(near_plane, far_plane, 10.0f, -10.0f, 10.0f, -10.0f);
+	Matrix4 lightView = Matrix4::BuildViewMatrix(Vector3(-3.0f, 2.0f, 0.0f), Vector3::ZERO, Vector3::UP);
+	m_LightSpaceMatrix = lightProjection * lightView;
+
+	m_ShadowDepthBufferShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
+	m_ShadowDepthBufferShader->SetMat4("modelMatrix", m_3DEntities[m_Current3DEntityIndex]->GetModelMatrix());
+
+	glCullFace(GL_FRONT);
+	
+	glClear(GL_DEPTH_BUFFER_BIT);
+	Draw();
+	
+	glCullFace(GL_BACK);
+
+	m_ShadowDepthBufferShader->UnBind();
+	m_ShadowDepthFrameBuffer->Unbind();
+}
+
 void Object3DRenderer::Draw()
 {
 	m_3DEntities[m_Current3DEntityIndex]->Draw();
+	m_3DPlatform->Draw();
 }
 
 void Object3DRenderer::RenderDepths() 
 {
-	m_DepthFrameBuffer->Bind();
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-	m_DepthBufferShader->Bind();
-	
-	m_DepthBufferShader->SetMat4("modelMatrix", m_3DEntities[m_Current3DEntityIndex]->GetModelMatrix());
-	m_3DEntities[m_Current3DEntityIndex]->Draw();
-	m_3DPlatform->Draw();
-
-	m_DepthBufferShader->UnBind();
-	m_DepthFrameBuffer->Unbind();
+	RenderUsualDepths();
+	RenderShadowDepths();
 }
 
 void Object3DRenderer::Render()

@@ -13,6 +13,7 @@ layout(std140, binding = 0) uniform Matrices
 };
 
 uniform mat4 modelMatrix;
+uniform mat4 lightSpaceMatrix;
 
 out Vertex 
 {
@@ -21,6 +22,7 @@ out Vertex
 	vec3 normal;
 	vec3 fragWorldPos;
 	vec4 fragClipSpacePos;
+	vec4 fragLightSpacePos;
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 TBN;
@@ -42,6 +44,7 @@ void main(void)
 	OUT.normal = oNormal;
 	OUT.fragWorldPos = vec3(modelMatrix * vec4(position, 1.0));
 	OUT.fragClipSpacePos = gl_Position;
+	OUT.fragLightSpacePos = lightSpaceMatrix * vec4(position, 1.0);
 	OUT.tangent = oTangent;
 	OUT.bitangent = oBiTangent;
 	OUT.TBN = oTBN;

@@ -37,10 +37,14 @@ struct SpotLightStruct
 class LightsManager : public IImguiItem
 {
 public:
+	static LightsManager* Get() { return m_LightsManager; }
+
 	LightsManager();
 	~LightsManager() {};
 
 	const bool IsInitialized() const { return m_IsInitialized; }
+
+	std::shared_ptr<DirectionalLight> GetDirectionalLight() { return m_DirectionalLight; }
 
 	void SpawnPointLight();
 	void SpawnPointLight(const Vector3& lightPosition, const Vector4& lightColor);
@@ -61,6 +65,8 @@ protected:
 	void OnSpotLightPropertyChanged(int index, const Vector3& newLightPos, const Vector3& newLightDir, const Vector4& newLightColor, const float& innerCutOff, const float& outerCutOff);
 
 protected:
+	static LightsManager* m_LightsManager;
+
 	bool m_IsInitialized;
 	std::shared_ptr<Texture> m_LightIconTexture;
 	std::shared_ptr<Texture> m_SpotLightIconTexture;

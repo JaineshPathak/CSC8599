@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "SkyboxRenderer.h"
 #include "PostProcessRenderer.h"
+#include "Object3DRenderer.h"
 #include "LookAtCamera.h"
 
 #include <nclgl/TextureEnvCubeMap.h>
@@ -13,16 +14,15 @@ Object3DEntity::Object3DEntity(const std::string& objectName, const std::string&
 {
 	m_SkyboxRenderer = Renderer::Get()->GetSkyboxRenderer();
 	m_PostProcessRenderer = Renderer::Get()->GetPostProcessRenderer();
+	m_Object3DRenderer = Renderer::Get()->GetObject3DRenderer();
 	m_MainCamera = Renderer::Get()->GetMainCamera();
 }
 
 void Object3DEntity::Render()
 {
-	if(m_SkyboxRenderer == nullptr)
-		m_SkyboxRenderer = Renderer::Get()->GetSkyboxRenderer();
-
-	if(m_PostProcessRenderer == nullptr)
-		m_PostProcessRenderer = Renderer::Get()->GetPostProcessRenderer();
+	if(m_SkyboxRenderer == nullptr) m_SkyboxRenderer = Renderer::Get()->GetSkyboxRenderer();
+	if(m_PostProcessRenderer == nullptr) m_PostProcessRenderer = Renderer::Get()->GetPostProcessRenderer();
+	if (m_Object3DRenderer == nullptr) m_Object3DRenderer = Renderer::Get()->GetObject3DRenderer();
 
 	switch (m_ShaderMode)
 	{
@@ -45,7 +45,10 @@ void Object3DEntity::RenderPBRMode()
 	m_ShaderObject->SetTexture("ssaoTex", m_PostProcessRenderer->GetSSAOProcessedTexture(), 9);
 	m_ShaderObject->SetInt("ssaoEnabled", m_PostProcessRenderer->IsSSAOEnabled() && m_PostProcessRenderer->IsEnabled());
 
+	m_ShaderObject->SetTexture("shadowTex", m_Object3DRenderer->GetShadowDepthTexture(), 10);
+
 	m_ShaderObject->SetVector3("cameraPos", m_MainCamera->GetPosition());
+	m_ShaderObject->SetMat4("lightSpaceMatrix", m_Object3DRenderer->GetLightSpaceMatrix());
 	m_ShaderObject->SetMat4("modelMatrix", m_ModelMatrix);
 
 	for (int i = 0; i < m_MeshObject->GetSubMeshCount(); i++)
@@ -90,6 +93,8 @@ void Object3DEntity::RenderBlinnMode()
 	m_ShaderObject->SetInt("ssaoEnabled", m_PostProcessRenderer->IsSSAOEnabled() && m_PostProcessRenderer->IsEnabled());
 	m_ShaderObject->SetTexture("ssaoTex", m_PostProcessRenderer->GetSSAOProcessedTexture(), 6);
 
+	m_ShaderObject->SetTexture("shadowTex", m_Object3DRenderer->GetShadowDepthTexture(), 7);
+
 	m_ShaderObject->SetVector3("cameraPos", m_MainCamera->GetPosition());
 	m_ShaderObject->SetMat4("modelMatrix", m_ModelMatrix);
 
@@ -129,6 +134,8 @@ void Object3DEntity::RenderDisneyMode()
 
 	m_ShaderObject->SetTexture("ssaoTex", m_PostProcessRenderer->GetSSAOProcessedTexture(), 9);
 	m_ShaderObject->SetInt("ssaoEnabled", m_PostProcessRenderer->IsSSAOEnabled() && m_PostProcessRenderer->IsEnabled());
+
+	m_ShaderObject->SetTexture("shadowTex", m_Object3DRenderer->GetShadowDepthTexture(), 10);
 
 	m_ShaderObject->SetVector3("cameraPos", m_MainCamera->GetPosition());
 	m_ShaderObject->SetMat4("modelMatrix", m_ModelMatrix);
@@ -181,6 +188,8 @@ void Object3DEntity::RenderOrenNayarMode()
 
 	m_ShaderObject->SetTexture("ssaoTex", m_PostProcessRenderer->GetSSAOProcessedTexture(), 6);
 	m_ShaderObject->SetInt("ssaoEnabled", m_PostProcessRenderer->IsSSAOEnabled() && m_PostProcessRenderer->IsEnabled());
+
+	m_ShaderObject->SetTexture("shadowTex", m_Object3DRenderer->GetShadowDepthTexture(), 7);
 
 	m_ShaderObject->SetVector3("cameraPos", m_MainCamera->GetPosition());
 	m_ShaderObject->SetMat4("modelMatrix", m_ModelMatrix);

@@ -12,6 +12,8 @@
 const int MAX_POINT_LIGHTS = 100;
 const int MAX_SPOT_LIGHTS = 2;
 
+LightsManager* LightsManager::m_LightsManager = nullptr;
+
 LightsManager::LightsManager()
 {
 	m_PBRBillboardShader = std::shared_ptr<Shader>(new Shader("PBR/PBRBillboardVertex.glsl", "PBR/PBRBillboardFragment.glsl"));
@@ -60,6 +62,8 @@ LightsManager::LightsManager()
 	ImGuiRenderer::Get()->RegisterItem(this);
 
 	m_IsInitialized = true;
+
+	m_LightsManager = this;
 }
 
 void LightsManager::SpawnPointLight()
