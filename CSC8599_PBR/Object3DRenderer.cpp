@@ -68,7 +68,7 @@ bool Object3DRenderer::InitMeshes()
 {
 	ProfilingManager::RecordTextureTimeStart();
 
-	if (Add3DObject("Car", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f) == nullptr) return false;
+	if(Add3DObject("Car", "Mesh_Car_MiniCooper.msh", "Mesh_Car_MiniCooper.mat", 4.0f) == nullptr) return false;
 	if(Add3DObject("Helmet", "Mesh_SciFi_Helmet.msh", "Mesh_SciFi_Helmet.mat", 3.0f) == nullptr) return false;
 	if(Add3DObject("Character", "Mesh_SciFi_Character.msh", "Mesh_SciFi_Character.mat", 1.65f) == nullptr) return false;
 
@@ -85,6 +85,8 @@ bool Object3DRenderer::InitBuffers()
 {
 	m_DepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)m_Width, (unsigned int)m_Height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	if (m_DepthFrameBuffer == nullptr) return false;
+
+	ImGuiRenderer::Get()->AddObserver(m_DepthFrameBuffer);
 
 	m_ShadowDepthFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(1024, 1024, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	if (m_ShadowDepthFrameBuffer == nullptr) return false;

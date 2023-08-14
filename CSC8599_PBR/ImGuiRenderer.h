@@ -4,14 +4,14 @@
 
 #include <nclgl/Window.h>
 #include <nclgl/FrameBuffer.h>
+#include <nclgl/ISubject.h>
 
 #include <imgui/imgui_impl_opengl3.h>
 #include <imgui/imgui_impl_win32.h>
 
 #include <unordered_set>
-#include <memory>
 
-class ImGuiRenderer
+class ImGuiRenderer : public ISubject
 {
 public:
 	static ImGuiRenderer* Get() { return m_ImGuiRenderer; }
@@ -20,6 +20,12 @@ public:
 	~ImGuiRenderer();
 
 	bool IsInitialised();
+
+	//Observer Frame Buffers
+	virtual void AddObserver(std::shared_ptr<IObserver> observer);
+	virtual void RemoveObserver(std::shared_ptr<IObserver> observer);
+	virtual void NotifyObservers();
+
 	void Render();
 
 	void RegisterItem(IImguiItem* _newItem);
@@ -40,6 +46,8 @@ protected:
 	static ImGuiRenderer* m_ImGuiRenderer;
 	std::unordered_set<IImguiItem*> m_ImGuiItems;
 	std::unordered_set<IImguiItem*> m_PostProcessImGuiItems;
+
+	std::list<std::shared_ptr<IObserver>> m_ObserversList;
 
 	ImVec2 m_ViewportSize;
 	bool m_MouseOverScene;

@@ -8,7 +8,6 @@ public:
 	~PostProcessVignette();
 
 protected:
-	virtual void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY) override;
 	virtual bool InitShaders() override;
 
 public:
@@ -23,6 +22,6 @@ private:
 	std::shared_ptr<Shader> m_VignetteShader;
 	std::shared_ptr<Shader> m_VignetteFinalShader;
 
-	FrameBuffer m_VignetteFBO;
-	FrameBuffer m_FinalFBO;
+	std::shared_ptr<FrameBuffer> m_VignetteFBO;
+	std::shared_ptr<FrameBuffer> m_FinalFBO;
 };

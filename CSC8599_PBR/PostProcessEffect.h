@@ -34,8 +34,6 @@ public:
 
 	EPostEffectType GetPostEffectType() const { return m_PostEffectType; }
 
-	virtual void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY) {}
-
 protected:
 	virtual bool InitShaders() { return false; }
 	virtual bool InitTextures() { return false; }

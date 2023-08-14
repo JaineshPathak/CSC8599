@@ -9,14 +9,16 @@ PostProcessVignette::PostProcessVignette(const unsigned int& sizeX, const unsign
 
 	if (!InitShaders()) return;
 
-	m_VignetteFBO.~FrameBuffer();
-	new(&m_VignetteFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGBA, GL_FLOAT, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
-	m_VignetteFBO.RemoveDepthAttachment();
+	m_VignetteFBO = std::shared_ptr<FrameBuffer>(new FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGBA, GL_FLOAT, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false));
+	m_VignetteFBO->RemoveDepthAttachment();
+	m_VignetteFBO->SetDeleteDepthTextureStatus(true);
 
-	m_FinalFBO.~FrameBuffer();
-	new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGBA, GL_FLOAT, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
-	m_FinalFBO.RemoveDepthAttachment();
+	m_FinalFBO = std::shared_ptr<FrameBuffer>(new FrameBuffer(m_WidthI, m_HeightI, GL_RGB16F, GL_RGBA, GL_FLOAT, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false));
+	m_FinalFBO->RemoveDepthAttachment();
+	m_FinalFBO->SetDeleteDepthTextureStatus(true);
 
+	ImGuiRenderer::Get()->AddObserver(m_VignetteFBO);
+	ImGuiRenderer::Get()->AddObserver(m_FinalFBO);
 	ImGuiRenderer::Get()->RegisterPostProcessItem(this);
 
 	m_IsEnabled = false;
@@ -24,25 +26,8 @@ PostProcessVignette::PostProcessVignette(const unsigned int& sizeX, const unsign
 
 PostProcessVignette::~PostProcessVignette()
 {
-	m_VignetteFBO.Destroy();
-	m_FinalFBO.Destroy();
-}
-
-void PostProcessVignette::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
-{
-	m_WidthI = newSizeX;
-	m_HeightI = newSizeY;
-
-	m_WidthF = (float)newSizeX;
-	m_HeightF = (float)newSizeY;
-
-	m_SrcViewportSize = Vector2(m_WidthF, m_HeightF);
-
-	m_FinalFBO.Resize(m_WidthI, m_HeightI);
-	m_FinalFBO.RemoveDepthAttachment();
-
-	m_VignetteFBO.Resize(m_WidthI, m_HeightI);
-	m_VignetteFBO.RemoveDepthAttachment();
+	m_VignetteFBO->Destroy();
+	m_FinalFBO->Destroy();
 }
 
 bool PostProcessVignette::InitShaders()
@@ -58,12 +43,14 @@ bool PostProcessVignette::InitShaders()
 
 const unsigned int PostProcessVignette::GetProcessedTexture() const
 {
-	return m_FinalFBO.GetColorAttachmentTex();
+	return m_FinalFBO->GetColorAttachmentTex();
 }
 
 void PostProcessVignette::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
 {
-	m_VignetteFBO.Bind();
+	m_SrcViewportSize = Vector2((float)m_VignetteFBO->GetWidth(), (float)m_VignetteFBO->GetHeight());
+
+	m_VignetteFBO->Bind();
 	m_VignetteShader->Bind();
 
 	m_VignetteShader->SetFloat("amount", m_Amount);
@@ -74,19 +61,19 @@ void PostProcessVignette::Render(const unsigned int& sourceTextureID, const unsi
 	m_QuadMesh->Draw();
 
 	m_VignetteShader->UnBind();
-	m_VignetteFBO.Unbind();
+	m_VignetteFBO->Unbind();
 
-	m_FinalFBO.Bind();
+	m_FinalFBO->Bind();
 	m_VignetteFinalShader->Bind();
 
 	m_VignetteFinalShader->SetTexture("srcTexture", sourceTextureID, 0);
-	m_VignetteFinalShader->SetTexture("postTexture", m_VignetteFBO.GetColorAttachmentTex(), 1);
+	m_VignetteFinalShader->SetTexture("postTexture", m_VignetteFBO->GetColorAttachmentTex(), 1);
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	m_QuadMesh->Draw();
 
 	m_VignetteFinalShader->UnBind();
-	m_FinalFBO.Unbind();
+	m_FinalFBO->Unbind();
 }
 
 void PostProcessVignette::OnImGuiRender()

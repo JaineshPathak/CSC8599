@@ -11,9 +11,11 @@ PostProcessRenderer::PostProcessRenderer(const unsigned int& sizeX, const unsign
 	m_PostFinalShader = std::shared_ptr<Shader>(new Shader("PostProcess/PostBloomVert.glsl", "PostProcess/PostFinalFrag.glsl"));
 	if (!m_PostFinalShader->LoadSuccess()) return;
 
-	m_FinalFBO.~FrameBuffer();
-	new(&m_FinalFBO) FrameBuffer(m_Width, m_Height, GL_RGB16F, GL_RGB, GL_FLOAT, 1);
-	m_FinalFBO.RemoveDepthAttachment();
+	m_FinalFBO = std::shared_ptr<FrameBuffer>(new FrameBuffer(m_Width, m_Height, GL_RGB16F, GL_RGB, GL_FLOAT, 1));
+	m_FinalFBO->RemoveDepthAttachment();
+	m_FinalFBO->SetDeleteDepthTextureStatus(true);
+
+	ImGuiRenderer::Get()->AddObserver(m_FinalFBO);
 
 	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessSSAO(m_Width, m_Height)));
 	AddPostProcessEffect(std::shared_ptr<PostProcessEffect>(new PostProcessBloom(m_Width, m_Height)));
@@ -31,26 +33,15 @@ PostProcessRenderer::~PostProcessRenderer()
 const unsigned int PostProcessRenderer::GetMidFinalTexture() const
 {
 	//return m_FinalTextureID;
-	return m_FinalFBO.GetColorAttachmentTex();
+	return m_FinalFBO->GetColorAttachmentTex();
 }
 
 void PostProcessRenderer::RenderSSAOPass(const unsigned int& depthTextureID)
 {
 	if (!m_IsEnabled) return;
 
-	CheckWindowSize();
+	//CheckWindowSize();
 	m_MidPostEffects[0]->Render(0, depthTextureID);
-}
-
-void PostProcessRenderer::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
-{
-	m_FinalFBO.Resize(newSizeX, newSizeY);
-	m_FinalFBO.RemoveDepthAttachment();
-
-	if ((int)m_AllPostEffects.size() == 0) return;
-
-	for (int i = 0; i < (int)m_AllPostEffects.size(); i++)
-		m_AllPostEffects[i]->OnResize(newSizeX, newSizeY);
 }
 
 void PostProcessRenderer::RenderPrePass(const unsigned int& srcTexture, const unsigned int& depthTextureID)
@@ -58,7 +49,7 @@ void PostProcessRenderer::RenderPrePass(const unsigned int& srcTexture, const un
 	if (!m_IsEnabled) return;
 
 	ProfilingManager::RecordPostProcessTimeStart();
-	CheckWindowSize();
+	//CheckWindowSize();
 	FillPreActivePostEffects();
 	RenderPreActivePostEffects(srcTexture, depthTextureID);
 
@@ -69,7 +60,7 @@ void PostProcessRenderer::Render(const unsigned int& srcTexture, const unsigned 
 {
 	if (!m_IsEnabled) return;
 	
-	CheckWindowSize();
+	//CheckWindowSize();
 	FillMidActivePostEffects();
 	RenderMidActivePostEffects(srcTexture, depthTextureID);
 	RenderMidFinalPostEffect();
@@ -84,7 +75,7 @@ void PostProcessRenderer::RenderLastPass(const unsigned int& srcTexture, const u
 {
 	if (!m_IsEnabled) return;
 
-	CheckWindowSize();
+	//CheckWindowSize();
 	FillLastActivePostEffects();
 	RenderLastActivePostEffects(srcTexture, depthTextureID);
 
@@ -94,16 +85,6 @@ void PostProcessRenderer::RenderLastPass(const unsigned int& srcTexture, const u
 bool PostProcessRenderer::GetEnableStatus()
 {
 	return m_IsEnabled && ((int)m_ActiveMidPostEffects.size() > 0 || (int)m_ActiveLastPassPostEffects.size() > 0);
-}
-
-void PostProcessRenderer::CheckWindowSize()
-{
-	if (Renderer::Get()->GetGlobalFrameBuffer()->GetWidth() != m_Width || Renderer::Get()->GetGlobalFrameBuffer()->GetHeight() != m_Height)
-	{
-		m_Width = Renderer::Get()->GetGlobalFrameBuffer()->GetWidth();
-		m_Height = Renderer::Get()->GetGlobalFrameBuffer()->GetHeight();
-		OnResize(m_Width, m_Height);
-	}
 }
 
 #pragma region Pre Pass Post Effects
@@ -168,7 +149,7 @@ void PostProcessRenderer::RenderMidActivePostEffects(const unsigned int& srcText
 
 void PostProcessRenderer::RenderMidFinalPostEffect()
 {
-	m_FinalFBO.Bind();
+	m_FinalFBO->Bind();
 	m_PostFinalShader->Bind();
 	
 	m_PostFinalShader->SetInt("isPostProcessEnabled", GetEnableStatus());
@@ -179,7 +160,7 @@ void PostProcessRenderer::RenderMidFinalPostEffect()
 	Renderer::Get()->GetQuadMesh()->Draw();
 
 	m_PostFinalShader->UnBind();
-	m_FinalFBO.Unbind();
+	m_FinalFBO->Unbind();
 }
 #pragma endregion
 

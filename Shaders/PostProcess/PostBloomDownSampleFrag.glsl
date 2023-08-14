@@ -66,5 +66,6 @@ void main(void)
     downSample += (b + d + f + h) * 0.0625;
     downSample += (j + k + l + m) * 0.125;
 
+    downSample = max(downSample, vec3(0.0001f));
 	fragColour = vec4(downSample, 1.0);
 }

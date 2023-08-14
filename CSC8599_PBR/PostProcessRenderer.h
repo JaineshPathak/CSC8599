@@ -31,15 +31,12 @@ public:
 	const unsigned int GetMidFinalTextureID() const { return m_FinalTextureID; }
 	const unsigned int GetLastFinalTextureID() const { return m_LastFinalTextureID; }
 
-	void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY);
-
 	void RenderPrePass(const unsigned int& srcTexture, const unsigned int& depthTextureID);
 	void Render(const unsigned int& srcTexture, const unsigned int& depthTextureID);
 	void RenderLastPass(const unsigned int& srcTexture, const unsigned int& depthTextureID);
 
 private:
 	bool GetEnableStatus();
-	void CheckWindowSize();
 
 	void FillPreActivePostEffects();
 	void RenderPreActivePostEffects(const unsigned int& srcTexture, const unsigned int& depthTextureID);
@@ -57,7 +54,7 @@ protected:
 	bool m_IsEnabled;
 	bool m_IsInitialized;
 
-	FrameBuffer m_FinalFBO;
+	std::shared_ptr<FrameBuffer> m_FinalFBO;
 	std::shared_ptr<Shader> m_PostFinalShader;
 
 private:

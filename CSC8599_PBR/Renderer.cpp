@@ -92,7 +92,8 @@ bool Renderer::InitBuffers()
 	float h = m_WindowParent.GetScreenSize().y;
 
 	m_GlobalFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA16F, GL_RGBA, GL_FLOAT, 2));
-	if (m_GlobalFrameBuffer == nullptr) return false;	
+	if (m_GlobalFrameBuffer == nullptr) return false;
+	m_ImGuiRenderer->AddObserver(m_GlobalFrameBuffer);
 
 	/*
 	m_PositionFrameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer((unsigned int)w, (unsigned int)h, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 1));

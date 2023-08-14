@@ -50,6 +50,25 @@ bool ImGuiRenderer::IsInitialised()
 	return ImGui::GetCurrentContext() != nullptr;
 }
 
+void ImGuiRenderer::AddObserver(std::shared_ptr<IObserver> observer)
+{
+#if _DEBUG
+	std::cout << "Subject: ImGuiRenderer: Added New Observer" << std::endl;
+#endif
+	m_ObserversList.push_back(observer);
+}
+
+void ImGuiRenderer::RemoveObserver(std::shared_ptr<IObserver> observer)
+{
+	m_ObserversList.remove(observer);
+}
+
+void ImGuiRenderer::NotifyObservers()
+{
+	for (auto it = m_ObserversList.begin(); it != m_ObserversList.end(); ++it)
+		(*it)->UpdateData((int)m_ViewportSize.x, (int)m_ViewportSize.y);
+}
+
 void ImGuiRenderer::Render()
 {
 	if ((int)m_ImGuiItems.size() <= 0) return;
@@ -110,7 +129,8 @@ void ImGuiRenderer::RenderSceneWindow()
 	if (m_ViewportSize.x != viewportPanelSize.x || m_ViewportSize.y != viewportPanelSize.y)
 	{
 		m_ViewportSize = viewportPanelSize;
-		Renderer::Get()->GetGlobalFrameBuffer()->Resize((unsigned int)m_ViewportSize.x, (unsigned int)m_ViewportSize.y);
+		//Renderer::Get()->GetGlobalFrameBuffer()->Resize((unsigned int)m_ViewportSize.x, (unsigned int)m_ViewportSize.y);
+		NotifyObservers();
 		Renderer::Get()->GetMainCamera()->SetAspectRatio(m_ViewportSize.x, m_ViewportSize.y);
 	}
 

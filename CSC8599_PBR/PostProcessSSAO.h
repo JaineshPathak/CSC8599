@@ -13,8 +13,6 @@ private:
 	void GenerateNoise();
 
 protected:
-	virtual void OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY) override;
-
 	virtual bool InitShaders() override;
 	virtual bool InitTextures() override;
 
@@ -24,8 +22,8 @@ public:
 	virtual void OnImGuiRender() override;
 
 private:
-	std::uniform_real_distribution<float> randomFloats;
-	std::default_random_engine generator;
+	std::uniform_real_distribution<float> m_RandomFloats;
+	std::default_random_engine m_RandomGenerator;
 
 	int m_KernelSize;
 	std::vector<Vector3> m_KernelData;
@@ -42,6 +40,6 @@ private:
 	unsigned int m_NoiseTextureID;
 	std::shared_ptr<Texture> m_BlurTexture;
 	
-	FrameBuffer m_FinalFBO;
-	FrameBuffer m_BlurFBO;
+	std::shared_ptr<FrameBuffer> m_FinalFBO;
+	std::shared_ptr<FrameBuffer> m_BlurFBO;
 };

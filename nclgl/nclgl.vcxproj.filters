@@ -178,6 +178,8 @@
       <Filter>stb_image</Filter>
     </ClInclude>
     <ClInclude Include="Object3DMaterial.h" />
+    <ClInclude Include="IObserver.h" />
+    <ClInclude Include="ISubject.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">

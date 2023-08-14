@@ -9,23 +9,23 @@ PostProcessSSAO::PostProcessSSAO(const unsigned int& sizeX, const unsigned int& 
 {
     m_PostEffectType = EPostEffectType::Type_PrePass;
 
-    randomFloats = std::uniform_real_distribution<float>(0.0f, 1.0f);
+    m_RandomFloats = std::uniform_real_distribution<float>(0.0f, 1.0f);
     GenerateKernel();
     GenerateNoise();
 
     if (!InitShaders()) return;
     if (!InitTextures()) return;
 
-    m_FinalFBO.~FrameBuffer();
-    //new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
-    new(&m_FinalFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
-    m_FinalFBO.RemoveDepthAttachment();
+    m_FinalFBO = std::shared_ptr<FrameBuffer>(new FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false));
+    m_FinalFBO->RemoveDepthAttachment();
+    m_FinalFBO->SetDeleteDepthTextureStatus(true);
 
-    m_BlurFBO.~FrameBuffer();
-    //new(&m_BlurFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
-    new(&m_BlurFBO) FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false);
-    m_BlurFBO.RemoveDepthAttachment();
+    m_BlurFBO = std::shared_ptr<FrameBuffer>(new FrameBuffer(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, 1, false));
+    m_BlurFBO->RemoveDepthAttachment();
+    m_BlurFBO->SetDeleteDepthTextureStatus(true);
 
+    ImGuiRenderer::Get()->AddObserver(m_FinalFBO);
+    ImGuiRenderer::Get()->AddObserver(m_BlurFBO);
     ImGuiRenderer::Get()->RegisterPostProcessItem(this);
 
     m_IsEnabled = true;
@@ -33,7 +33,8 @@ PostProcessSSAO::PostProcessSSAO(const unsigned int& sizeX, const unsigned int& 
 
 PostProcessSSAO::~PostProcessSSAO()
 {
-    m_FinalFBO.Destroy();
+    m_FinalFBO->Destroy();
+    m_BlurFBO->Destroy();
 }
 
 void PostProcessSSAO::GenerateKernel()
@@ -41,10 +42,10 @@ void PostProcessSSAO::GenerateKernel()
     m_KernelData.reserve(m_KernelSize);
     for (int i = 0; i < m_KernelSize; i++)
     {
-        Vector3 sample(randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator));
+        Vector3 sample(m_RandomFloats(m_RandomGenerator) * 2.0f - 1.0f, m_RandomFloats(m_RandomGenerator) * 2.0f - 1.0f, m_RandomFloats(m_RandomGenerator));
         sample.Normalise();
 
-        float rnd = randomFloats(generator);
+        float rnd = m_RandomFloats(m_RandomGenerator);
         sample.x *= rnd;
         sample.y *= rnd;
         sample.z *= rnd;
@@ -64,24 +65,9 @@ void PostProcessSSAO::GenerateNoise()
     m_NoiseData.reserve(16);
     for (int i = 0; i < 16; i++)
     {
-        Vector3 noise(randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, 0.0f);
+        Vector3 noise(m_RandomFloats(m_RandomGenerator) * 2.0f - 1.0f, m_RandomFloats(m_RandomGenerator) * 2.0f - 1.0f, 0.0f);
         m_NoiseData.emplace_back(noise);
     }    
-}
-
-void PostProcessSSAO::OnResize(const unsigned int& newSizeX, const unsigned int& newSizeY)
-{
-    m_WidthI = newSizeX;
-    m_HeightI = newSizeY;
-
-    m_WidthF = (float)newSizeX;
-    m_HeightF = (float)newSizeY;
-
-    m_FinalFBO.Resize(m_WidthI, m_HeightI);
-    m_FinalFBO.RemoveDepthAttachment();
-
-    m_BlurFBO.Resize(m_WidthI, m_HeightI);
-    m_BlurFBO.RemoveDepthAttachment();
 }
 
 bool PostProcessSSAO::InitShaders()
@@ -101,14 +87,6 @@ bool PostProcessSSAO::InitTextures()
     if (!m_NoiseTexture->IsInitialized()) return false;
     m_NoiseTexture->UploadData(m_NoiseData.data());
 
-    /*glGenTextures(1, &m_NoiseTextureID);
-    glBindTexture(GL_TEXTURE_2D, m_NoiseTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &m_NoiseData[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);*/
-
     m_BlurTexture = std::shared_ptr<Texture>(new Texture(m_WidthI, m_HeightI, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, false));
     if (!m_BlurTexture->IsInitialized()) return false;
 
@@ -117,12 +95,12 @@ bool PostProcessSSAO::InitTextures()
 
 const unsigned int PostProcessSSAO::GetProcessedTexture() const
 {
-    return m_BlurFBO.GetColorAttachmentTex();
+    return m_BlurFBO->GetColorAttachmentTex();
 }
 
 void PostProcessSSAO::Render(const unsigned int& sourceTextureID, const unsigned int& depthTextureID)
 {
-    m_FinalFBO.Bind();
+    m_FinalFBO->Bind();
     m_PostSSAOShader->Bind();
     m_PostSSAOShader->SetTexture("depthTex", depthTextureID, 0);
     //m_PostSSAOShader->SetTexture("positionTex", Renderer::Get()->GetPositionFrameBuffer()->GetColorAttachmentTex(), 1);
@@ -141,19 +119,19 @@ void PostProcessSSAO::Render(const unsigned int& sourceTextureID, const unsigned
     m_QuadMesh->Draw();
 
     m_PostSSAOShader->UnBind();
-    m_FinalFBO.Unbind();
+    m_FinalFBO->Unbind();
 
     
-    m_BlurFBO.Bind();
+    m_BlurFBO->Bind();
     m_PostSSAOBlurShader->Bind();
-    m_PostSSAOBlurShader->SetTexture("ssaoTexture", m_FinalFBO.GetColorAttachmentTex(), 0);
+    m_PostSSAOBlurShader->SetTexture("ssaoTexture", m_FinalFBO->GetColorAttachmentTex(), 0);
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     m_QuadMesh->Draw();
 
     m_PostSSAOBlurShader->UnBind();
-    m_BlurFBO.Unbind();
+    m_BlurFBO->Unbind();
 }
 
 void PostProcessSSAO::OnImGuiRender()

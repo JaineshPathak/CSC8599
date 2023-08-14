@@ -4,12 +4,13 @@
 
 FrameBuffer::FrameBuffer() :
 	m_ProgramID(0),
-	m_Width(0), m_Height(0), 
+	m_Width(0), m_Height(0),
 	m_NumColorAttachments(0),
 	m_ColorAttachmentsInternalFormat(GL_RGBA8), m_ColorAttachmentsNormalFormat(GL_RGBA),
 	m_ColorAttachmentMinFilter(GL_LINEAR), m_ColorAttachmentMagFilter(GL_LINEAR), m_ColorAttachmentWrapMode(GL_CLAMP_TO_EDGE),
 	m_ColorAttachmentMipMapsEnabled(true),
-	m_ColorAttachmentsType(GL_UNSIGNED_BYTE)
+	m_ColorAttachmentsType(GL_UNSIGNED_BYTE),
+	m_ShouldDeleteDepthTexture(false)
 {
 }
 
@@ -19,7 +20,8 @@ FrameBuffer::FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY, c
 	m_ColorAttachmentsInternalFormat(GL_RGBA8), m_ColorAttachmentsNormalFormat(GL_RGBA),
 	m_ColorAttachmentMinFilter(GL_LINEAR), m_ColorAttachmentMagFilter(GL_LINEAR), m_ColorAttachmentWrapMode(GL_CLAMP_TO_EDGE),
 	m_ColorAttachmentMipMapsEnabled(true),
-	m_ColorAttachmentsType(GL_UNSIGNED_BYTE)
+	m_ColorAttachmentsType(GL_UNSIGNED_BYTE),
+	m_ShouldDeleteDepthTexture(false)
 {
 	Invalidate();
 }
@@ -30,7 +32,8 @@ FrameBuffer::FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY, c
 	m_ColorAttachmentsInternalFormat(colorAttachmentInternalFormat), m_ColorAttachmentsNormalFormat(colorAttachmentNormalFormat),
 	m_ColorAttachmentMinFilter(GL_LINEAR), m_ColorAttachmentMagFilter(GL_LINEAR), m_ColorAttachmentWrapMode(GL_CLAMP_TO_EDGE),
 	m_ColorAttachmentMipMapsEnabled(true),
-	m_ColorAttachmentsType(colorAttachmentType)
+	m_ColorAttachmentsType(colorAttachmentType),
+	m_ShouldDeleteDepthTexture(false)
 {
 	Invalidate();
 }
@@ -41,7 +44,8 @@ FrameBuffer::FrameBuffer(const unsigned int& sizeX, const unsigned int& sizeY, c
 	m_ColorAttachmentsInternalFormat(colorAttachmentInternalFormat), m_ColorAttachmentsNormalFormat(colorAttachmentNormalFormat),
 	m_ColorAttachmentMinFilter(minFilter), m_ColorAttachmentMagFilter(magFilter), m_ColorAttachmentWrapMode(wrapMode),
 	m_ColorAttachmentMipMapsEnabled(allowColorAttachmentMipMaps),
-	m_ColorAttachmentsType(colorAttachmentType)
+	m_ColorAttachmentsType(colorAttachmentType),
+	m_ShouldDeleteDepthTexture(false)
 {
 	Invalidate();
 }
@@ -57,34 +61,20 @@ void FrameBuffer::Invalidate()
 		Destroy();
 
 	glCreateFramebuffers(1, &m_ProgramID);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ProgramID);	
 
-	/*glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachmentTex);
-	glBindTexture(GL_TEXTURE_2D, m_ColorAttachmentTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachmentTex, 0);*/
-	
+
 	if (m_NumColorAttachments > 0)
 	{
 		for (int i = 0; i < m_NumColorAttachments; i++)
 			AddNewColorAttachment();
 	}
 
-	/*
-	glCreateTextures(GL_TEXTURE_2D, 1, &m_DepthAttachmentTex);
-	glBindTexture(GL_TEXTURE_2D, m_DepthAttachmentTex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, m_Width, m_Height);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_Width, m_Height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT_24_8, nullptr);
-	*/
 	m_DepthAttachmentTex = std::shared_ptr<Texture>(new Texture(m_Width, m_Height, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, false));
 	AttachExistingDepthAttachment(m_DepthAttachmentTex->GetID(), GL_DEPTH_ATTACHMENT, false);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachmentTex->GetID(), 0);
+	
+	if (m_ShouldDeleteDepthTexture)
+		RemoveDepthAttachment(false);
 
 	std::vector<unsigned int> attachmentsV;
 	if (m_NumColorAttachments > 1)
@@ -94,13 +84,12 @@ void FrameBuffer::Invalidate()
 
 		glDrawBuffers(m_NumColorAttachments, &attachmentsV[0]);
 	}
-	else
+	else if (m_NumColorAttachments == 1)
 	{
 		attachmentsV.emplace_back(GL_COLOR_ATTACHMENT0);
 		glDrawBuffers(1, &attachmentsV[0]);
 	}
-
-	if (m_NumColorAttachments <= 0)
+	else
 	{
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
@@ -128,17 +117,27 @@ void FrameBuffer::Destroy()
 	if ((int)m_ColorAttachedTextures.size() > 0)
 	{
 		for (int i = 0; i < (int)m_ColorAttachedTextures.size(); i++)
-			m_ColorAttachedTextures[i].reset();
+		{
+			if(m_ColorAttachedTextures[i] != nullptr)
+				m_ColorAttachedTextures[i].reset();
+		}
 	}	
 	m_ColorAttachedTextures.clear();
 
-	//glDeleteTextures(1, &m_ColorAttachmentTex);
-	//glDeleteTextures(1, &m_DepthAttachmentTex);
-	//m_DepthAttachmentTex = 0;
-	m_DepthAttachmentTex.reset();
+	if(m_DepthAttachmentTex != nullptr)
+		m_DepthAttachmentTex.reset();
 
 	glDeleteFramebuffers(1, &m_ProgramID);
 	m_ProgramID = 0;
+}
+
+void FrameBuffer::UpdateData(const int& sizeX, const int& sizeY)
+{
+#if _DEBUG
+	std::cout << "Frame Buffer: Program ID: " << m_ProgramID << " - Received Message: Resize Window: X = " << sizeX << ", Y = " << sizeY << std::endl;
+#endif
+
+	Resize((unsigned int)sizeX, (unsigned int)sizeY);
 }
 
 void FrameBuffer::Resize(const unsigned int& new_width, const unsigned int& new_height)
@@ -203,11 +202,11 @@ void FrameBuffer::AttachExistingDepthAttachment(const unsigned int& texID, const
 	if(doBinding) Unbind();
 }
 
-void FrameBuffer::RemoveDepthAttachment()
+void FrameBuffer::RemoveDepthAttachment(const bool& doBinding)
 {
-	Bind();
+	if(doBinding) Bind();
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
-	Unbind();
+	if (doBinding) Unbind();
 }
 
 const unsigned int FrameBuffer::GetColorAttachmentTex(const int& index) const

@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Texture.h"
+#include "IObserver.h"
 #include <glad/glad.h>
 #include <vector>
 #include <memory>
 
-class FrameBuffer
+class FrameBuffer : public IObserver
 {
 public:
 	FrameBuffer();
@@ -21,13 +22,16 @@ public:
 	virtual void Bind();
 	virtual void Unbind();
 	virtual void Destroy();
+
+	virtual void UpdateData(const int& sizeX, const int& sizeY) override;
+
 	void Resize(const unsigned int& new_width, const unsigned int& new_height);
 
 	virtual void AddNewColorAttachment();
 	virtual void AttachExistingColorAttachment(const unsigned int& texID, const int& attachSlot = 0);
 
 	virtual void AttachExistingDepthAttachment(const unsigned int& texID, const unsigned int& depthComponentType, const bool& doBinding = true);
-	virtual void RemoveDepthAttachment();
+	virtual void RemoveDepthAttachment(const bool& doBinding = true);
 
 	const unsigned int GetID() const { return m_ProgramID; }
 	const unsigned int GetColorAttachmentTex(const int& index = 0) const;
@@ -37,6 +41,8 @@ public:
 	const unsigned int GetHeight() const { return m_Height; }
 
 	const int GetNumColorAttachments() const { return m_NumColorAttachments; }
+
+	void SetDeleteDepthTextureStatus(const bool& status) { m_ShouldDeleteDepthTexture = status; }
 
 protected:
 	unsigned int m_ProgramID;
@@ -53,4 +59,5 @@ protected:
 	int m_ColorAttachmentMagFilter;
 	int m_ColorAttachmentWrapMode;
 	bool m_ColorAttachmentMipMapsEnabled;
+	bool m_ShouldDeleteDepthTexture;
 };
