@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <unordered_set>
 
 using std::map;
 using std::string;
@@ -30,8 +31,10 @@ public:
 	~MeshMaterial() {}
 	const MeshMaterialEntry* GetMaterialForLayer(int i) const;
 
+	const std::unordered_set<std::string>& GetTexturesList() const { return texturesList; }
 protected:
 	std::vector<MeshMaterialEntry>	materialLayers;
 	std::vector<MeshMaterialEntry*> meshLayers;
+	std::unordered_set<std::string> texturesList;
 };
 

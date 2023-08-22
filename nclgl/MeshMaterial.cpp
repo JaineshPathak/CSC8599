@@ -47,6 +47,8 @@ MeshMaterial::MeshMaterial(const std::string& filename) {
 			file = entryData.substr(split + 1);
 
 			materialLayers[i].entries.insert(std::make_pair(channel, file));
+
+			texturesList.insert(file);
 		}
 	}
 

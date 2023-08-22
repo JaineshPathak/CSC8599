@@ -1,9 +1,15 @@
 #include "Renderer.h"
-#include "../NCLGL/window.h"
+
+#include <nclgl/Window.h>
+#include <nclgl/ProfilingManager.h>
 
 int main()
 {
-	Window w("CSC8599 - PBR", 1280, 720, false);
+#if _DEBUG
+	Window w("CSC8599 - PBR", 1920, 1080, false);
+#elif NDEBUG
+	Window w("CSC8599 - PBR", 1600, 900, true);
+#endif
 
 	if (!w.HasInitialised()) {
 		return -1;
@@ -19,6 +25,8 @@ int main()
 	w.ShowOSPointer(!showPointer);
 	while (w.UpdateWindow() && !Window::GetKeyboard()->KeyDown(KEYBOARD_ESCAPE))
 	{
+		ProfilingManager::RecordFrameTimeStart();
+
 		renderer.UpdateScene(w.GetTimer()->GetTimeDeltaSeconds());
 		renderer.RenderScene();
 		renderer.SwapBuffers();
@@ -26,6 +34,8 @@ int main()
 		{
 			Shader::ReloadAllShaders();
 		}
+
+		ProfilingManager::RecordFrameTimeEnd();
 
 		/*if (Window::GetMouse()->ButtonDown(MouseButtons::MOUSE_RIGHT))
 		{

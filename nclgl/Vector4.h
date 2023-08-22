@@ -26,6 +26,14 @@ public:
 		this->w = w;
 	}
 
+	Vector4(const Vector3& v, float w)
+	{
+		this->x = v.x;
+		this->y = v.y;
+		this->z = v.z;
+		this->w = w;
+	}
+
 	Vector3 ToVector3() {
 		return Vector3(x, y, z);
 	}
@@ -76,5 +84,12 @@ public:
 	float y;
 	float z;
 	float w;
+
+	static const Vector4 RED;
+	static const Vector4 GREEN;
+	static const Vector4 BLUE;
+	static const Vector4 BLACK;
+	static const Vector4 WHITE;
+	static const Vector4 CLEAR;
 };
 

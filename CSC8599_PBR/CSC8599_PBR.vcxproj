@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\Third Party\;$(ProjectDir)..\;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\SOIL\$(Configuration)\;..\$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\Third Party\;$(ProjectDir)..\;$(IncludePath)</IncludePath>
@@ -137,13 +137,70 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImGuiRenderer.cpp" />
+    <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="LookAtCamera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Object3DEntity.cpp" />
+    <ClCompile Include="Object3DRenderer.cpp" />
+    <ClCompile Include="PostProcessBloom.cpp" />
+    <ClCompile Include="PostProcessEffect.cpp" />
+    <ClCompile Include="PostProcessInvertColor.cpp" />
+    <ClCompile Include="PostProcessRenderer.cpp" />
+    <ClCompile Include="PostProcessSSAO.cpp" />
+    <ClCompile Include="PostProcessVignette.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="SkyboxRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IImguiItem.h" />
+    <ClInclude Include="ImGuiRenderer.h" />
+    <ClInclude Include="LightsManager.h" />
     <ClInclude Include="LookAtCamera.h" />
+    <ClInclude Include="Object3DEntity.h" />
+    <ClInclude Include="Object3DRenderer.h" />
+    <ClInclude Include="PostProcessBloom.h" />
+    <ClInclude Include="PostProcessEffect.h" />
+    <ClInclude Include="PostProcessInvertColor.h" />
+    <ClInclude Include="PostProcessRenderer.h" />
+    <ClInclude Include="PostProcessSSAO.h" />
+    <ClInclude Include="PostProcessVignette.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="SkyboxRenderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\PBR\PBRBillboardFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRBillboardVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRBRDFConvolutionFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRBRDFConvolutionVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRCombinedFrag.glsl" />
+    <None Include="..\Shaders\PBR\PBRCombinedVert.glsl" />
+    <None Include="..\Shaders\PBR\PBRDepthBufferFrag.glsl" />
+    <None Include="..\Shaders\PBR\PBRDepthBufferVert.glsl" />
+    <None Include="..\Shaders\PBR\PBREquiRect2CubeMapFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBREquiRect2CubeMapVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRIrradianceCubeMapFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRPreFilterConvolutionFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRSkyBox2Fragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRSkyBox2Vertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRSkyBoxFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRSkyBoxVertex.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentBlinnPhong.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentDisney.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentOrenNayar.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedVertex.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomBrightenFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomDownSampleFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomFinalFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomUpSampleFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostBloomVert.glsl" />
+    <None Include="..\Shaders\PostProcess\PostFinalFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostInvertFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostSSAOBlurFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostSSAOBlurVert.glsl" />
+    <None Include="..\Shaders\PostProcess\PostSSAOFrag.glsl" />
+    <None Include="..\Shaders\PostProcess\PostSSAOVert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

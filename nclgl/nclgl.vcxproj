@@ -27,9 +27,14 @@
     <ClCompile Include="..\Third Party\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\Third Party\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\Third Party\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\Third Party\stb_image\stb_image.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="CubeRobot.cpp" />
+    <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="FrameBufferBloom.cpp" />
+    <ClCompile Include="FrameBufferFP.cpp" />
+    <ClCompile Include="FrameBufferHDR.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameTimer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
@@ -41,11 +46,21 @@
     <ClCompile Include="MeshAnimation.cpp" />
     <ClCompile Include="MeshMaterial.cpp" />
     <ClCompile Include="Mouse.cpp" />
+    <ClCompile Include="Object3D.cpp" />
+    <ClCompile Include="Object3DMaterial.cpp" />
     <ClCompile Include="OGLRenderer.cpp" />
     <ClCompile Include="Plane.cpp" />
+    <ClCompile Include="ProfilingManager.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="SceneNode.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureCubeMap.cpp" />
+    <ClCompile Include="TextureEnvCubeMap.cpp" />
+    <ClCompile Include="TextureHDR.cpp" />
+    <ClCompile Include="UniformBuffer.cpp" />
+    <ClCompile Include="Vector3.cpp" />
+    <ClCompile Include="Vector4.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -58,16 +73,24 @@
     <ClInclude Include="..\Third Party\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\Third Party\imgui\imstb_textedit.h" />
     <ClInclude Include="..\Third Party\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\Third Party\stb_image\stb_image.h" />
+    <ClInclude Include="..\Third Party\stb_image\stb_image_write.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Colour.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="CubeRobot.h" />
     <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="FrameBufferBloom.h" />
+    <ClInclude Include="FrameBufferFP.h" />
+    <ClInclude Include="FrameBufferHDR.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="HeightMap.h" />
     <ClInclude Include="InputDevice.h" />
+    <ClInclude Include="IObserver.h" />
+    <ClInclude Include="ISubject.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Matrix2.h" />
@@ -77,11 +100,20 @@
     <ClInclude Include="MeshAnimation.h" />
     <ClInclude Include="MeshMaterial.h" />
     <ClInclude Include="Mouse.h" />
+    <ClInclude Include="Object3D.h" />
+    <ClInclude Include="Object3DMaterial.h" />
     <ClInclude Include="OGLRenderer.h" />
     <ClInclude Include="Plane.h" />
+    <ClInclude Include="ProfilingManager.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="SceneNode.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="SpotLight.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureCubeMap.h" />
+    <ClInclude Include="TextureEnvCubeMap.h" />
+    <ClInclude Include="TextureHDR.h" />
+    <ClInclude Include="UniformBuffer.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Vector4.h" />
@@ -144,7 +176,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\Third Party\;$(IncludePath)</IncludePath>
-    <LibraryPath>..\Third Party\SOIL\$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)</TargetName>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -156,7 +188,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\Third Party\;$(IncludePath)</IncludePath>
-    <LibraryPath>..\Third Party\SOIL\$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -183,7 +215,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib; SOIL.lib</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -217,7 +249,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;SOIL.lib</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

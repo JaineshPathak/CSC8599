@@ -6,17 +6,13 @@
 class DirectionalLight : public Light
 {
 public:
-	DirectionalLight(const Vector3& lightDir, const Vector4& lightColour, const Vector4& lightSpecularColour)
+	DirectionalLight(const Vector3& lightDir, const Vector4& lightColour) :
+		Light(Vector3(0.0f, 0.0f, 0.0f), lightColour, 0.0f)
 	{
-		lightType = TYPE_DIRECTIONALLIGHT;
-		
-		this->lightDir = lightDir;
-		this->colour = lightColour;
-		this->specularColour = lightSpecularColour;
-		
-		this->position = Vector3(0, 0, 0);
-		this->radius = 0;
+		this->lightType = TYPE_DIRECTIONALLIGHT;		
+		this->lightDir = lightDir;			
 	}
+	~DirectionalLight() {};
 
 	inline Vector3 GetLightDir() const { return lightDir; }
 	inline void SetLightDir(const Vector3& dir) { lightDir = dir; }

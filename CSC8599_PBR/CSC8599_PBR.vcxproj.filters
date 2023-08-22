@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shader Files">
+      <UniqueIdentifier>{08365f7c-5bea-408b-bbbb-1ec3a115e21c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -24,6 +27,39 @@
     <ClCompile Include="LookAtCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImGuiRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightsManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyboxRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessEffect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessBloom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessInvertColor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessSSAO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Object3DEntity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Object3DRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessVignette.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -32,5 +68,135 @@
     <ClInclude Include="LookAtCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IImguiItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyboxRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessBloom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessInvertColor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessSSAO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Object3DEntity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Object3DRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessVignette.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\PBR\PBRBillboardFragment.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRBillboardVertex.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRBRDFConvolutionFragment.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRBRDFConvolutionVertex.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRCombinedFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRCombinedVert.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRDepthBufferFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRDepthBufferVert.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBREquiRect2CubeMapFragment.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBREquiRect2CubeMapVertex.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRIrradianceCubeMapFragment.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRPreFilterConvolutionFragment.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRSkyBox2Fragment.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRSkyBox2Vertex.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRSkyBoxFragment.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRSkyBoxVertex.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRTexturedFragment.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentBlinnPhong.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRTexturedVertex.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostBloomBrightenFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostBloomDownSampleFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostBloomFinalFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostBloomUpSampleFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostBloomVert.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostFinalFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostInvertFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostSSAOBlurFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostSSAOBlurVert.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostSSAOFrag.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PostProcess\PostSSAOVert.glsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentDisney.glsl" />
+    <None Include="..\Shaders\PBR\PBRTexturedFragmentOrenNayar.glsl" />
   </ItemGroup>
 </Project>

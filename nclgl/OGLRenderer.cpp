@@ -18,7 +18,7 @@ _-_-_-_-_-_-_-""  ""
 
 using std::string;
 
-
+PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 
 static const float biasValues[16] = {
 	0.5, 0.0, 0.0, 0.0,
@@ -133,7 +133,7 @@ OGLRenderer::OGLRenderer(Window &window)	{
 
 	//If we get this far, everything's going well!
 
-#ifdef OPENGL_DEBUGGING
+#ifdef _DEBUG/*OPENGL_DEBUGGING*/
 	glDebugMessageCallbackARB(&OGLRenderer::DebugCallback, NULL);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
 #endif
@@ -141,6 +141,10 @@ OGLRenderer::OGLRenderer(Window &window)	{
 	glClearColor(0.2f,0.2f,0.2f,1.0f);			//When we clear the screen, we want it to be dark grey
 
 	currentShader = 0;							//0 is the 'null' object name for shader programs...
+
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	vSyncState = 1;
+	wglSwapIntervalEXT(vSyncState);
 
 	window.SetRenderer(this);					//Tell our window about the new renderer! (Which will in turn resize the renderer window to fit...)
 }
@@ -249,15 +253,21 @@ bool OGLRenderer::BindTexture(GLuint texID, GLuint unit, const std::string& unif
 	return true;
 }
 
+bool OGLRenderer::SetVerticalSync(const int& state)
+{
+	if (!wglSwapIntervalEXT) return false;
+	vSyncState = state;
+	return wglSwapIntervalEXT(vSyncState);
+}
+
 void OGLRenderer::SetShaderLight(const Light& L)
 {
 	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "lightPos"), 1, (float*)&L.GetPosition());
 	glUniform4fv(glGetUniformLocation(currentShader->GetProgram(), "lightColour"), 1, (float*)&L.GetColour());
-	glUniform4fv(glGetUniformLocation(currentShader->GetProgram(), "specularColour"), 1, (float*)&L.GetSpecularColour());
 	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "lightRadius"), L.GetRadius());
 }
 
-#ifdef OPENGL_DEBUGGING
+#ifdef _DEBUG/*OPENGL_DEBUGGING*/
 void OGLRenderer::DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)	{
 		string sourceName;
 		string typeName;

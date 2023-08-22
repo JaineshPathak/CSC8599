@@ -59,6 +59,27 @@
     <ClCompile Include="..\Third Party\imgui\imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="Vector3.cpp">
+      <Filter>Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="UniformBuffer.cpp" />
+    <ClCompile Include="FrameBufferFP.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Vector4.cpp">
+      <Filter>Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureHDR.cpp" />
+    <ClCompile Include="FrameBufferHDR.cpp" />
+    <ClCompile Include="TextureEnvCubeMap.cpp" />
+    <ClCompile Include="..\Third Party\stb_image\stb_image.cpp">
+      <Filter>stb_image</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureCubeMap.cpp" />
+    <ClCompile Include="FrameBufferBloom.cpp" />
+    <ClCompile Include="Object3D.cpp" />
+    <ClCompile Include="ProfilingManager.cpp" />
+    <ClCompile Include="Object3DMaterial.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -138,6 +159,27 @@
       <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="UniformBuffer.h" />
+    <ClInclude Include="SpotLight.h" />
+    <ClInclude Include="FrameBufferFP.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureHDR.h" />
+    <ClInclude Include="FrameBufferHDR.h" />
+    <ClInclude Include="TextureEnvCubeMap.h" />
+    <ClInclude Include="..\Third Party\stb_image\stb_image.h">
+      <Filter>stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureCubeMap.h" />
+    <ClInclude Include="FrameBufferBloom.h" />
+    <ClInclude Include="Object3D.h" />
+    <ClInclude Include="ProfilingManager.h" />
+    <ClInclude Include="..\Third Party\stb_image\stb_image_write.h">
+      <Filter>stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="Object3DMaterial.h" />
+    <ClInclude Include="IObserver.h" />
+    <ClInclude Include="ISubject.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GLAD">
@@ -151,6 +193,9 @@
     </Filter>
     <Filter Include="imgui">
       <UniqueIdentifier>{d2be9ae0-9619-4f57-9b36-a441199c030d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="stb_image">
+      <UniqueIdentifier>{321fd1bd-5416-46ed-89e8-c08256670d07}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

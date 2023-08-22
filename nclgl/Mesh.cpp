@@ -1,5 +1,6 @@
 #include "Mesh.h"
 #include "Matrix2.h"
+#include "ProfilingManager.h"
 
 using std::string;
 
@@ -41,9 +42,15 @@ Mesh::~Mesh(void)	{
 void Mesh::Draw()	{
 	glBindVertexArray(arrayObject);
 	if(bufferObject[INDEX_BUFFER]) {
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawElements(type, numIndices, GL_UNSIGNED_INT, 0);
 	}
 	else{
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawArrays(type, 0, numVertices);
 	}
 	glBindVertexArray(0);	
@@ -54,10 +61,16 @@ void Mesh::Draw(int instanceAmount)
 	glBindVertexArray(arrayObject);
 	if (bufferObject[INDEX_BUFFER]) 
 	{
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawElementsInstanced(type, numIndices, GL_UNSIGNED_INT, 0, instanceAmount);
 	}
 	else 
 	{
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += numVertices;
+		ProfilingManager::TrianglesCountCurrent += numIndices / 3;
 		glDrawArraysInstanced(type, 0, numVertices, instanceAmount);
 	}
 	glBindVertexArray(0);
@@ -71,10 +84,16 @@ void Mesh::DrawSubMesh(int i) {
 
 	glBindVertexArray(arrayObject);
 	if (bufferObject[INDEX_BUFFER]) {
-		const GLvoid* offset = (const GLvoid * )(m.start * sizeof(unsigned int)); 
+		const GLvoid* offset = (const GLvoid * )(m.start * sizeof(unsigned int));
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += m.count;
+		ProfilingManager::TrianglesCountCurrent += m.count / 3;
 		glDrawElements(type, m.count, GL_UNSIGNED_INT, offset);
 	}
 	else {
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += m.count;
+		ProfilingManager::TrianglesCountCurrent += m.count / 3;
 		glDrawArrays(type, m.start, m.count);	//Draw the triangle!
 	}
 	glBindVertexArray(0);
@@ -92,11 +111,17 @@ void Mesh::DrawSubMesh(int i, int instanceAmount)
 	{
 		const GLvoid* offset = (const GLvoid*)(m.start * sizeof(unsigned int));
 		//glDrawElements(type, m.count, GL_UNSIGNED_INT, offset);
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += m.count;
+		ProfilingManager::TrianglesCountCurrent += m.count / 3;
 		glDrawElementsInstanced(type, m.count, GL_UNSIGNED_INT, offset, instanceAmount);
 	}
 	else 
 	{
 		//glDrawArrays(type, m.start, m.count);	//Draw the triangle!
+		ProfilingManager::DrawCalls++;
+		ProfilingManager::VerticesCountCurrent += m.count;
+		ProfilingManager::TrianglesCountCurrent += m.count / 3;
 		glDrawArraysInstanced(type, m.start, m.count, instanceAmount);
 	}
 	glBindVertexArray(0);
@@ -106,6 +131,9 @@ Mesh* Mesh::GenerateTriangle()
 {
 	Mesh* m = new Mesh();
 	m->numVertices = 3;
+
+	ProfilingManager::VerticesCount += m->numVertices;
+	ProfilingManager::TrianglesCount++;
 	
 	m->vertices		=	new Vector3[m->numVertices];
 	m->vertices[0]	=	Vector3(-0.5f, -0.5f, 0.0f);
@@ -133,6 +161,9 @@ Mesh* Mesh::GenerateQuad()
 	Mesh* m = new Mesh();
 	m->type = GL_TRIANGLE_STRIP;
 	m->numVertices = 4;
+
+	ProfilingManager::VerticesCount += m->numVertices;
+	ProfilingManager::TrianglesCount += 2;
 
 	m->vertices = new Vector3[m->numVertices];
 	m->normals = new Vector3[m->numVertices];
@@ -180,9 +211,9 @@ Mesh* Mesh::GenerateCircle(float cx, float cy, float r, Vector4 color, GLuint ty
 
 	m->vertices = new Vector3[m->numVertices];
 	m->colours = new Vector4[m->numVertices];
-	for (int i = 0; i < m->numVertices; i++)
+	for (int i = 0; i < (int)m->numVertices; i++)
 	{
-		float theta = 2.0f * 3.14 * float(i) / float(m->numVertices);
+		float theta = 2.0f * 3.14f * float(i) / float(m->numVertices);
 		float x = r * cos(theta);
 		float y = r * sin(theta);
 
@@ -204,10 +235,13 @@ Mesh* Mesh::GenerateCube()
 	m->type = GL_TRIANGLES;
 	m->numVertices = 36;
 
+	ProfilingManager::VerticesCount += m->numVertices;
+	ProfilingManager::TrianglesCount += 12;
+
 	m->vertices = new Vector3[m->numVertices];
 	m->colours = new Vector4[m->numVertices];
 
-	m->vertices[0] = Vector3(-0.5f, -0.5f, -0.5f);
+	/*m->vertices[0] = Vector3(-0.5f, -0.5f, -0.5f);
 	m->vertices[1] = Vector3(0.5f, -0.5f, -0.5f);
 	m->vertices[2] = Vector3(0.5f, 0.5f, -0.5f);
 	m->vertices[3] = Vector3(0.5f, 0.5f, -0.5f);
@@ -247,7 +281,50 @@ Mesh* Mesh::GenerateCube()
 	m->vertices[32] = Vector3(0.5f, 0.5f, 0.5f);
 	m->vertices[33] = Vector3(0.5f, 0.5f, 0.5f);
 	m->vertices[34] = Vector3(-0.5f, 0.5f, 0.5f);
-	m->vertices[35] = Vector3(-0.5f, 0.5f, -0.5f);
+	m->vertices[35] = Vector3(-0.5f, 0.5f, -0.5f);*/
+
+	m->vertices[0] = Vector3(-1.0f, 1.0f, -1.0f);
+	m->vertices[1] = Vector3(-1.0f, -1.0f, -1.0f);
+	m->vertices[2] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[3] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[4] = Vector3(1.0f, 1.0f, -1.0f);
+	m->vertices[5] = Vector3(-1.0f, 1.0f, -1.0f);
+
+	m->vertices[6] = Vector3(-1.0f, -1.0f, 1.0f);
+	m->vertices[7] = Vector3(-1.0f, -1.0f, -1.0f);
+	m->vertices[8] = Vector3(-1.0f, 1.0f, -1.0f);
+	m->vertices[9] = Vector3(-1.0f, 1.0f, -1.0f);
+	m->vertices[10] = Vector3(-1.0f, 1.0f, 1.0f);
+	m->vertices[11] = Vector3(-1.0f, -1.0f, 1.0f);
+
+	m->vertices[12] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[13] = Vector3(1.0f, -1.0f, 1.0f);
+	m->vertices[14] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[15] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[16] = Vector3(1.0f, 1.0f, -1.0f);
+	m->vertices[17] = Vector3(1.0f, -1.0f, -1.0f);
+
+	m->vertices[18] = Vector3(-1.0f, -1.0f, 1.0f);
+	m->vertices[19] = Vector3(-1.0f, 1.0f, 1.0f);
+	m->vertices[20] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[21] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[22] = Vector3(1.0f, -1.0f, 1.0f);
+	m->vertices[23] = Vector3(-1.0f, -1.0f, 1.0f);
+
+	m->vertices[24] = Vector3(-1.0f, 1.0f, -1.0f);
+	m->vertices[25] = Vector3(1.0f, 1.0f, -1.0f);
+	m->vertices[26] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[27] = Vector3(1.0f, 1.0f, 1.0f);
+	m->vertices[28] = Vector3(-1.0f, 1.0f, 1.0f);
+	m->vertices[29] = Vector3(-1.0f, 1.0f, -1.0f);
+
+	m->vertices[30] = Vector3(-1.0f, -1.0f, -1.0f);
+	m->vertices[31] = Vector3(-1.0f, -1.0f, 1.0f);
+	m->vertices[32] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[33] = Vector3(1.0f, -1.0f, -1.0f);
+	m->vertices[34] = Vector3(-1.0f, -1.0f, 1.0f);
+	m->vertices[35] = Vector3(1.0f, -1.0f, 1.0f);
+ 
 
 	m->textureCoords = new Vector2[m->numVertices];
 	m->textureCoords[0] = Vector2(0.0f, 0.0f);
@@ -307,7 +384,7 @@ void Mesh::SetAllVertexColour(Mesh* M, const Vector4& colour)
 
 	M->BufferData();
 }
-
+ 
 void UploadAttribute(GLuint* id, int numElements, int dataSize, int attribSize, int attribID, void* pointer, const string&debugName) {
 	glGenBuffers(1, id);
 	glBindBuffer(GL_ARRAY_BUFFER, *id);
@@ -573,6 +650,9 @@ Mesh* Mesh::LoadFromMeshFile(const string& name) {
 	mesh->numVertices	= numVertices;
 	mesh->numIndices	= numIndices;
 
+	ProfilingManager::VerticesCount += mesh->numVertices;
+	ProfilingManager::TrianglesCount += mesh->numIndices / 3;
+
 	if (!readPositions.empty()) {
 		mesh->vertices = new Vector3[numVertices];
 		memcpy(mesh->vertices, readPositions.data(), numVertices * sizeof(Vector3));
@@ -779,7 +859,7 @@ void Mesh::GenerateBoundingBox()
 	minY = maxY = vertices[0].y;
 	minZ = maxZ = vertices[0].z;
 
-	for (int i = 0; i < numVertices; i++)
+	for (int i = 0; i < (int)numVertices; i++)
 	{
 		if (vertices[i].x < minX) minX = vertices[i].x;
 		if (vertices[i].x > maxX) maxX = vertices[i].x;

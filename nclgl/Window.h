@@ -32,6 +32,7 @@ public:
 
 	bool	UpdateWindow();	
 
+	OGLRenderer* GetRenderer() const { return renderer; }
 	void	SetRenderer(OGLRenderer* r);
 
 	HWND	GetHandle();

@@ -3,11 +3,13 @@ MeshMat
 1
 24
 M_SciFiHelmet
-4
-Diffuse:/Sci-Fi Helmet/textures/helmet_helmet_BaseColor_sRGB.png
-Bump:/Sci-Fi Helmet/textures/helmet_helmet_Normal_Raw.png
-Metallic:/Sci-Fi Helmet/textures/helmet_helmet_Metallic_Raw.png
-Height:/Sci-Fi Helmet/textures/helmet_helmet_Height_Raw.png
+6
+Diffuse:/Helmet/Helmet_BaseColor_sRGB.png
+Metallic:/Helmet/Helmet_Metallic_Raw.png
+Roughness:/Helmet/Helmet_Roughness_Raw.png
+Bump:/Helmet/Helmet_Normal_Raw.png
+Height:/Helmet/Helmet_Height_Raw.png
+Emission:/Helmet/Helmet_Emissive_sRGB.png
 0
 0
 0
